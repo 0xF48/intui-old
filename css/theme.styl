@@ -1,0 +1,350 @@
+dcolor = #F0F0F0
+bcolor = #E8E8E8
+.flex
+	display flex
+
+flex()
+	position relative
+	display flex
+	flex-wrap nowrap
+.start
+	justify-content flex-start
+	align-items flex-start
+.center
+	justify-content center
+	align-items center
+flex-center()
+	display flex
+	justify-content center
+	align-items center
+
+
+.no-pad
+	padding 0px !important
+
+
+
+//BUTTONS
+.dark-button
+	background #151515
+	color #F5F5F5
+	transition background 0.3s ease-out,color 0.3s ease-out
+	i 
+		background #151515
+		transition color 0.3s ease-out
+.dark-button:hover
+	i	
+		color #DFDFDF
+.dark-button-active
+	i
+		color #DFDFDF
+
+
+
+
+::-webkit-scrollbar
+	width: 5px;
+	background: #0C0C0C;
+	
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    background: linear-gradient(45deg,#FF0645,#FF310D);
+    //-webkit-box-shadow: inset 0 0 2px #FF310D; 
+}
+
+
+
+
+
+//THEMES
+.light
+	background #F5F5F5
+	color #151515
+
+.dark
+	background #151515
+	color #F5F5F5
+
+
+box()
+	flex-center()
+	margin 1px
+	padding 5px
+	margin 3px
+	outline: none;
+	border-radius 2px
+	border 1px solid;
+	transition background 0.3s ease-out
+	font-size 12px
+
+
+.light-box
+	box()
+	color: #000
+	background #FFF
+	border-color bcolor
+	border-radius 2px
+.light-box2
+	box()
+	color rgba(0, 0, 0, 0.65)
+	background #F0F0F0
+	border-color: bcolor
+	border-radius 2px
+.light-box2:hover
+	background #F7F7F7;
+	
+.light-box3
+	box()
+	color rgba(0, 0, 0, 0.75)
+	background #EBEBEB
+	border-color: #E4E4E4
+	border-radius 2px
+
+
+.dark-box
+	box()
+	color rgba(255, 255, 255, 0.81)
+	background #595959
+	border-color: #2E2E2E
+.dark-box2
+	box()
+	color rgba(255, 255, 255, 0.87)
+	background #2D2D2D
+	border-color: #030303
+
+
+
+.grow
+	flex-grow 1
+
+
+
+
+
+//GRADIENTS	
+.orange-gradient
+	background linear-gradient(45deg,#FE7C07,#FF550D)
+.pink-gradient
+	background linear-gradient(45deg,#FF0645,#FF310D)
+.red-gradient
+	background linear-gradient(45deg,#D90005,#DF2200)
+.dark-gradient
+	background linear-gradient(45deg,#2D0011,#2F000E)
+	
+.gray-bg
+	background rgba(100,100,100,0.1)
+.cream-bg
+	background rgba(255,255,245,1)
+	
+
+.orange
+	color #FC6014
+.red
+	color #FF113A
+.blue
+	color #95FAFF
+.gray
+	color rgba(0,0,0,0.1)
+	
+
+
+
+
+
+//LAYOUTS
+.flex
+	position relative
+	display flex
+	flex-wrap nowrap
+.flex-center
+	display flex
+	align-items center
+	align-content center
+	justify-content center
+	position relative
+	flex-wrap nowrap
+.align-center
+	align-items center
+.flex-start
+	align-items inherit
+	align-content flex-start		
+	flex-wrap wrap !important
+.flex-stretch
+	align-items stretch
+	align-content stretch	
+	flex-wrap no-wrap !important
+.stretch-self
+	align-self stretch
+.align-start
+	align-self flex-start
+.button
+	display flex
+	align-items center
+	align-content center
+	justify-content center
+	font-size 0.7em
+.split-right
+	flex-direction row
+.split-left
+	flex-direction row-reverse
+.split-down
+	flex-direction column
+	
+
+.three
+	perspective 1000px
+
+
+//SIZES
+.large
+	width 150px
+	height 150px
+.medium
+	min-width 60px
+	min-height 60px
+.small
+	flex-grow 0
+	width 35px
+	height 35px
+
+.image-full
+	width 100%
+	height auto
+.full
+	width 100%
+	height 100%
+.abs
+	position absolute
+.medium-text
+	font-size 15px
+.large-text
+	font-size 20px
+.small-text
+	font-size 12px
+	
+
+
+//SEPERATORS
+.column-well-small
+	padding-top 5px
+	padding-bottom 0px
+.column-split
+	padding 2px
+	border-bottom 1px solid bcolor
+.row-split
+	padding 3px
+	border-right 1px solid bcolor
+
+.outer-well
+	margin 20px
+.outer-well-small
+	margin 5px
+
+.inner-well
+	padding 20px
+.inner-well-small
+	padding 5px
+.inner-well-tiny
+	padding 2px
+
+
+
+.dark-border
+	border-color rgba(0,0,0,0.4)
+.light-border
+	border-color bcolor
+
+
+//THINIFIERS
+.thin-dark
+	text-shadow inset 1px 1px 0px #000, inset -1px -1px 0px #000
+
+
+
+//SHAPES
+.rectangle
+	width auto !important
+.circle
+	border-radius 100%
+
+.leaf
+	border-radius: 50% 0% 50% 0%;
+.tag
+	cursor: default
+	position relative
+	padding-left: 15px;
+	position relative
+	font-size 12px
+	width auto !important
+.tag:before
+	content " "
+	position absolute
+	left: 2px;
+	top 45%
+	width 4px
+	height 4px
+	border-radius 100%
+	background: #fff;
+	border: 1px solid bcolor;
+
+
+
+.thick-border
+	border 1px solid #fff
+	box-shadow: 0px 0px 1px rgba(255, 255, 255, 0.17);
+
+.thick-border-white
+	box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.33);
+	border: 1px solid #FFF;
+
+//ELEMENTS
+input
+	box()
+	border 0px 
+	border-radius 0px
+	border-right 1px solid  bcolor
+	border-left 1px solid bcolor
+
+	margin 0px
+	color rgba(0,0,0,0.7)
+	font-family: Dosis;
+	padding-left 14px
+	//transition background 0.5s ease-out
+	background rgba(252,252,252,1)
+	
+input:focus
+	background rgba(255,255,255,1)
+::-webkit-input-placeholder
+	color rgba(25,25,0,0.25)
+
+
+
+//ANIMATION
+.transform-in
+	transition transform  ease-in
+.transform-out
+	transition transform  ease-out
+.transform-inout
+	transition transform  cubic-bezier(.59,0,.07,1)
+.fast
+	transition-duration 0.25s
+.normal
+	transition-duration 1s
+
+
+
+
+//VISIBLITY
+.hidden
+	visibility hidden
+.visible
+	visibility initial
+
+.abs
+	position absolute
+	top 0
+	left 0
+
+
+
