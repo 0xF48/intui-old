@@ -156,6 +156,28 @@ Number.prototype.clamp = function(min, max) {
 
 
 
+
+/*	
+	This work is licensed under Creative Commons GNU LGPL License.
+	License: http://creativecommons.org/licenses/LGPL/2.1/
+	Version: 0.3 (UNSTABLE)
+	Author:  Yury Sidorov 
+
+
+
+	v0.3 (dependencies : GSAP.TweenLite, GSAP.Draggable)
+		- moved everything to custom html element for less repetition and more flexible performance.
+		- removed iscroll dependency and used GSAP libraries instead.
+		- removed jquery dependency
+*/
+
+
+/*
+
+u-slide
+
+*/
+
 /* -- */
 var u = u || {};
 
@@ -368,7 +390,7 @@ u.Loader = (function(){
 u.Base = {
 	u_Base: false,
 	initVars: function(){
-		this.props = {
+		this.v = {
 			//u-list
 		 	min: this.attributes['min'] != null ?  this.attributes['min'].value : null,
 			max: this.attributes['max'] != null ?  this.attributes['max'].value : null,
@@ -388,7 +410,7 @@ u.Base = {
 			x: 0,
 			y: 0
 		}
-//		console.log(this.props.scroll);
+//		console.log(this.v.scroll);
 		this.current = null;
 		this.isNested = false;
 		this.isActive = true;
@@ -397,7 +419,7 @@ u.Base = {
 
 
 		//init hoverscroll
-		if(this.props.scroll == 2){
+		if(this.v.scroll == 2){
 			this.initHoverScroll();
 		}
 
@@ -406,7 +428,7 @@ u.Base = {
 
 	initHTML: function(){
 		this.classList = [];
-		if(this.props.scroll%2 == 0){
+		if(this.v.scroll%2 == 0){
 			this.innerNode = document.createElement('div');
 			this.innerNode.classList.add('_intui_el');
 			this.classList.add('_intui_wp');
@@ -427,7 +449,7 @@ u.Base = {
 
 	initCSS: function(){
 		this.innerNode.classList = [];
-		switch(this.props.split){
+		switch(this.v.split){
 			case 'down':
 				this.innerNode.classList.add('_intui_down');
 			break;
@@ -441,7 +463,7 @@ u.Base = {
 				this.innerNode.classList.add('_intui_right');
 		}
 		
-		if(this.props.scroll == 1){
+		if(this.v.scroll == 1){
 			if(this.isVertical()){
 				this.classList.add('_intui_scroll_v')
 			}else{
@@ -449,8 +471,8 @@ u.Base = {
 			}
 		}
 
-		this.style.width = this.props.width || null;
-		this.style.height = this.props.height || null;
+		this.style.width = this.v.width || null;
+		this.style.height = this.v.height || null;
 
 
 	},
@@ -466,7 +488,7 @@ u.Base = {
 			//this.renderup();
 			//this.setCurrent();
 			// setTimeout(function() {
-			// 	this.props.parent._checkActive();
+			// 	this.v.parent._checkActive();
 			// }.bind(this), 0);
 			
 		}.bind(this))
@@ -521,35 +543,35 @@ u.Base = {
 	//get width from beta
 	wBeta: function(beta,off){
 		if(!this.isNested) return false;
-		return this.props.parent.v.scroll%2 == 0 ? (this.props.parent.clientWidth/100*beta+off)+'px' : beta+'%'
+		return this.v.parent.v.scroll%2 == 0 ? (this.v.parent.clientWidth/100*beta+off)+'px' : beta+'%'
 	},
 
 	//get height from beta
 	hBeta: function(beta,off){
 		if(!this.isNested) return false;
-		return this.props.parent.v.scroll%2 == 0 ? (this.props.parent.clientHeight/100*beta+off)+'px' : beta+'%'
+		return this.v.parent.v.scroll%2 == 0 ? (this.v.parent.clientHeight/100*beta+off)+'px' : beta+'%'
 	},
 
 	setBeta: function(){
-		if(!this.props.parent) return;
+		if(!this.v.parent) return;
 		if(this.isNested){
-			switch(this.props.parent.v.split){
+			switch(this.v.parent.v.split){
 				case 'down':
 				case 'up':
-					if(this.props.width == null) this.style.width = this.props.parent.style.width == 'auto' ? 'auto' : '100%';
-					if(this.props.height == null) this.style.height = this.hBeta(this.props.beta,this.props.offset);
+					if(this.v.width == null) this.style.width = this.v.parent.style.width == 'auto' ? 'auto' : '100%';
+					if(this.v.height == null) this.style.height = this.hBeta(this.v.beta,this.v.offset);
 					break;
 				case 'left':
 				case 'right':
 				default:
-					if(this.props.width == null) this.style.width = this.wBeta(this.props.beta,this.props.offset);
-					if(this.props.height == null) this.style.height = this.props.parent.style.height == 'auto' ? 'auto' : '100%';
+					if(this.v.width == null) this.style.width = this.wBeta(this.v.beta,this.v.offset);
+					if(this.v.height == null) this.style.height = this.v.parent.style.height == 'auto' ? 'auto' : '100%';
 					break;
 			}
 		//otherwise check for width and height settings and default to auto
 		}else{
-			if(this.props.width == null) this.style.width = this.props.parent.style.height == 'auto' ?  'auto' : '100%';
-			if(this.props.height == null) this.style.height = this.props.parent.style.height == 'auto' ?  'auto' : '100%';
+			if(this.v.width == null) this.style.width = this.v.parent.style.height == 'auto' ?  'auto' : '100%';
+			if(this.v.height == null) this.style.height = this.v.parent.style.height == 'auto' ?  'auto' : '100%';
 		}
 	},
 	/*
@@ -566,7 +588,7 @@ u.Base = {
 		this.setBeta();
 
 		//DONT GO PAST THIS IF SCROLLING IS DISABLED.
-		if(this.props.scroll %2 != 0) return
+		if(this.v.scroll %2 != 0) return
 		
 		this.setBeta();
 
@@ -611,7 +633,7 @@ u.Base = {
 		}
 		this.render();
 		this.setCurrent();
-		//if(this.props.parent == null) this.render();
+		//if(this.v.parent == null) this.render();
 	},
 
 	//UPDATE
@@ -634,8 +656,8 @@ u.Base = {
 
 
 	renderup: function(){
-		if(this.props.parent != null){
-			this.props.parent.renderup();
+		if(this.v.parent != null){
+			this.v.parent.renderup();
 		}else{
 			this.renderall();
 		}
@@ -701,24 +723,24 @@ u.Base = {
 
 	getSnapBounds: function(){
 		return {
-			minX: (this.isVertical() ? 0 : (this.props.split == 'left' ? -this.innerNode.clientWidth-this.clientWidth : 0) ),
-	   		maxX: (this.isVertical() ? 0 : (this.props.split == 'right' ? -this.innerNode.clientWidth+this.clientWidth : 0) ),	   		
+			minX: (this.isVertical() ? 0 : (this.v.split == 'left' ? -this.innerNode.clientWidth-this.clientWidth : 0) ),
+	   		maxX: (this.isVertical() ? 0 : (this.v.split == 'right' ? -this.innerNode.clientWidth+this.clientWidth : 0) ),	   		
 
-	   		minY: (!this.isVertical() ? 0 : (this.props.split == 'up' ? -this.innerNode.clientHeight -this.clientHeight: 0) ),
-	   		maxY: (!this.isVertical() ? 0 : (this.props.split == 'down' ? -this.innerNode.clientHeight+this.clientHeight : 0) ),
+	   		minY: (!this.isVertical() ? 0 : (this.v.split == 'up' ? -this.innerNode.clientHeight -this.clientHeight: 0) ),
+	   		maxY: (!this.isVertical() ? 0 : (this.v.split == 'down' ? -this.innerNode.clientHeight+this.clientHeight : 0) ),
 		}
 	},
 
 
 	initSnap: function(){
 
-		if(this.props.snap != true){
+		if(this.v.snap != true){
 			return;
 		}
 		console.log('init snap',this.innerNode.clientWidth)
 		this.dragger = Draggable.create(this.innerNode,{
 		    type: (this.isVertical()) ? 'y' : 'x',
-		    edgeResistance: this.props.snapvar,
+		    edgeResistance: this.v.snapvar,
 		    throwResistance: 5000,
 		    maxDuration: 0.5,
 		   	bounds: this.getSnapBounds(),
@@ -744,7 +766,7 @@ u.Base = {
 
 	//check if slide is vertical or not
 	isVertical : function(){
-		if(this.props.split == 'up' || this.props.split == 'down') return 1
+		if(this.v.split == 'up' || this.v.split == 'down') return 1
 		return 0
 	},
 
@@ -827,7 +849,7 @@ u.Base = {
 	//check if this slide is active and if not, scroll to it recursevly all the way up until an active parent has been found
 	showSelf: function(duration,recursive,ease,scroller){
 
-		if(this.props.parent == null){
+		if(this.v.parent == null){
 			TweenLite.to(scroller || this.parentElement,duration/1000 || 1,{
 				scrollTo:{
 					y:this.offsetTop,
@@ -837,10 +859,10 @@ u.Base = {
 			})
 			return
 		}
-		if(recursive) this.props.parent.showSelf(duration,1,ease);
-		if(this.props.parent.v.scroll%2 == 0){
+		if(recursive) this.v.parent.showSelf(duration,1,ease);
+		if(this.v.parent.v.scroll%2 == 0){
 			
-			this.props.parent.slide(this,duration,ease);
+			this.v.parent.slide(this,duration,ease);
 		}
 	},
 
@@ -850,13 +872,13 @@ u.Base = {
 	//get the offset Pixels
 	off: function(){
 		if(!this.isNested) return;
-		return parseInt(-1* (this.props.parent.isVertical() ? this.offsetTop : this.offsetLeft))
+		return parseInt(-1* (this.v.parent.isVertical() ? this.offsetTop : this.offsetLeft))
 	},
 
 
 	//get slide neighbors
 	neighbor: function(d){
-		var p = this.props.parent;
+		var p = this.v.parent;
 		if(!p) return false;
 		var index = p.slides.indexOf(this);
 		if(d == null){
@@ -872,7 +894,7 @@ u.Base = {
 	//3D EFFECTS
 	rotate: function(opt){
 		function dir(){
-		//	switch((this.props.parent != null ? this.props.parent.v.split : null) || this.props.split)
+		//	switch((this.v.parent != null ? this.v.parent.v.split : null) || this.v.split)
 		}
 		TweenLite.to(this,2,{
 			rotationX: opt.rot,
@@ -927,36 +949,36 @@ u.Base = {
 		
 
 		if(this.parentElement != null && this.parentElement.u_Base){
-			this.props.parent = this.parentElement;
-			this.props.parent.slides.push(this);
+			this.v.parent = this.parentElement;
+			this.v.parent.slides.push(this);
 			this.isNested = true;
 
 			//set current
-			if(this.props.start == true) this.props.parent.current = this;
-			this.props.parent.setCurrent();
+			if(this.v.start == true) this.v.parent.current = this;
+			this.v.parent.setCurrent();
 
 			//this.renderup();
 		}else if(this.parentElement != null && this.parentElement.parentElement != null && this.parentElement.parentElement.u_Base && this.parentElement.parentElement.innerNode == this.parentElement){
 
 			var p = this.parentElement.parentElement;
-			this.props.parent = p;
+			this.v.parent = p;
 			p.slides.push(this);
 			this.isNested = true;
 			//this.renderup();
 
 			//set current
-			if(this.props.start == true) p.current = this;
+			if(this.v.start == true) p.current = this;
 			p.setCurrent();
 			
 		}else if(this.offsetParent != null && this.parentElement.u_Base){
 			//console.log(this.offsetParent.v)
-			this.props.parent = this.offsetParent;
-			this.props.parent.slides.push(this);
+			this.v.parent = this.offsetParent;
+			this.v.parent.slides.push(this);
 			this.isNested = true;
 
 			//set current
-			if(this.props.start == true) this.props.parent.current = this;
-			this.props.parent.setCurrent();
+			if(this.v.start == true) this.v.parent.current = this;
+			this.v.parent.setCurrent();
 		}
 
 
@@ -964,7 +986,7 @@ u.Base = {
 
 
 
-		if(this.props.scroll%2 == 0){
+		if(this.v.scroll%2 == 0){
 			//console.log(this.attributes['class']);
 			//console.log('add event listener')
 			addResizeListener(this,this.render);
@@ -981,10 +1003,10 @@ u.Base = {
 	end:function(){
 
 		this.isNested = false;
-		if(this.props == null) return;
-		if(this.props.parent == null) return;
-		this.props.parent.slides.splice(this.props.parent.slides.indexOf(this),1);
-		this.props.parent = null;
+		if(this.v == null) return;
+		if(this.v.parent == null) return;
+		this.v.parent.slides.splice(this.v.parent.slides.indexOf(this),1);
+		this.v.parent = null;
 		removeResizeListener(this,this.render);
 	}
 }
@@ -1188,11 +1210,11 @@ u-list (infinitly scrollable container for u-slide templates)
 // 	proto = _.merge(Object.create(HTMLElement.prototype),u.Base,{
 		
 // 		add: function(html){
-// 			this.propsiews.push(html);
+// 			this.views.push(html);
 // 		},
 		
 // 		clear: function(){
-// 			this.propsiews = [];
+// 			this.views = [];
 // 			this.innerHTML = '';
 // 		},
 
@@ -1201,9 +1223,9 @@ u-list (infinitly scrollable container for u-slide templates)
 // 		},
 
 // 		initHTML: function(){
-// 			this.style.width = this.props.width;
-// 			this.style.height = this.props.height;
-// 			switch(this.props.type){
+// 			this.style.width = this.v.width;
+// 			this.style.height = this.v.height;
+// 			switch(this.v.type){
 // 				case 'scroll':
 					
 // 					break;

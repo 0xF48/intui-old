@@ -1,10 +1,11 @@
 {
   "name": "intui",
   "version": "0.0.0",
-  "main": "./main.js",
+  "main": "./index.js",
   "dependencies": {
     "gsap": "^1.18.0",
     "lodash": "^3.10.1",
-    "react": "^0.14.3"
+    "react": "^0.14.3",
+    "react-addons-update": "^0.14.3"
   }
 }
