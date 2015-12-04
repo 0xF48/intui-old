@@ -155,7 +155,7 @@ Number.prototype.clamp = function(min, max) {
 
 
 
-
+var _ = require('lodash');
 
 /*	
 	This work is licensed under Creative Commons GNU LGPL License.
@@ -390,6 +390,9 @@ u.Loader = (function(){
 u.Base = {
 	u_Base: false,
 	initVars: function(){
+		console.log("INIT")
+
+
 		this.v = {
 			//u-list
 		 	min: this.attributes['min'] != null ?  this.attributes['min'].value : null,
@@ -1154,36 +1157,29 @@ u.Button = (function(){
 
 
 
-u.Slide = (function(){
-	var proto = Object.create(HTMLDivElement.prototype)
+
+var proto = Object.create(HTMLDivElement.prototype)
 
 
-	_.merge(proto,u.Base)
+_.merge(proto,u.Base)
+proto.createdCallback = function(){
+	return this;
+};
 
+proto.attachedCallback = function(){
+	this.start();
+};
 
+proto.detachedCallback = function(){
+	this.end();
+};
 
+console.log(proto);
 
-	proto.createdCallback = function(){
-
-		return this;
-	};
-
-	proto.attachedCallback = function(){
-		this.start();
-	};
-
-	proto.detachedCallback = function(){
-		this.end();
-
-	};
-
-//	console.log(proto);
-
-	return document.registerElement('u-slide', {
-		extends:'div',
-		prototype: proto
-	});
-})();
+module.exports = document.registerElement('u-slide', {
+	extends:'div',
+	prototype: proto
+});
 
 
 
@@ -1195,74 +1191,3 @@ u.Slide = (function(){
 
 
 
-
-
-
-
-/*
-
-u-list (infinitly scrollable container for u-slide templates)
-
-*/
-// u.List = (function(){
-
-
-// 	proto = _.merge(Object.create(HTMLElement.prototype),u.Base,{
-		
-// 		add: function(html){
-// 			this.views.push(html);
-// 		},
-		
-// 		clear: function(){
-// 			this.views = [];
-// 			this.innerHTML = '';
-// 		},
-
-// 		render: function(){
-
-// 		},
-
-// 		initHTML: function(){
-// 			this.style.width = this.v.width;
-// 			this.style.height = this.v.height;
-// 			switch(this.v.type){
-// 				case 'scroll':
-					
-// 					break;
-// 				case 'slide':
-
-// 					break;
-// 			}
-// 		},
-
-// 		flex: function(){
-// 			var d = 
-// 		}
-// 	});
-
-// 	proto.createdCallback = function(){
-// 		//console.log(this)
-// 		this.initVars();
-// 		this.root = this.createShadowRoot();
-
-// 		this.root.appendChild(this.slide);
-// 	}
-
-// 	proto.attachedCallback = function(){
-
-// 	}
-
-// 	proto.detachedCallback = function(){
-
-// 	}
-
-
-
-// 	//register element
-	
-// 	console.log('asd')
-// 	//return prototype for raw use
-// 	return document.registerElement('u-list',{
-// 		prototype: proto
-// 	});
-// })();

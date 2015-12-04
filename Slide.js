@@ -5,6 +5,8 @@ var update = require('react-addons-update');
 //require('react/addons')
 var rendercalls = 0;
 
+var HACK;
+
 var Slide = React.createClass({
 	s: {
 		inner: {
@@ -51,13 +53,13 @@ var Slide = React.createClass({
 
 
 		var state = {
+			dim: -1,
 			beta: this.props.beta,
 			scroll: {
 				x: 0,
 				y: 0,
 			},
-			dynamic: true,
-			dynamic : this.props.scroll ? false : true, 
+			dynamic : true,//this.props.scroll ? true : false, 
 			split: (function(){
 
 				if(this.props.split) return this.props.split;
@@ -79,18 +81,27 @@ var Slide = React.createClass({
 
 		state.vertical = (state.split == 'down' || state.split == 'up') ? true : false;
 
-		this.style = {inner:{},outer:{}};
-		Object.assign(this.style.inner,
+		this.stylee = {inner:{},outer:{},static:{}};
+		Object.assign(this.stylee.inner,
 			this.s.inner,
 			state.split == 'right' ? this.s.dir.right : null,
 			state.split == 'left' ? this.s.dir.left : null,
 			state.split == 'up' ? this.s.dir.up : null,
 			state.split == 'down' ? this.s.dir.down : null);
 
-		Object.assign(this.style.outer,
+		Object.assign(this.stylee.outer,
 			this.s.outer,
 			this.props.scroll ? (state.vertical ? this.s.scroll.v : this.s.scroll.h) : null,
 			this.props.style || null);
+
+		Object.assign(this.stylee.static,
+			this.s.inner,
+			state.split == 'right' ? this.s.dir.right : null,
+			state.split == 'left' ? this.s.dir.left : null,
+			state.split == 'up' ? this.s.dir.up : null,
+			state.split == 'down' ? this.s.dir.down : null,
+			this.props.style || null);
+
 
 
 		return state;
@@ -133,16 +144,17 @@ var Slide = React.createClass({
 	},
 
 	wBeta: function(){
-		return (this.state.dynamic) ? (this.refs.outer.parentElement.clientWidth/100*this.state.beta+this.props.offset)+'px' : this.state.beta+'%'
+		return this.state.beta+'%'
 	},
 	hBeta: function(){
-		return (this.state.dynamic) ? (this.refs.outer.parentElement.clientHeight/100*this.state.beta+this.props.offset)+'px' : this.state.beta+'%'
+		return this.state.beta+'%'
 	},
 
 	getOuterHW: function(){
+
 		//console.log('GET OUTER HW',this.context.dir)
 
-		var h,w;
+		var h= null,w = null;
 
 		if( this.context.dir ){ //parent is a node!
 			if( !this.props.width ){
@@ -159,6 +171,7 @@ var Slide = React.createClass({
 			w = this.props.width || this.props.beta+'%';
 		}
 
+
 		return {
 			height : h,
 			width : w
@@ -172,6 +185,7 @@ var Slide = React.createClass({
 		}
 		
 		//INNER NODE COLACULATIONS
+		var w,h;
 
 		//calulate the dimentions of _el by adding all the dimentions of its nested elements (this is for scrollable containers)
 		var d = 0;
@@ -184,21 +198,30 @@ var Slide = React.createClass({
 				d += child.props.height != null ? parseInt(child.props.height) : this.refs.outer.clientHeight/100*child.props.beta;
 			}
 		}
-		
-		if(d < this.refs.outer.clientWidth && !this.state.vertical){
-			w = '100%'
-		}
-
-		else if(d < this.refs.outer.clientHeight && this.state.veritcal){
-			h = '100%'
-		}
 
 		if(!this.state.vertical){
-			w = d+'px';
-			h = '100%'
-		}
+			if(d < this.refs.outer.clientWidth){
+				w = '100%';
+			}else{
+				w = d+'px';
+			}
 
-		else h = d+'px';
+			h = '100%';
+			
+		}else {
+			if(d < this.refs.outer.clientHeight){
+				h = '100%';
+			}else{
+				h = d+'px';
+			}
+			
+			w = '100%';
+		};
+
+		// if(this.props.id == "test"){
+		// 	console.log(h,w)
+		// }
+
 
 		return {
 			width: w,
@@ -207,19 +230,22 @@ var Slide = React.createClass({
 	},
 
 	contextTypes: {
+		dim: React.PropTypes.number,
 		dir: React.PropTypes.string,
 		auto_h: React.PropTypes.bool,
 		auto_w: React.PropTypes.bool
 	},
 
 	childContextTypes: {
+		dim: React.PropTypes.number,
 		dir: React.PropTypes.string,
 		auto_h: React.PropTypes.bool,
 		auto_w: React.PropTypes.bool
 	},
 
   	getChildContext: function() {
-  		//console.log('GET CONTEXT',this.state.split)
+  		//console.log('GET CONTEXT',this.props.id,this.refs.outer ? (this.state.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth) : 0)
+  		//HACK = this.refs.outer ? (this.state.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth) : 0;
   		return {
   			dir: this.state.split,
   			auto_h: this.props.height === 'auto' ? true : false,
@@ -227,34 +253,31 @@ var Slide = React.createClass({
   		}
   	},
 
-	shouldComponentUpdate:function(props,state){
-		var inner = this.getInnerHW();
-		var outer = this.getOuterHW();
+  	getDim: function(){
+  		if(this.state.vertical){
+  			return this.refs.outer.clientHeight/this.refs.outer.clientWidth
+  		}else return this.refs.outer.clientHeight/this.refs.outer.clientWidth
+  	},
 
-		// //console.log('SHOULD UPDATE ?',inner.w,outer.w,this.state.inner,this.state.outer,this.refs.inner);
-	
-		
-
-		var same_outer = (outer.width == this.state.outer.width && outer.height == this.state.outer.height)
-		var same_inner = (inner.width == this.state.inner.width && inner.height == this.state.inner.height);
-
-		if(same_outer && same_inner) return false;
-
-		//console.log(same_outer,same_inner);
-
-		
-		this.updateState(inner,outer);
-
-		return true;
+	shouldComponentUpdate: function(){
+	//	console.log('SHOULD UPDATE ? ',this.props.id,this.state.dim,'->',this.getDim());
+		if(this.state.dim == this.getDim()) return false
+		this.updateState();
+		return true
 	},
 
+
 	updateState: function(inner,outer){
-		var s = {
-			inner: inner || this.getInnerHW(),
-			outer: outer || this.getOuterHW()
-		}
+		// var s = {
+		// 	dim: this.getDim(),
+		// //	inner: inner || this.getInnerHW(),
+		// //	outer: outer || this.getOuterHW()
+		// }
+		//console.log('UPDATE',this.props.id,'to',s.inner,s.outer)
 		//console.log(s,this.refs.outer);
-		this.setState(s);
+		this.setState({
+			dim: this.getDim()
+		});
 	},
 
 	componentDidMount: function(){
@@ -265,18 +288,47 @@ var Slide = React.createClass({
 
 	render: function(){
 		rendercalls ++;
-		console.log('#',rendercalls);
-		////console.log(this.state.inner)
-		var inner_style = update(this.style.inner,{$merge : this.state.inner});
-		var outer_style = update(this.style.outer,{$merge : this.state.outer});
+		//console.log('#',rendercalls);
+
+		//console.log(this.state.inner,this.state.outer);
+		if(this.refs.inner != null){
+			var inner = this.getInnerHW();
+			var outer = this.getOuterHW();
+		}else{
+			var inner = {}
+			var outer = {}
+		}
 		
-		return (
-			<div style = {outer_style} ref='outer' >
-				<div style = {inner_style} ref='inner' >
+
+
+	
+		if(this.state.dynamic){
+		//	var outer = update(this.style.outer,{$merge : this.state.outer});
+		//	var inner = update(this.style.inner,{$merge : this.state.inner});
+			//console.log(inner,this.state.inner,this.style.inner);
+			return (
+				<div style = {_.merge({
+					width : outer.width,
+					height : outer.height
+				},this.stylee.outer)} ref='outer' >
+					<div style = {_.merge({
+						width: inner.width,
+						height: inner.height
+					},this.stylee.inner)} ref='inner' >
+						{this.props.children}
+					</div>
+				</div>
+			)
+		}else{
+			return (
+				<div style = {{
+					width: outer.width,
+					height: outer.height
+				}} ref='outer' >
 					{this.props.children}
 				</div>
-			</div>
-		);
+			)			
+		}
 	},
 
 });
