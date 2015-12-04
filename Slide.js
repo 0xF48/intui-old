@@ -4,7 +4,7 @@ var _ = require('lodash');
 var update = require('react-addons-update');
 //require('react/addons')
 var rendercalls = 0;
-
+window.rendercalls = rendercalls;
 var HACK;
 
 var Slide = React.createClass({
@@ -81,20 +81,20 @@ var Slide = React.createClass({
 
 		state.vertical = (state.split == 'down' || state.split == 'up') ? true : false;
 
-		this.stylee = {inner:{},outer:{},static:{}};
-		Object.assign(this.stylee.inner,
+		this.styl = {inner:{},outer:{},static:{}};
+		Object.assign(this.styl.inner,
 			this.s.inner,
 			state.split == 'right' ? this.s.dir.right : null,
 			state.split == 'left' ? this.s.dir.left : null,
 			state.split == 'up' ? this.s.dir.up : null,
 			state.split == 'down' ? this.s.dir.down : null);
 
-		Object.assign(this.stylee.outer,
+		Object.assign(this.styl.outer,
 			this.s.outer,
 			this.props.scroll ? (state.vertical ? this.s.scroll.v : this.s.scroll.h) : null,
 			this.props.style || null);
 
-		Object.assign(this.stylee.static,
+		Object.assign(this.styl.static,
 			this.s.inner,
 			state.split == 'right' ? this.s.dir.right : null,
 			state.split == 'left' ? this.s.dir.left : null,
@@ -151,6 +151,10 @@ var Slide = React.createClass({
 	},
 
 	getOuterHW: function(){
+		
+		if(this.state.dim < 0){
+			return {}
+		}
 
 		//console.log('GET OUTER HW',this.context.dir)
 
@@ -179,7 +183,7 @@ var Slide = React.createClass({
 	},
 
 	getInnerHW: function(){
-		if( !this.state.dynamic ) return {
+		if( !this.state.dynamic || this.state.dim < 0 ) return {
 			height: '100%',
 			width: '100%'
 		}
@@ -260,77 +264,47 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(){
-	//	console.log('SHOULD UPDATE ? ',this.props.id,this.state.dim,'->',this.getDim());
 		if(this.state.dim == this.getDim()) return false
-		this.updateState();
-		return true
+		return this.updateState();
 	},
 
 
 	updateState: function(inner,outer){
-		// var s = {
-		// 	dim: this.getDim(),
-		// //	inner: inner || this.getInnerHW(),
-		// //	outer: outer || this.getOuterHW()
-		// }
-		//console.log('UPDATE',this.props.id,'to',s.inner,s.outer)
-		//console.log(s,this.refs.outer);
 		this.setState({
 			dim: this.getDim()
 		});
+		return true
 	},
 
 	componentDidMount: function(){
-		////console.log("MOUNTED",this.refs.inner,this.refs.outer);
 		window.onresize = this.updateState; //TODO
 		this.updateState();
 	},
 
 	render: function(){
 		rendercalls ++;
-		//console.log('#',rendercalls);
-
-		//console.log(this.state.inner,this.state.outer);
-		if(this.refs.inner != null){
-			var inner = this.getInnerHW();
-			var outer = this.getOuterHW();
-		}else{
-			var inner = {}
-			var outer = {}
-		}
 		
 
-
+		var inner = this.getInnerHW();
+		var outer = this.getOuterHW();
 	
+		
 		if(this.state.dynamic){
-		//	var outer = update(this.style.outer,{$merge : this.state.outer});
-		//	var inner = update(this.style.inner,{$merge : this.state.inner});
-			//console.log(inner,this.state.inner,this.style.inner);
 			return (
-				<div style = {_.merge({
-					width : outer.width,
-					height : outer.height
-				},this.stylee.outer)} ref='outer' >
-					<div style = {_.merge({
-						width: inner.width,
-						height: inner.height
-					},this.stylee.inner)} ref='inner' >
+				<div style = {Object.assign(outer,this.styl.outer)} ref='outer' >
+					<div style = {Object.assign(inner,this.styl.inner)} ref='inner' >
 						{this.props.children}
 					</div>
 				</div>
 			)
 		}else{
 			return (
-				<div style = {{
-					width: outer.width,
-					height: outer.height
-				}} ref='outer' >
+				<div style = {Object.assign(outer,this.styl.outer)} ref='outer' >
 					{this.props.children}
 				</div>
 			)			
 		}
 	},
-
 });
 
 module.exports = Slide;
