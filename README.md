@@ -1,2 +1,2 @@
 # intui
-recursive sliding based and responsive component layout framework and ui theme for react
+a one of a kind react ui framework
