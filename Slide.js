@@ -333,7 +333,7 @@ var Slide = React.createClass({
 	},
 
 	componentDidMount: function(){
-		window.onresize = this.updateState; //TODO
+		//TODO
 		this.updateRect();
 		this.updateState();
 	},
