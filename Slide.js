@@ -1,7 +1,7 @@
 var React = require('react');
 // var resizeListener = require('')
-var _ = require('lodash');
-require('gsap');
+//var _ = require('lodash');
+require('gsap/src/minified/TweenLite.min.js');
 var update = require('react-addons-update');
 //require('react/addons')
 var rendercalls = 0;
@@ -298,7 +298,7 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(props,state){
-		this.updateRect();
+		this.getRekt();
 
 		if(this.state.dim == this.getHWRatio()){
 
@@ -316,7 +316,7 @@ var Slide = React.createClass({
 		return this.updateState(state);
 	},
 
-	updateRect: function(){
+	getRekt: function(){
 		this.rect = this.refs.outer.getBoundingClientRect();
 	},
 
@@ -334,7 +334,7 @@ var Slide = React.createClass({
 
 	componentDidMount: function(){
 		//TODO
-		this.updateRect();
+		this.getRekt();
 		this.updateState();
 	},
 
@@ -379,7 +379,7 @@ var Slide = React.createClass({
 	},
 
 	to: function(opt){
-		this.updateRect();
+		this.getRekt();
 
 
 		opt.ease = opt.ease || Power2.easeOut;

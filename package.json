@@ -6,7 +6,9 @@
   "dependencies": {
     "gsap": "^1.18.0",
     "lodash": "^3.10.1",
-    "react": "^0.14.3",
     "react-addons-update": "^0.14.3"
+  },
+  "browserify": {
+    "transform": ["reactify"]
   }
 }
