@@ -1,41 +1,31 @@
 var React = require('react');
-// var resizeListener = require('')
-//var _ = require('lodash');
-require('gsap/src/minified/TweenLite.min.js');
 var update = require('react-addons-update');
-//require('react/addons')
 var rendercalls = 0;
 window.rendercalls = rendercalls;
 var HACK;
 
 var Slide = React.createClass({
 	s: {
-		inner: {
-			position : "relative",
-			display : "flex",
-			flexWrap : "nowrap",
-		},
 		outer: {
 			position : "relative",
 			overflowX : "hidden",
 			overflowY : "hidden",
 		},
-		dir: {
-			right: 	{ "flexDirection":"row" },
-			left: 	{ "flexDirection":"row-reverse" },
-			up: 	{ "flexDirection":"column-reverse" },
-			down: 	{ "flexDirection":"column" }
-		},
+		right: 	{"float":"left"},
+		down: 	{"float":"top" },
+		
 		scroll: {
 			h: {
+				'-webkit-overflow-scrolling': "touch",
 				"overflowScrolling" : "touch",
-				"display" :"initial",
 				"overflowX" :"scroll",
+				"overflowY" : "hidden"
 			},
 			v: {
+				'-webkit-overflow-scrolling': "touch",
 				"overflowScrolling": "touch",
-				"display" :"initial",
 				"overflowY": "scroll",
+				"overflowX" : "hidden"
 			}
 		}
 	},
@@ -51,6 +41,7 @@ var Slide = React.createClass({
 		this.styl = {inner:{},outer:{},static:{}};
 
 		this.rect = {
+			total_beta: 100,
 			width:0,
 			height:0
 		}
@@ -62,15 +53,7 @@ var Slide = React.createClass({
 			dim: -1,
 			beta: this.props.beta,
 			dynamic : (this.props.scroll || this.props.slide) ? true : false, 
-			split: (function(){
-
-				if(this.props.split) return this.props.split;
-				if(this.props.right) return 'right';
-				if(this.props.left) return 'left';
-				if(this.props.down) return 'down';
-				if(this.props.up) return 'up';
-				return 'down'
-			}.bind(this))(),
+			vertical: this.props.down || this.props.v ? true : false,
 			inner:{
 				width: '100%',
 				height: '100%'
@@ -80,50 +63,31 @@ var Slide = React.createClass({
 				height: '100%'
 			}
 		}
-
-		state.vertical = (state.split == 'down' || state.split == 'up') ? true : false;
-
-		
-		Object.assign(this.styl.inner,
-			this.s.inner,
-			state.split == 'right' ? this.s.dir.right : null,
-			state.split == 'left' ? this.s.dir.left : null,
-			state.split == 'up' ? this.s.dir.up : null,
-			state.split == 'down' ? this.s.dir.down : null);
+		Object.assign(this.styl.inner,{overflow:'hidden'})
 
 		Object.assign(this.styl.outer,
-			this.s.outer,
-			this.props.scroll ? (state.vertical ? this.s.scroll.v : this.s.scroll.h) : null,
-			this.props.style || null);
+			this.props.scroll ? (state.vertical ? this.s.scroll.v : this.s.scroll.h) : null
+		);
 
 		
 
-		Object.assign(this.styl.static,
-			this.s.inner,
-			state.split == 'right' ? this.s.dir.right : null,
-			state.split == 'left' ? this.s.dir.left : null,
-			state.split == 'up' ? this.s.dir.up : null,
-			state.split == 'down' ? this.s.dir.down : null,
-			this.props.style || null);
+
 		return state;
 	},
 
 	getDefaultProps: function(){
 
 		return {
+			//split direction.
+			v: false,
 			slide: null,
 			index: 0,
 			duration: 0.5,
-			debug: {
-				level:0,
-				index:0
-			},
 			auto_h: false,
 			auto_w: false,
 			snapvar: 0.8,
 			offset: 0,
 			beta: 100,
-			split: null,
 			start: false,
 			current: null,
 			scroll: null,
@@ -156,39 +120,35 @@ var Slide = React.createClass({
 		}
 	},
 
-	wBeta: function(){
-		return this.state.beta+'%'
-	},
+	getBeta: function(){
+		// if(this.refs.outer == null) return 100
+		// var p = this.refs.outer.parentElement;
 
-	hBeta: function(){
-		return this.state.beta+'%'
+		// var total_beta = p && (!this.state.vertical ? p.clientWidth/this.rect.width*100 : p.clientHeight/this.rect.height*100) || 100;
+  // 		if(total_beta < 100) total_beta = 100;
+  // 		//console.log("GET TOTAL BETA FOR",this.props.id,total_beta);
+		// //console.log('GET BETA',this.props.id,total_beta,this.state.beta);
+		return 100/this.context.total_beta*this.state.beta+'%'
 	},
 
 	getOuterHW: function(){
-		
-		if(this.state.dim < 0){
-			return {}
+		//console.log("GET OUTER HW",this.props.id,this.state.dim)
+		if( this.context.total_beta == null ){
+			return {
+				height: this.props.height || this.state.beta+'%',
+				width: this.props.width || this.state.beta+'%'
+			}
 		}
-
-		//console.log('GET OUTER HW',this.context.dir)
 
 		var h= null,w = null;
 
-		if( this.context.dir ){ //parent is a node!
-			if( !this.props.width ){
-				if(this.context.dir == 'down' || this.context.dir == 'up') w = this.context.auto_w ? 'auto' : '100%';
-				else w = this.wBeta();
-			}else{ w = this.props.width }
-			
-			if( !this.props.height ){
-				if(this.context.dir == 'down' || this.context.dir == 'up') h = this.hBeta();
-				else h = this.context.auto_h ? 'auto' : '100%';
-			}else { h = this.props.height }
+		if(this.context.vertical){
+			h = this.getBeta();
+			w = '100%';
 		}else{
-			h = this.props.height || this.props.beta+'%';
-			w = this.props.width || this.props.beta+'%';
+			h = '100%';
+			w = this.getBeta();
 		}
-
 
 		return {
 			height : h,
@@ -196,17 +156,9 @@ var Slide = React.createClass({
 		}
 	},
 
-	getInnerHW: function(){
-		if( !this.state.dynamic || this.state.dim < 0 ) return {
-			height: '100%',
-			width: '100%'
-		}
-		
-		//INNER NODE CALCULATIONS
-		var w,h;
-
-		//calulate the dimentions of inner div by adding all the dimentions of its nested elements (this is for scrollable containers)
-		var d = 0;
+	getInnerDim: function(){
+		if(!this.props.children) return 0
+		var d = 0
 		for(var i = 0; i < this.props.children.length; i++){
 			var child = this.props.children[i];
 			if(child.type.displayName !== 'Slide') continue;
@@ -215,8 +167,22 @@ var Slide = React.createClass({
 			}else{
 				d += child.props.height != null ? parseInt(child.props.height) : this.rect.height/100*child.props.beta;
 			}
+		}	
+		return d	
+	},
+	
+	getInnerHW: function(){
+		if( !this.state.dynamic || this.state.dim < 0 || !this.props.children) return {
+			height: '100%',
+			width: '100%'
 		}
+		
+		//INNER NODE CALCULATIONS
+		var w,h;
 
+		//calulate the dimentions of inner div by adding all the dimentions of its nested elements (this is for scrollable containers)
+		var d = this.getInnerDim();
+		
 		if(!this.state.vertical){
 			if(d < this.rect.width){
 				w = '100%';
@@ -236,13 +202,6 @@ var Slide = React.createClass({
 			w = '100%';
 		};
 
-
-
-		// if(this.props.id == "test"){
-		// 	console.log(h,w)
-		// }
-
-
 		return {
 			width: w,
 			height: h
@@ -250,22 +209,32 @@ var Slide = React.createClass({
 	},
 
 	contextTypes: {
-		dir: React.PropTypes.string,
+		total_beta: React.PropTypes.number,
+		vertical: React.PropTypes.bool,
 		auto_h: React.PropTypes.bool,
 		auto_w: React.PropTypes.bool
 	},
 
 	childContextTypes: {
-		dir: React.PropTypes.string,
+		total_beta: React.PropTypes.number,
+		vertical: React.PropTypes.bool,
 		auto_h: React.PropTypes.bool,
 		auto_w: React.PropTypes.bool
 	},
 
+
+
+	getTotalBeta: function() {
+		if(!this.props.children) return 100
+		var b = this.getInnerDim()/(this.state.vertical ? this.rect.height : this.rect.width)*100
+		if( b < 100 ) b = 100;
+		return b
+	},
+
   	getChildContext: function() {
-  		//console.log('GET CONTEXT',this.props.id,this.refs.outer ? (this.state.vertical ? this.rect.height : this.rect.width) : 0)
-  		//HACK = this.refs.outer ? (this.state.vertical ? this.rect.height : this.rect.width) : 0;
   		return {
-  			dir: this.state.split,
+  			total_beta: this.getTotalBeta(),
+  			vertical: this.state.vertical,
   			auto_h: this.props.height === 'auto' ? true : false,
   			auto_w: this.props.width === 'auto' ? true : false,
   		}
@@ -300,6 +269,8 @@ var Slide = React.createClass({
 	shouldComponentUpdate: function(props,state){
 		this.getRekt();
 
+		//console.log('SHUD UPD',this.props.id,this.state.dim,this.getHWRatio())
+
 		if(this.state.dim == this.getHWRatio()){
 
 			if(this.props.slide && (this.state.x != state.x || this.state.y != state.y)){
@@ -320,12 +291,14 @@ var Slide = React.createClass({
 		this.rect = this.refs.outer.getBoundingClientRect();
 	},
 
-
 	updateState: function(state){
 		state = state || this.state;
+
+		//set inner style.
 		
+
 		if(this.props.slide) this.setXY(this.ratio2X(state.x),this.ratio2Y(state.y)); 	//static x,y (no animation)
-	
+		//console.log("UPDATE STATE TO ->",this.props.id,this.getHWRatio())
 		this.setState({
 			dim: this.getHWRatio(),
 		});
@@ -334,20 +307,26 @@ var Slide = React.createClass({
 
 	componentDidMount: function(){
 		//TODO
+		//console.log("MOUNTED",this.props.id)
 		this.getRekt();
 		this.updateState();
 	},
 
 	render: function(){
+		//console.log("RENDER",this.props.id,rendercalls)
 		rendercalls ++;
-		var outer = this.getOuterHW();
 
-		Object.assign(outer,this.styl.outer)
+		var outer = this.getOuterHW();
+	
+		
+
+		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,this.props.style);
+		
 		if(this.state.dynamic){
 			var inner = this.getInnerHW();
 			Object.assign(inner,this.styl.inner)
 			return (
-				<div style = {outer} ref='outer' >
+				<div className={this.props.className || ''} style = {outer} ref='outer' >
 					<div style = {inner} ref='inner' >
 						{this.props.children}
 					</div>
@@ -356,7 +335,7 @@ var Slide = React.createClass({
 		}else{
 			Object.assign(outer,this.styl.static)
 			return (
-				<div style = {outer} ref='outer' >
+				<div className={this.props.className || ''} style = {outer} ref='outer' >
 					{this.props.children}
 				</div>
 			)			
@@ -367,7 +346,7 @@ var Slide = React.createClass({
 		TweenLite.to(this.scroller || this.refs.inner, dur || this.state.duration,{
 			ease: this.state.ease,
 			x:-1*x,
-			y:-1*y
+			y:-1*y,
 		})
 	},
 
@@ -400,7 +379,7 @@ var Slide = React.createClass({
 			y = opt.y || 0;
 		}
 
-		//console.log("this.to",x,y)
+		////console.log("this.to",x,y)
 		this.setState({
 			ease: opt.ease,
 			duration: opt.dur,
