@@ -8,8 +8,7 @@ var Slide = React.createClass({
 	s: {
 		outer: {
 			position : "relative",
-			overflowX : "hidden",
-			overflowY : "hidden",
+			overflow : "hidden",
 		},
 		right: 	{"float":"left"},
 		down: 	{"float":"top" },
@@ -37,9 +36,9 @@ var Slide = React.createClass({
 		@[right,left,up,down] -> slide direction
 	*/
 	getInitialState: function(props){
+		
 		this.stage = {x:0,y:0};
 		this.styl = {inner:{},outer:{},static:{}};
-
 		this.rect = {
 			total_beta: 100,
 			width:0,
@@ -63,14 +62,13 @@ var Slide = React.createClass({
 				height: '100%'
 			}
 		}
+
 		Object.assign(this.styl.inner,{overflow:'hidden'})
 
 		Object.assign(this.styl.outer,
+			this.s.outer,
 			this.props.scroll ? (state.vertical ? this.s.scroll.v : this.s.scroll.h) : null
 		);
-
-		
-
 
 		return state;
 	},
@@ -170,7 +168,7 @@ var Slide = React.createClass({
 		}	
 		return d	
 	},
-	
+
 	getInnerHW: function(){
 		if( !this.state.dynamic || this.state.dim < 0 || !this.props.children) return {
 			height: '100%',
@@ -320,20 +318,20 @@ var Slide = React.createClass({
 	
 		
 
-		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,this.props.style);
+		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right);
 		
 		if(this.state.dynamic){
 			var inner = this.getInnerHW();
-			Object.assign(inner,this.styl.inner)
+			Object.assign(inner,this.styl.inner,this.props.style)
 			return (
 				<div className={this.props.className || ''} style = {outer} ref='outer' >
-					<div style = {inner} ref='inner' >
+					<div className={this.props.className || ''} style = {inner} ref='inner' >
 						{this.props.children}
 					</div>
 				</div>
 			)
 		}else{
-			Object.assign(outer,this.styl.static)
+			Object.assign(outer,this.styl.static,this.props.style)
 			return (
 				<div className={this.props.className || ''} style = {outer} ref='outer' >
 					{this.props.children}
