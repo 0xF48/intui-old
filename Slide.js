@@ -1,8 +1,9 @@
-var React = require('react');
 var update = require('react-addons-update');
-var rendercalls = 0;
-window.rendercalls = rendercalls;
-var HACK;
+var React = require('react');
+
+
+
+
 
 var Slide = React.createClass({
 	s: {
@@ -76,6 +77,7 @@ var Slide = React.createClass({
 	getDefaultProps: function(){
 
 		return {
+			relative: false,
 			//split direction.
 			v: false,
 			slide: null,
@@ -160,7 +162,9 @@ var Slide = React.createClass({
 		for(var i = 0; i < this.props.children.length; i++){
 			var child = this.props.children[i];
 			if(child.type.displayName !== 'Slide') continue;
-			if(!this.state.vertical){
+			if(this.props.relative){
+				d += (child.props.beta || 100);
+			}else if(!this.state.vertical){
 				d += child.props.width != null ? parseInt(child.props.width) : this.rect.width/100*child.props.beta;
 			}else{
 				d += child.props.height != null ? parseInt(child.props.height) : this.rect.height/100*child.props.beta;
@@ -182,7 +186,9 @@ var Slide = React.createClass({
 		var d = this.getInnerDim();
 		
 		if(!this.state.vertical){
-			if(d < this.rect.width){
+			if(this.props.relative){
+				w = d+'%';
+			}else if(d < this.rect.width){
 				w = '100%';
 			}else{
 				w = d+'px';
@@ -190,8 +196,10 @@ var Slide = React.createClass({
 
 			h = '100%';
 			
-		}else {
-			if(d < this.rect.height){
+		}else{
+			if(this.props.relative){
+				w = d+'%';
+			}else if(d < this.rect.height){
 				h = '100%';
 			}else{
 				h = d+'px';
@@ -224,7 +232,11 @@ var Slide = React.createClass({
 
 	getTotalBeta: function() {
 		if(!this.props.children) return 100
-		var b = this.getInnerDim()/(this.state.vertical ? this.rect.height : this.rect.width)*100
+		if(this.props.relative){
+			var b = this.getInnerDim()
+		}else{
+			var b = this.getInnerDim()/(this.state.vertical ? this.rect.height : this.rect.width)*100
+		}
 		if( b < 100 ) b = 100;
 		return b
 	},
@@ -265,9 +277,14 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(props,state){
-		this.getRekt();
+		//this.getRekt();
 
-		//console.log('SHUD UPD',this.props.id,this.state.dim,this.getHWRatio())
+		//console.log('SHUD UPD',this.state.dim,'( == )',this.getHWRatio())
+
+		if(!this.getHWRatio()){
+			console.error('cant update slide, bad HW RATIO: ',this.getHWRatio());
+			return false
+		} 
 
 		if(this.state.dim == this.getHWRatio()){
 
@@ -286,17 +303,20 @@ var Slide = React.createClass({
 	},
 
 	getRekt: function(){
+		//console.log("GET RECT",this.refs.outer.getBoundingClientRect());
 		this.rect = this.refs.outer.getBoundingClientRect();
 	},
 
 	updateState: function(state){
 		state = state || this.state;
 
+		this.getRekt();
+
 		//set inner style.
 		
 
 		if(this.props.slide) this.setXY(this.ratio2X(state.x),this.ratio2Y(state.y)); 	//static x,y (no animation)
-		//console.log("UPDATE STATE TO ->",this.props.id,this.getHWRatio())
+		//console.log("UPDATE STATE TO ->",this.getHWRatio())
 		this.setState({
 			dim: this.getHWRatio(),
 		});
@@ -311,9 +331,7 @@ var Slide = React.createClass({
 	},
 
 	render: function(){
-		//console.log("RENDER",this.props.id,rendercalls)
-		rendercalls ++;
-
+		//console.log("RENDER",this.props.id)
 		var outer = this.getOuterHW();
 	
 		
@@ -384,11 +402,11 @@ var Slide = React.createClass({
 			x: x,
 			y: y,
 		})
-	},
-
+	}
 });
 
-module.exports = Slide;
+
+module.exports = Slide
 
 
 
