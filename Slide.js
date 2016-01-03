@@ -1,4 +1,4 @@
-var update = require('react-addons-update');
+//var update = require('react-addons-update');
 var React = require('react');
 
 
@@ -52,7 +52,7 @@ var Slide = React.createClass({
 			index: this.props.index,
 			dim: -1,
 			beta: this.props.beta,
-			dynamic : (this.props.scroll || this.props.slide) ? true : false, 
+			dynamic : (this.props.slide) ? true : false, 
 			vertical: this.props.down || this.props.v ? true : false,
 			inner:{
 				width: '100%',
@@ -77,6 +77,7 @@ var Slide = React.createClass({
 	getDefaultProps: function(){
 
 		return {
+			update: false, //performance
 			relative: false,
 			//split direction.
 			v: false,
@@ -121,13 +122,6 @@ var Slide = React.createClass({
 	},
 
 	getBeta: function(){
-		// if(this.refs.outer == null) return 100
-		// var p = this.refs.outer.parentElement;
-
-		// var total_beta = p && (!this.state.vertical ? p.clientWidth/this.rect.width*100 : p.clientHeight/this.rect.height*100) || 100;
-  // 		if(total_beta < 100) total_beta = 100;
-  // 		//console.log("GET TOTAL BETA FOR",this.props.id,total_beta);
-		// //console.log('GET BETA',this.props.id,total_beta,this.state.beta);
 		return 100/this.context.total_beta*this.state.beta+'%'
 	},
 
@@ -170,6 +164,7 @@ var Slide = React.createClass({
 				d += child.props.height != null ? parseInt(child.props.height) : this.rect.height/100*child.props.beta;
 			}
 		}	
+		//console.log("INNER DIM:",this.props.id,d);
 		return d	
 	},
 
@@ -198,7 +193,7 @@ var Slide = React.createClass({
 			
 		}else{
 			if(this.props.relative){
-				w = d+'%';
+				h = d+'%';
 			}else if(d < this.rect.height){
 				h = '100%';
 			}else{
@@ -277,14 +272,16 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(props,state){
-		//this.getRekt();
+		this.getRekt();
+
+
 
 		//console.log('SHUD UPD',this.state.dim,'( == )',this.getHWRatio())
 
 		if(!this.getHWRatio()){
 			console.error('cant update slide, bad HW RATIO: ',this.getHWRatio());
 			return false
-		} 
+		}
 
 		if(this.state.dim == this.getHWRatio()){
 
@@ -296,7 +293,7 @@ var Slide = React.createClass({
 				this.toXY(state.x,state.y,state.duration) //dynamic x,y (to a new animation state)
 				return true
 			}else{
-				return false
+				return true
 			}
 		}
 		return this.updateState(state);
@@ -304,19 +301,23 @@ var Slide = React.createClass({
 
 	getRekt: function(){
 		//console.log("GET RECT",this.refs.outer.getBoundingClientRect());
-		this.rect = this.refs.outer.getBoundingClientRect();
+
+
+		/* pixel perfect when not scaled */
+		//this.refs.outer.getBoundingClientRect();
+
+
+		/*use this for now */
+		this.rect = {
+			width: this.refs.outer.clientWidth,
+			height: this.refs.outer.clientHeight
+		}
 	},
 
 	updateState: function(state){
 		state = state || this.state;
 
-		this.getRekt();
-
-		//set inner style.
-		
-
 		if(this.props.slide) this.setXY(this.ratio2X(state.x),this.ratio2Y(state.y)); 	//static x,y (no animation)
-		//console.log("UPDATE STATE TO ->",this.getHWRatio())
 		this.setState({
 			dim: this.getHWRatio(),
 		});
@@ -325,25 +326,40 @@ var Slide = React.createClass({
 
 	componentDidMount: function(){
 		//TODO
-		//console.log("MOUNTED",this.props.id)
+		//console.log("MOUNTED",this.props.className)
 		this.getRekt();
 		this.updateState();
+
+
+		if(!this.props.onHover) return;
+
+		
+		this.refs.outer.addEventListener('mouseenter',function(){
+			this.props.onHover(this,true)
+		}.bind(this))
+
+		this.refs.outer.addEventListener('mouseleave',function(){
+			this.props.onHover(this,false)
+		}.bind(this))
 	},
 
+
+
 	render: function(){
-		//console.log("RENDER",this.props.id)
+		//console.log("RENDER SLIDE",this.props.className,this.props.children);
 		var outer = this.getOuterHW();
 	
 		
 
 		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right);
+
 		
 		if(this.state.dynamic){
 			var inner = this.getInnerHW();
 			Object.assign(inner,this.styl.inner,this.props.style)
 			return (
-				<div className={this.props.className || ''} style = {outer} ref='outer' >
-					<div className={this.props.className || ''} style = {inner} ref='inner' >
+				<div  className={this.props.className || ''} style = {outer} ref='outer' >
+					<div classNameInner={this.props.classNameInner || ''} style = {inner} ref='inner' >
 						{this.props.children}
 					</div>
 				</div>
@@ -354,7 +370,7 @@ var Slide = React.createClass({
 				<div className={this.props.className || ''} style = {outer} ref='outer' >
 					{this.props.children}
 				</div>
-			)			
+			)	
 		}
 	},
 
