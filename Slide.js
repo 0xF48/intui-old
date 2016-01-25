@@ -1,16 +1,12 @@
 //var update = require('react-addons-update');
 var React = require('react');
 
-var PathState = require('./PathState')
-
-var connect = require('react-redux').connect;
-var render_counter = 0
 
 
+//var connect = require('react-redux').connect;
+//var render_counter = 0
 
-var pathState = function(){
 
-}
 
 
 var Slide = React.createClass({
@@ -60,7 +56,6 @@ var Slide = React.createClass({
 
 
 		this.rect = {
-			total_beta: 100,
 			width:0,
 			height:0
 		}
@@ -329,6 +324,7 @@ var Slide = React.createClass({
 	},
 
 	updateState: function(props,state){
+
 		state = state || this.state;
 		props = props || this.props;
 
@@ -338,30 +334,42 @@ var Slide = React.createClass({
 		//var dim = null;
 
 		//console.log(state.dynamic)
-		this.prev_pos = this.props.index_pos
+
+		
+
 		
 		if(props.index_pos != -1 && state.dynamic){
+			console.log("UPDATE",this.props.id)
+			//console.log("SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
 			if(this.props.index_pos != props.index_pos ){
 				if(d_needs_update){
-					// var pos = this.getIndexXY(props.index_pos)
-					// this.setXY(pos.x,pos.y)	
-					setTimeout(function() {
-						var pos = this.getIndexXY(props.index_pos)
-						this.toXY(pos.x,pos.y)					
-					}.bind(this), 1);
+					console.log("NEEDS UPDATE",this.props.id,state.dim,ratio)
+				//	var pos = this.getIndexXY(this.props.index_pos)
+				//	this.setXY(pos.x,pos.y)
+					// setTimeout(function() {
+					// 	var pos = this.getIndexXY(props.index_pos)
+					// 	this.toXY(pos.x,pos.y)					
+					// }.bind(this), 1);
+					//this.prev_pos = false		
+					this.prev_pos = true		
 				}else{
-					// var pos = this.getIndexXY(props.index_pos)
-					// this.toXY(pos.x,pos.y)					
+					this.prev_pos = false		
+					//var pos = this.getIndexXY(props.index_pos)
+				//	this.toXY(pos.x,pos.y)
+					
 				}
-
+				//console.log("ANIMATE")
+					
 			}else if(this.props.index_pos == props.index_pos && d_needs_update){
-				var pos = this.getIndexXY(props.index_pos)
-				this.setXY(pos.x,pos.y)
+				//console.log("DONT ANIMATE")
+				this.prev_pos = true
+				// var pos = this.getIndexXY(props.index_pos)
+				// this.setXY(pos.x,pos.y)
 				// setTimeout(function() {
 				// 	var pos = this.getIndexXY(props.index_pos)
 				// 	this.setXY(pos.x,pos.y)					
 				// }.bind(this), 1);
-			}		
+			}
 		}
 
 
@@ -374,19 +382,27 @@ var Slide = React.createClass({
 	},
 
 	componentDidUpdate: function(props,state){
-		console.log(props.index_pos,this.props.index_pos)
+		
 
 		if(this.props.index_pos != -1 && this.state.dynamic){
-			var pos = this.getIndexXY(props.index_pos)
-			if(this.props.index_pos != this.prev_pos){
-						
-				this.toXY(pos.x,pos.y)	
-			}else{
-
+			//console.log('POST:',props.index_pos,'->',this.props.index_pos)
+			var pos = this.getIndexXY(this.props.index_pos)
+			if(props.index_pos != this.props.index_pos){
+				//console.log("SWITCH",props.index_pos,'->',this.props.index_pos)
+				setTimeout(function() {
+				 	var pos = this.getIndexXY(this.props.index_pos)
+				 	this.toXY(pos.x,pos.y)					
+				}.bind(this), 1);				
+				//this.setXY(pos.x,pos.y)	
+			}else if(this.prev_pos){
+				//console.log('SET')
 				this.setXY(pos.x,pos.y)	
-				
 			}
 		}
+	},
+
+	componentWillUnmount: function(props,state){
+
 	},
 
 	bindPath: function(){
@@ -431,9 +447,9 @@ var Slide = React.createClass({
 
 
 	render: function(){
-		render_counter ++;
+		//render_counter ++;
 
-		console.log(render_counter);
+		//console.log(render_counter);
 		//console.log("RENDER SLIDE",this.props.className,this.props.children);
 		var outer = this.getOuterHW();
 	
@@ -475,7 +491,7 @@ var Slide = React.createClass({
 
 
 	toXY: function(x,y){
-		console.log("TO XY",x,y,this.props.ease.duration)
+		//console.log("TO XY",x,y,this.props.ease.duration)
 		TweenLite.to(this.scroller || this.refs.inner, this.props.ease.duration,{
 			ease: this.props.ease.ease,
 			x:-1*x,
@@ -484,8 +500,8 @@ var Slide = React.createClass({
 	},
 
 	setXY: function(x,y){
-		console.log(this.state.dim)
-		console.log("SET XY",x,y)
+		//console.log(this.state.dim)
+		//console.log("SET XY",x,y)
 		TweenLite.set(this.scroller || this.refs.inner,{
 			x:-1*x,
 			y:-1*y

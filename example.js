@@ -1,17 +1,22 @@
 var React = require('react');
 var I = require('./Slide');
-var IMix = require('./Mixin');
+//var IMix = require('./Mixin');
 
 
 var Right = React.createClass({
 	//mixins: [IMix],
+
+	componentDidMount: function(){
+		window.right = this.refs.right;
+	},
+	//m
 	render: function(){
 		return (
 			<I vertical route = {'right'} style ={{background:'#05FF93'}}>
-				<I scroll height = {"100px"} style ={{background:'#8F308D'}}>
-					<I width = {'100px'} style ={{background:'#8F3900'}}/>
-					<I beta = {100} style ={{background:'#7E8F30'}}/>
-					<I beta = {100} style ={{background:'#2E8F1F'}}/>
+				<I id = 'right' ref = 'right' slide height = {"100px"} style ={{background:'#8F308D'}} index_pos={this.props.toggle_index}>
+					<I width = {'100px'} style ={{background:'#2B1100'}}/>
+					<I beta = {100} style ={{background:'#943A00'}}/>
+					<I beta = {100} style ={{background:'#FF6402'}}/>
 				</I>
 				<I beta = {100} style ={{background:'#8F2E3B'}} />
 			</I>
@@ -27,7 +32,7 @@ var Left = React.createClass({
 	//mixins: [IMix],
 	render: function(){
 		return (
-			<I ref = 'sidebar' index_pos = {this.props.toggle ? 1 : 0} slide style = {{background:'#FF0036'}}>
+			<I id = 'HELLO' ref = 'sidebar' index_pos = {this.props.toggle ? 1 : 0} slide style = {{background:'#FF0036'}}>
 				<I beta ={100} style ={{background:'#8F308D'}} />
 				<I beta = {100} style ={{background:'#420232'}} />
 			</I>
@@ -42,8 +47,11 @@ var example = React.createClass({
 	getInitialState: function(){
 		return {
 			show_sidebar: true,
-			left_width: '200px',
-			left_toggle: true
+			left_width: 50,
+			left_toggle: true,
+			top_beta: 30,
+			top_height: '100px',
+			right_index: 2
 		}
 	},
 
@@ -53,9 +61,24 @@ var example = React.createClass({
 		window.addEventListener('resize',this.forceUpdate.bind(this,null))
 	},
 
+	toggleTopBar: function(){
+		this.setState({
+			right_index : this.state.right_index == 0 ? 2 : 0,
+			top_height : this.state.top_height == '100px' ? '50px' : '100px',
+			//top_beta: this.state.top_beta == 20 ? null : 20
+		})
+	},
+
+	toggleRightIndex: function(){
+		this.setState({
+			right_index : this.state.right_index == 1 ? 2 : 1,
+			//top_beta: this.state.top_beta == 20 ? null : 20
+		})	
+	},
+
 	toggleSidebar: function(){
 		this.setState({
-			left_width : this.state.left_width == '200px' ? '50px' : '200px',
+			
 			left_toggle : !this.state.left_toggle
 		})
 	},
@@ -68,19 +91,21 @@ var example = React.createClass({
 	render: function(){
 		var sidebar = null
 		if(this.state.show_sidebar){
-			sidebar = <I width = {this.state.left_width} style ={{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
+			sidebar = <I beta = {this.state.left_width} style ={{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
 		}
 
 		return (
 			<I vertical style = {{background:'#FF0800'}}>
-				<I height ={'200px'} style = {{background:'##BCBEBA'}}>
+				<I height={this.state.top_height} beta={100} style = {{background:'##BCBEBA'}}>
 					<button onClick={this.toggleSidebar}>toggle sidebar</button>
 					<button onClick={this.toggleSidebarDisplay}>toggle sidebar display</button>
+					<button onClick={this.toggleTopBar}>toggle top dim and right index</button>
+					<button onClick={this.toggleRightIndex}>toggle right index</button>
 				</I>
 				<I beta = {100} >
 					{sidebar}
 					<I beta = {100} style ={{background:'#EAFF00'}}>
-						<Right />
+						<Right toggle_index={this.state.right_index} />
 					</I>				
 				</I>
 
