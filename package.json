@@ -4,9 +4,10 @@
   "main": "./index.js",
   "description:": "a one of a kind react ui framework",
   "dependencies": {
-    "react-addons-update": "^0.14.3"
   },
   "browserify": {
-    "transform": ["reactify"]
+    "transform": [
+      "reactify"
+    ]
   }
 }
