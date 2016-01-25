@@ -124,14 +124,24 @@ var example = React.createClass({
 
 	toggleToggler: function(){
 		this.setState({
-			toggle_1: !this.state.toggle_1
+			toggle_1: !this.state.toggle_1,
+			toggle_2: !this.state.toggle_1,
 		})
 	},
 
 	getInitialState: function(){
 		return {
 			toggle_1: 0,
+			toggle_2: 0,
+			top_right_beta:61.8
 		}
+	},
+
+	toggleTopRight:function(){
+		this.setState({
+			toggle_1: !this.state.toggle_1,
+			top_right_beta : this.state.top_right_beta == 61.8 ? 10 : 61.8,
+		})	
 	},
 
 	render: function(){
@@ -144,10 +154,10 @@ var example = React.createClass({
 			<I ref = 'root'  style = {{background:'linear-gradient(45deg,#002743,#003943)'}}>
 				<I ref = 'b' beta = {61.8} style = {this.bg(1)}/>
 				<I ref = 'a'  vertical beta = {38.2}  style = {this.bg(1)}>
-					<I ref = 'a.b' beta = {61.8} style = {this.bg(2)}>
-						<Toggler on={this.state.toggle_1} vertical = {true} />
+					<I ref = 'a.b' beta = {this.state.top_right_beta} style = {this.bg(2)}>
+						<Toggler on={this.state.toggle_3} vertical = {true} />
 					</I>
-					<I ref = 'a.a' beta = {38.2}  style = {this.bg(2)}>
+					<I ref = 'a.a' beta = {100-this.state.top_right_beta}  style = {this.bg(2)}>
 						<I ref = 'a.a.a' vertical beta = {38.2} style = {this.bg(3)}>
 							<I beta = {38.2} ref = 'a.a.a.b' style = {this.bg(4)}>
 								
@@ -176,7 +186,7 @@ var example = React.createClass({
 								<Toggler on={this.state.toggle_1} vertical={true} />
 							</I>
 						</I>
-						<I ref = 'a.a.b' beta = {61.8} style = {this.bg(3)}>
+						<I ref = 'a.a.b' beta={61.8} style = {this.bg(3)}>
 							<Toggler on={this.state.toggle_1}/>
 						</I>
 					</I>
@@ -187,6 +197,7 @@ var example = React.createClass({
 				
 				<div style={{'padding':'5px',position:'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
 					<button onClick={this.toggleToggler}>toggle toggler</button>
+					<button onClick={this.toggleTopRight}>resize top right and toggle</button>
 					
 				</div>
 			</I>
