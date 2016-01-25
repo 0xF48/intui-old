@@ -47,7 +47,7 @@ var example = React.createClass({
 	getInitialState: function(){
 		return {
 			show_sidebar: true,
-			left_width: 50,
+			left_width: '100px',
 			left_toggle: true,
 			top_beta: 30,
 			top_height: null,
@@ -75,7 +75,12 @@ var example = React.createClass({
 			//top_beta: this.state.top_beta == 20 ? null : 20
 		})	
 	},
-
+	toggleSidebarDim: function(){
+		this.setState({
+			left_width : this.state.left_width == '200px' ? '100px' : '200px',
+			left_toggle : !this.state.left_toggle
+		})
+	},
 	toggleSidebar: function(){
 		this.setState({
 			
@@ -91,13 +96,14 @@ var example = React.createClass({
 	render: function(){
 		var sidebar = null
 		if(this.state.show_sidebar){
-			sidebar = <I beta = {this.state.left_width} style ={{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
+			sidebar = <I width = {this.state.left_width} style ={{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
 		}
 
 		return (
 			<I vertical style = {{background:'#FF0800'}}>
 				<I height={this.state.top_height} beta={100} style = {{background:'##BCBEBA'}}>
 					<button onClick={this.toggleSidebar}>toggle sidebar</button>
+					<button onClick={this.toggleSidebarDim}>toggle sidebar and dim</button>
 					<button onClick={this.toggleSidebarDisplay}>toggle sidebar display</button>
 					<button onClick={this.toggleTopBar}>toggle top dim and right index</button>
 					<button onClick={this.toggleRightIndex}>toggle right index</button>

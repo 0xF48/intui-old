@@ -460,6 +460,13 @@ var Slide = React.createClass({
 
 		var inner = this.getInnerHW();
 		Object.assign(inner,this.styl.inner,this.props.style)
+
+		if(this.node_count != null && this.node_count > 0){
+			Object.assign(inner,{
+				'flexDirection': this.props.vertical ? 'column' : 'row',
+				'display': 'flex'
+			})
+		}
 		
 		return (
 			<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
