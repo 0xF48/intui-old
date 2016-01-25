@@ -1,7 +1,6 @@
 # intui
 ----
-a one of a kind react ui framework
+recursive slider ui framework
 
 ## installation:
-0.14.3 react in main project folder
-npm install [github latest master]
+you will need 0.14.* react and the latest tweenlite in your main project folder
