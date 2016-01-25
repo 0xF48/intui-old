@@ -335,6 +335,10 @@ var Slide = React.createClass({
 
 		//console.log(state.dynamic)
 
+		// if(props.beta != this.props.beta || props.height != this.props.height || props.width != this.props.width){
+			
+		// }
+
 		
 
 		
