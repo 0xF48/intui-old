@@ -15,9 +15,12 @@ var Slide = React.createClass({
 			position : "relative",
 			overflow : "hidden",
 		},
-		right: 	{"float":"left"},
-		down: 	{"float":"top" },
-		
+		right: 	{
+			"float":"left"
+		},
+		down: 	{
+			"float":"top"
+		},
 		scroll: {
 			h: {
 				'-webkit-overflow-scrolling': "touch",
@@ -40,6 +43,7 @@ var Slide = React.createClass({
 		@width -> set slide width
 		@[right,left,up,down] -> slide direction
 	*/
+
 	getInitialState: function(){
 		
 		this.stage = {x:0,y:0};
@@ -94,6 +98,7 @@ var Slide = React.createClass({
 				duration: 1,
 				ease: Power4.easeOut,
 			},
+
 			index_pos: -1,
 			update: false, //performance
 			relative: false,
@@ -316,11 +321,28 @@ var Slide = React.createClass({
 		//this.refs.outer.getBoundingClientRect();
 
 
+		//we got new dim props
+
 		/*use this for now */
 		this.rect = {
 			width: this.refs.outer.clientWidth,
 			height: this.refs.outer.clientHeight
 		}
+	},
+
+	//when we get new dims we need to give new XY coordinates and ->
+	/*
+		if child is expanding
+			set x or y of inner node minus that of diff between previous and next width or height of expanding child or if none are expanding both imploading children.
+			update width or height of expanding child only.
+			animate to the position relative to the expansion minus the imploading of other children.
+			animate index of all children if a new one is supplied.
+			after animation of position, set new dims of imploading children.
+
+	*/
+	calculateNewDimXY: function(new_props){
+		var x,y = 0
+
 	},
 
 	updateState: function(props,state){
@@ -336,6 +358,8 @@ var Slide = React.createClass({
 		//console.log(state.dynamic)
 
 		// if(props.beta != this.props.beta || props.height != this.props.height || props.width != this.props.width){
+		// 	var temp_xy = this.calculateNewDimXY(props)
+			
 			
 		// }
 
@@ -343,11 +367,10 @@ var Slide = React.createClass({
 
 		
 		if(props.index_pos != -1 && state.dynamic){
-			console.log("UPDATE",this.props.id)
-			//console.log("SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
+			if(this.props.id) console.log(this.props.id,"SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
 			if(this.props.index_pos != props.index_pos ){
 				if(d_needs_update){
-					console.log("NEEDS UPDATE",this.props.id,state.dim,ratio)
+					//console.log("NEEDS UPDATE",this.props.id,state.dim,ratio)
 				//	var pos = this.getIndexXY(this.props.index_pos)
 				//	this.setXY(pos.x,pos.y)
 					// setTimeout(function() {
@@ -355,7 +378,7 @@ var Slide = React.createClass({
 					// 	this.toXY(pos.x,pos.y)					
 					// }.bind(this), 1);
 					//this.prev_pos = false		
-					this.prev_pos = true		
+					this.prev_pos = false		
 				}else{
 					this.prev_pos = false		
 					//var pos = this.getIndexXY(props.index_pos)

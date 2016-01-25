@@ -45,14 +45,15 @@ var Toggler = React.createClass({
 	getInitialState:function(){
 		return {
 			color: '#001B2F',
+			color2: null,
 			inverted: this.props.invert || (Math.random()>0.5 ? true : false)
 		}
 	},
 	render: function(){
 		return (
 			<I index_pos = {this.props.on ? (this.state.inverted ? 0 : 1) : (this.state.inverted ? 1 : 0)} vertical = {this.props.vertical} slide >
-				<I beta ={100} style = {!this.state.inverted ? null : {background:this.state.color} }/>
-				<I beta = {100} style = {!this.state.inverted ? {background:this.state.color} : null} />
+				<I beta ={100} style = {{background: !this.state.inverted ? this.state.color2 : this.state.color}}/>
+				<I beta = {100} style = {{background: this.state.inverted ? this.state.color2 : this.state.color}} />
 			</I>
 		)
 	}
@@ -73,7 +74,7 @@ var example = React.createClass({
 	},
 
 	componentDidMount: function(){
-		window.ex = this;
+		window.test_node = this.refs['a.b'];
 
 		window.addEventListener('resize',this.forceUpdate.bind(this,null))
 	},
@@ -125,7 +126,7 @@ var example = React.createClass({
 	toggleToggler: function(){
 		this.setState({
 			toggle_1: !this.state.toggle_1,
-			toggle_2: !this.state.toggle_1,
+			toggle_2: !this.state.toggle_2,
 		})
 	},
 
@@ -133,6 +134,7 @@ var example = React.createClass({
 		return {
 			toggle_1: 0,
 			toggle_2: 0,
+			left_beta: 61.8,
 			top_right_beta:61.8
 		}
 	},
@@ -140,7 +142,14 @@ var example = React.createClass({
 	toggleTopRight:function(){
 		this.setState({
 			toggle_1: !this.state.toggle_1,
-			top_right_beta : this.state.top_right_beta == 61.8 ? 10 : 61.8,
+			top_right_beta : this.state.top_right_beta == 61.8 ? 61.8/2 : 61.8,
+		})	
+	},
+	toggleLeft:function(){
+		this.setState({
+			toggle_1: !this.state.toggle_1,
+			left_beta: this.state.left_beta == 61.8 ? 61.8/2 : 61.8,
+		//	top_right_beta : this.state.top_right_beta == 61.8 ? 61.8/2 : 61.8,
 		})	
 	},
 
@@ -152,10 +161,10 @@ var example = React.createClass({
 
 		return (
 			<I ref = 'root'  style = {{background:'linear-gradient(45deg,#002743,#003943)'}}>
-				<I ref = 'b' beta = {61.8} style = {this.bg(1)}/>
-				<I ref = 'a'  vertical beta = {38.2}  style = {this.bg(1)}>
-					<I ref = 'a.b' beta = {this.state.top_right_beta} style = {this.bg(2)}>
-						<Toggler on={this.state.toggle_3} vertical = {true} />
+				<I ref = 'b' beta = {this.state.left_beta} style = {this.bg(1)}/>
+				<I ref = 'a'  vertical beta = {100-this.state.left_beta}  style = {this.bg(1)}>
+					<I ref = 'a.b' id ='top_right' beta = {this.state.top_right_beta} style = {this.bg(2)}>
+						<Toggler on={this.state.toggle_2} vertical = {true} />
 					</I>
 					<I ref = 'a.a' beta = {100-this.state.top_right_beta}  style = {this.bg(2)}>
 						<I ref = 'a.a.a' vertical beta = {38.2} style = {this.bg(3)}>
@@ -198,6 +207,7 @@ var example = React.createClass({
 				<div style={{'padding':'5px',position:'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
 					<button onClick={this.toggleToggler}>toggle toggler</button>
 					<button onClick={this.toggleTopRight}>resize top right and toggle</button>
+					<button onClick={this.toggleLeft}>resize left and toggle</button>
 					
 				</div>
 			</I>
