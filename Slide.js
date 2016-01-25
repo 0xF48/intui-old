@@ -452,41 +452,23 @@ var Slide = React.createClass({
 		//console.log(render_counter);
 		//console.log("RENDER SLIDE",this.props.className,this.props.children);
 		var outer = this.getOuterHW();
-	
-		
 
 		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
 			'flexGrow' : this.props.width != null || this.props.height != null ? 1 : 0,
 			'flexShrink' : this.props.width != null || this.props.height != null ? 0 : 1,
 		});
+
+		var inner = this.getInnerHW();
+		Object.assign(inner,this.styl.inner,this.props.style)
 		
-		
-		if(this.state.dynamic){
-			var inner = this.getInnerHW();
-			Object.assign(inner,this.styl.inner,this.props.style)
-			return (
-				<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
-					<div classNameInner={this.props.classNameInner || ''} style = {inner} ref='inner' >
-						{this.props.children}
-					</div>
-				</div>
-			)
-		}else{
-			Object.assign(outer,this.styl.static,this.props.style)
-			
-			if(this.node_count != null && this.node_count > 0){
-				Object.assign(outer,{
-					'flexDirection': this.props.vertical ? 'column' : 'row',
-					'display': 'flex'
-				})
-			}
-			//console.log("RENDER",outer);
-			return (
-				<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
+		return (
+			<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
+				<div classNameInner={this.props.classNameInner || ''} style = {inner} ref='inner' >
 					{this.props.children}
 				</div>
-			)	
-		}
+			</div>
+		)
+
 	},
 
 

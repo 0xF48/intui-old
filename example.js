@@ -50,7 +50,7 @@ var example = React.createClass({
 			left_width: 50,
 			left_toggle: true,
 			top_beta: 30,
-			top_height: '100px',
+			top_height: null,
 			right_index: 2
 		}
 	},
@@ -64,14 +64,14 @@ var example = React.createClass({
 	toggleTopBar: function(){
 		this.setState({
 			right_index : this.state.right_index == 0 ? 2 : 0,
-			top_height : this.state.top_height == '100px' ? '50px' : '100px',
+			top_height : this.state.top_height == null ? '50px' : null,
 			//top_beta: this.state.top_beta == 20 ? null : 20
 		})
 	},
 
 	toggleRightIndex: function(){
 		this.setState({
-			right_index : this.state.right_index == 1 ? 2 : 1,
+			right_index : this.state.right_index == 0 ? 2 : 0,
 			//top_beta: this.state.top_beta == 20 ? null : 20
 		})	
 	},
