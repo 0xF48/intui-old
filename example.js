@@ -142,8 +142,8 @@ var example = React.createClass({
 		return {
 			toggle_1: 0,
 			toggle_2: 0,
-			middle_beta: 70,
-			left_beta:35,
+			middle_beta: 38.2,
+			left_beta:61.8,
 			top_right_beta:61.8,
 			left_bar_size: 50,
 			left_bar_inner_size: 50,
@@ -156,14 +156,14 @@ var example = React.createClass({
 	toggleTopRight:function(){
 		this.setState({
 			toggle_1: !this.state.toggle_1,
-			top_right_beta : this.state.top_right_beta == 61.8 ? 61.8/2 : 61.8,
+			top_right_beta : this.state.top_right_beta == 61.8 ? 38.2 : 61.8,
 		})	
 	},
 	toggleLeft:function(){
 		this.setState({
 			toggle_1: !this.state.toggle_1,
-			left_beta: this.state.left_beta == 70 ? 70/2 : 70,
-			middle_beta: this.state.left_beta == 70 ? 70 : 70/2,
+			left_beta: this.state.left_beta == 61.8 ? 38.2 : 61.8,
+			middle_beta: this.state.left_beta == 61.8 ? 61.8 : 38.2,
 		//	top_right_beta : this.state.top_right_beta == 61.8 ? 61.8/2 : 61.8,
 		})	
 	},
@@ -178,6 +178,14 @@ var example = React.createClass({
 	toggleLeftDisplay: function(){
 		this.setState({
 			display_left: !this.state.display_left
+		})
+	},
+
+	toggleRootIndexResize: function(){
+		this.setState({
+			root_index: this.state.root_index == 1 ? 0 : 1,
+			left_beta: this.state.left_beta == 61.8 ? 38.2 : 61.8,
+			middle_beta: this.state.middle_beta == 61.8 ? 38.2 : 61.8,
 		})
 	},
 
@@ -242,14 +250,15 @@ var example = React.createClass({
 							</I>
 						</I>
 					</I>
-					<I beta= {30}  style = {{background:'#FF8200'}} />
+					<I beta= {38.2}  style = {{background:'#FF8200'}} />
 				</I>
 				<div style={{'padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
 					<button onClick={this.toggleToggler}>toggle toggler</button>
 					<button onClick={this.toggleTopRight}>resize top right and toggle</button>
 					<button onClick={this.toggleLeft}>resize left and toggle</button>
 					<button onClick={this.toggleLeftDisplay}>toggle left display</button>
-					<button onClick={this.toggleLeftBar}>toggle bar and resize</button>
+					<button onClick={this.toggleLeftBar}>toggle bar/resize</button>
+					<button onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
 				</div>
 			</div>
 			
