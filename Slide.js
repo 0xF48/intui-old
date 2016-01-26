@@ -9,6 +9,7 @@ var React = require('react');
 var DimTransitionManager = function(){
 	var transitions = []
 
+	var needs_update_array = [];
 
 	// var transitions
 	function visible(child,Inner){
@@ -16,6 +17,7 @@ var DimTransitionManager = function(){
 	}
 
 	function resetchild(child){
+		needs_update_array.push(child.parentElement)
 		setTimeout(function(child) {
 			resetXY(child)
 		}.bind(null,child), 1);		
@@ -55,6 +57,13 @@ var DimTransitionManager = function(){
 	}
 
 	return {
+
+		needs_update: function(inner_el){
+			
+			var i = needs_update_array.indexOf(inner_el)
+			if (i != -1) needs_update_array.splice(i,1)	
+			return i == -1 ? false : true
+		},
 
 
 
@@ -197,6 +206,7 @@ var Slide = React.createClass({
 			
 		}};
 		this.prev_pos = -1;
+		this.inner_ratio = 0;
 		this.ease = {
 			ease: Power4.easeOut,
 			duration: 0.5,			
@@ -216,6 +226,7 @@ var Slide = React.createClass({
 			offset_y: 0,
 			index: this.props.index,
 			dim: 0,
+			inner_dim: 0,
 			beta_offset: 0,
 			dynamic : (this.props.slide || this.props.scroll) ? true : false, 
 			inner:{
@@ -432,6 +443,13 @@ var Slide = React.createClass({
   			return 0
   		}
   	},
+    getHWInnerRatio: function(){
+  		if(this.refs.inner.clientWidth != 0 && this.refs.inner.clientHeight != 0){
+  			return this.refs.inner.clientWidth/this.refs.inner.clientHeight
+  		}else{
+  			return 0
+  		}
+  	},
 
   	/*
 		make sure that our x/y position is in relative porportion to width and height.
@@ -458,7 +476,7 @@ var Slide = React.createClass({
 		
 		var set_offset = this.animateNewDim(props);
 		if(set_offset != null){
-			//console.log("ADD NEW OFFSET TO MANAGER")
+			console.log("ADD NEW OFFSET TO MANAGER")
 			TransManager.add(this.refs.outer,set_offset,this.state.x);
 		}	
 		
@@ -565,6 +583,13 @@ var Slide = React.createClass({
 
 
 		var d_needs_update = state.dim != ratio;
+		var i_needs_update = TransManager.needs_update(this.refs.inner);
+
+		
+
+		
+
+
 		//var dim = null;
 
 		//console.log(state.dynamic)
@@ -576,7 +601,7 @@ var Slide = React.createClass({
 		// }
 
 		
-
+ 
 		
 		if(props.index_pos != -1 && state.dynamic){
 		//	if(this.props.id) console.log(this.props.id,"SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
@@ -608,6 +633,14 @@ var Slide = React.createClass({
 				// 	var pos = this.getIndexXY(props.index_pos)
 				// 	this.setXY(pos.x,pos.y)					
 				// }.bind(this), 1);
+			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
+				//console.log("I NEEDS UPDATE",this.props.id)
+				//this.prev_pos = true
+				//console.log('I NEED UPDATE')
+				setTimeout(function() {
+				 	var pos = this.getIndexXY(this.props.index_pos)
+				 	this.toXY(pos.x,pos.y)					
+				}.bind(this), 1);	
 			}
 		}
 
@@ -618,6 +651,7 @@ var Slide = React.createClass({
 				dim: ratio,
 			});
 		}
+		
 		return true
 	},
 

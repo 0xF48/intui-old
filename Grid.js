@@ -1,21 +1,18 @@
 
 /* tetris grid  */
 
+
 var React = require('react');
 
 
 var Grid = React.createClass({
-
-})
-
-var Item = React.createClass({
 	render: function(){
 
 
 
 		return (
 			<div>
-				{this.props.children}
+				nothing
 			</div>
 		)
 	}
@@ -23,6 +20,4 @@ var Item = React.createClass({
 
 
 
-
 module.exports.Grid = Grid;
-module.exports.Item = Item;

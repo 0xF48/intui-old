@@ -75,7 +75,6 @@ var Bar = React.createClass({
 
 
 var G = require('./Grid').Grid
-var GItem = require('./Grid').Item
 var GridExample = React.createClass({
 
 	bg: function(){
@@ -84,6 +83,7 @@ var GridExample = React.createClass({
 		}
 	},
 	render: function(){
+		return null
 		return (
 			<G mid_size={300} min_size = {200} max_beta = {50} >
 				<I size_index = {2} style = {this.bg()} />
@@ -173,6 +173,7 @@ var example = React.createClass({
 			left_bar_index: 1,
 			display_left: true,
 			root_index: 0,
+			right_beta: 50
 		}
 	},
 
@@ -275,7 +276,7 @@ var example = React.createClass({
 							</I>
 						</I>
 					</I>
-					<I beta= {38.2}  style = {{background:'#FF8200'}} />
+					<I beta= {this.state.right_beta} style = {{background:'#FF8200'}} />
 				</I>
 				<div style={{'padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
 					<button onClick={this.toggleToggler}>toggle toggler</button>
