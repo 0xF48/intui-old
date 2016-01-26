@@ -11,11 +11,6 @@ var DimTransitionManager = function(){
 
 	var needs_update_array = [];
 
-	// var transitions
-	function visible(child,Inner){
-
-	}
-
 	function resetchild(child){
 		needs_update_array.push(child.parentElement)
 		setTimeout(function(child) {
@@ -41,19 +36,6 @@ var DimTransitionManager = function(){
 			x: 0,
 			y: 0
 		})		
-	}
-
-	function getMaxX(el){
-		return 
-	}
-
-	function getMinX(el){
-		return 0
-		
-	}
-
-	function getRightX(el){
-		return 
 	}
 
 	return {
@@ -433,9 +415,7 @@ var Slide = React.createClass({
   		}
   	},
 
-  	/*
-  		if parent element width/height ratio changes, we re-render
-  	*/
+  	/* if parent element width/height ratio changes, we re-render */
   	getHWRatio: function(){
   		if(this.rect.width != 0 && this.rect.height != 0){
   			return this.rect.width/this.rect.height
@@ -451,9 +431,6 @@ var Slide = React.createClass({
   		}
   	},
 
-  	/*
-		make sure that our x/y position is in relative porportion to width and height.
-  	*/
   	xRatio: function(x){
   		return (x == null ? this.state.x : x)/this.rect.width
   	},
@@ -487,10 +464,6 @@ var Slide = React.createClass({
 		return this.updateState(props,state);
 	},
 
-	// componentDidUpdate: function(props,state){
-	// 	if(this.)
-	// },
-
 	getRekt: function(){
 		//console.log("GET RECT",this.refs.outer.getBoundingClientRect());
 
@@ -508,16 +481,7 @@ var Slide = React.createClass({
 		}
 	},
 
-	//when we get new dims we need to give new XY coordinates and ->
-	/*
-		if child is expanding
-			set x or y of inner node minus that of diff between previous and next width or height of expanding child or if none are expanding both imploading children.
-			update width or height of expanding child only.
-			animate to the position relative to the expansion minus the imploading of other children.
-			animate index of all children if a new one is supplied.
-			after animation of position, set new dims of imploading children.
 
-	*/
 	animateNewDim: function(props){
 		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
 		//console.log("ANIMATE NEW DIM",this.)
@@ -574,69 +538,25 @@ var Slide = React.createClass({
 
 		var ratio = this.getHWRatio();
 
-
-		// for(var i = 0; i < this.props.children.length; i++){
-		// 	var child = this.props.children[i];
-		// 	if(child == null || !child.type || child.type.displayName !== 'Slide') continue;
-		// 	if(child.props.)
-		// }
-
-
 		var d_needs_update = state.dim != ratio;
 		var i_needs_update = TransManager.needs_update(this.refs.inner);
 
-		
-
-		
-
-
-		//var dim = null;
-
-		//console.log(state.dynamic)
-
-		// if(props.beta != this.props.beta || props.height != this.props.height || props.width != this.props.width){
-		// 	var temp_xy = this.calculateNewDimXY(props)
-			
-			
-		// }
-
-		
  
 		
 		if(props.index_pos != -1 && state.dynamic){
-		//	if(this.props.id) console.log(this.props.id,"SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
 			if(this.props.index_pos != props.index_pos){
 				if(d_needs_update){
-					//console.log("NEEDS UPDATE",this.props.id,state.dim,ratio)
-				//	var pos = this.getIndexXY(this.props.index_pos)
-				//	this.setXY(pos.x,pos.y)
-					// setTimeout(function() {
-					// 	var pos = this.getIndexXY(props.index_pos)
-					// 	this.toXY(pos.x,pos.y)					
-					// }.bind(this), 1);
-					//this.prev_pos = false		
 					this.prev_pos = false		
 				}else{
 					this.prev_pos = false		
-					//var pos = this.getIndexXY(props.index_pos)
-				//	this.toXY(pos.x,pos.y)
-					
 				}
-				//console.log("ANIMATE")
-					
+
 			}else if(this.props.index_pos == props.index_pos && d_needs_update){
-				//console.log("DONT ANIMATE",this.props.id)
+	
 				this.prev_pos = true
-				// var pos = this.getIndexXY(props.index_pos)
-				// this.setXY(pos.x,pos.y)
-				// setTimeout(function() {
-				// 	var pos = this.getIndexXY(props.index_pos)
-				// 	this.setXY(pos.x,pos.y)					
-				// }.bind(this), 1);
+
 			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
-				//console.log("I NEEDS UPDATE",this.props.id)
-				//this.prev_pos = true
-				//console.log('I NEED UPDATE')
+
 				setTimeout(function() {
 				 	var pos = this.getIndexXY(this.props.index_pos)
 				 	this.toXY(pos.x,pos.y)					
@@ -659,17 +579,13 @@ var Slide = React.createClass({
 		
 
 		if(this.props.index_pos != -1 && this.state.dynamic){
-			//console.log('POST:',props.index_pos,'->',this.props.index_pos)
 			var pos = this.getIndexXY(this.props.index_pos)
 			if(props.index_pos != this.props.index_pos){
-				//console.log("SWITCH",props.index_pos,'->',this.props.index_pos)
 				setTimeout(function() {
 				 	var pos = this.getIndexXY(this.props.index_pos)
 				 	this.toXY(pos.x,pos.y)					
 				}.bind(this), 1);				
-				//this.setXY(pos.x,pos.y)	
 			}else if(this.prev_pos){
-				//console.log('SET',this.props.id)
 				this.setXY(pos.x,pos.y)	
 			}
 		}
@@ -758,7 +674,7 @@ var Slide = React.createClass({
 
 
 	toXY: function(x,y){
-		//console.log("TO XY",x,y,this.props.ease.duration)
+		//console.log("TO XY",x,y,this.props.id)
 		TweenLite.to(this.scroller || this.refs.inner, this.props.ease.duration,{
 			ease: this.props.ease.ease,
 			x:-1*x,
@@ -767,8 +683,7 @@ var Slide = React.createClass({
 	},
 
 	setXY: function(x,y){
-		//console.log(this.state.dim)
-		//console.log("SET XY",x,y)
+		//console.log("SET XY",x,y,this.props.id)
 		TweenLite.set(this.scroller || this.refs.inner,{
 			x:-1*x,
 			y:-1*y
