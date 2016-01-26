@@ -74,6 +74,29 @@ var Bar = React.createClass({
 })
 
 
+var G = require('./Grid').Grid
+var GItem = require('./Grid').Item
+var GridExample = React.createClass({
+
+	bg: function(){
+		return {
+			background: 'rgba('+(Math.floor(255*Math.random()))+','+(Math.floor(255*Math.random()))+','+(Math.floor(255*Math.random()))+','+1+')',
+		}
+	},
+	render: function(){
+		return (
+			<G mid_size={300} min_size = {200} max_beta = {50} >
+				<I size_index = {2} style = {this.bg()} />
+				<I size_index = {1} style = {this.bg()} ratio_index = {2} />
+				<I size_index = {2} style = {this.bg()} />
+				<I size_index = {3} style = {this.bg()} />
+
+			</G>
+		)
+	}
+})
+
+
 var example = React.createClass({
 
 
@@ -202,7 +225,9 @@ var example = React.createClass({
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
-					<I beta = {100} style={{background:'#002743'}} />
+					<I beta = {100} style={{background:'#002743'}}>
+						<GridExample />
+					</I>
 				</I>
 			)
 		}
