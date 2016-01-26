@@ -184,9 +184,12 @@ var Slide = React.createClass({
 
 		//internal globals.
 		this.stage = {x:0,y:0};
-		this.styl = {inner:{},outer:{},static:{
-			
-		}};
+		this.styl = {
+			inner:{
+				overflow:'hidden'
+			},
+			outer:{},
+		};
 		this.prev_pos = -1;
 		this.inner_ratio = 0;
 		this.ease = {
@@ -201,27 +204,12 @@ var Slide = React.createClass({
 
 
 		var state = {
-			needs_dim_update: false,
 			x: 0,
 			y: 0,
-			offset_x: 0,
-			offset_y: 0,
 			index: this.props.index,
 			dim: 0,
-			inner_dim: 0,
-			beta_offset: 0,
 			dynamic : (this.props.slide || this.props.scroll) ? true : false, 
-			inner:{
-				width: '100%',
-				height: '100%'
-			},
-			outer:{
-				width: '100%',
-				height: '100%'
-			}
 		}
-
-		Object.assign(this.styl.inner,{overflow:'hidden'})
 
 		Object.assign(this.styl.outer,
 			this.s.outer,
@@ -453,12 +441,10 @@ var Slide = React.createClass({
 		
 		var set_offset = this.animateNewDim(props);
 		if(set_offset != null){
-			console.log("ADD NEW OFFSET TO MANAGER")
+			
 			TransManager.add(this.refs.outer,set_offset,this.state.x);
-		}	
+		}
 		
-
-
 
 		this.getRekt();
 		return this.updateState(props,state);
@@ -618,7 +604,7 @@ var Slide = React.createClass({
 		this.updateState();
 
 		
-		this.bindPath();
+		//this.bindPath();
 		
 		
 
@@ -637,24 +623,16 @@ var Slide = React.createClass({
 
 
 	render: function(){
-		//render_counter ++;
 
-		//console.log(render_counter);
-		//console.log("RENDER SLIDE",this.props.className,this.props.children);
-		var outer = this.getOuterHW();
 
-		//console.log('RENDER',this.props.id,this.state.offset_x,this.state.offset_y);
-		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
+		var outer = Object.assign(this.getOuterHW(),this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
 			'flexGrow' : (this.props.width != null || this.props.height != null) ? 1 : 0,
 			'flexShrink' : (this.props.width != null || this.props.height != null) ? 0 : 1,
-		
 		},this.props.style);
 
 
 
-		var inner = this.getInnerHW();
-		Object.assign(inner,this.styl.inner)
-
+		var inner = Object.assign(this.getInnerHW(),this.styl.inner)
 		if(this.node_count != null && this.node_count > 0){
 			Object.assign(inner,{
 				'flexDirection': this.props.vertical ? 'column' : 'row',
@@ -662,6 +640,8 @@ var Slide = React.createClass({
 			})
 		}
 		
+
+
 		return (
 			<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
 				<div classNameInner={this.props.classNameInner || ''} style = {inner} ref='inner' >
