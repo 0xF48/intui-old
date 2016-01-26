@@ -6,6 +6,151 @@ var React = require('react');
 //var connect = require('react-redux').connect;
 //var render_counter = 0
 
+var DimTransitionManager = function(){
+	var transitions = []
+
+
+	// var transitions
+	function visible(child,Inner){
+
+	}
+
+	function resetchild(child){
+		setTimeout(function(child) {
+			resetXY(child)
+		}.bind(null,child), 1);		
+	}
+
+	function setY(el,y){
+		TweenLite.set(el,{
+			y: y
+		})
+	}
+
+	function setX(el,x){
+		TweenLite.set(el,{
+			x: x
+		})
+	}
+
+	function resetXY(el){
+		TweenLite.to(el,0.4,{
+			ease: Power4.easeOut,
+			x: 0,
+			y: 0
+		})		
+	}
+
+	function getMaxX(el){
+		return 
+	}
+
+	function getMinX(el){
+		return 0
+		
+	}
+
+	function getRightX(el){
+		return 
+	}
+
+	return {
+
+
+
+		add: function(el,offset){
+			//console.log('ADD -> WIDTH',el.clientWidth)
+			var Inner = el.parentElement;
+			var Outer = el.parentElement.parentElement;
+			var siblings = Array.prototype.slice.call(  Inner.childNodes );
+			var index_count = 0;
+			var child_index = siblings.indexOf(el);
+			var offset_x = offset.offset_x;
+			var offset_y = offset.offset_y;
+
+
+			var x_inner_offset = 0
+			var y_inner_offset = 0
+			if(Inner._gsTransform != null){
+				var x_inner_offset = Inner._gsTransform.x
+			}
+			if(Inner._gsTransform != null){
+				var y_inner_offset = Inner._gsTransform.y
+			}
+
+
+			var min_x = -x_inner_offset;
+			var min_y = -y_inner_offset;
+
+
+
+			var max_x = Outer.clientWidth-x_inner_offset;
+			var max_y = Outer.clientHeight-y_inner_offset;
+
+
+		//	console.log(Inner._gsTransform)
+
+
+			var boundry_x = null;
+			var boundry_y = null;
+
+		//	console.log(Inner.childNodes,Inner.children)
+
+			//console.log(siblings,child_index);
+			for(var i = 0 ; i< siblings.length ; i ++){
+				var child = siblings[i];
+				//console.log(child.style)
+				if(child.style.position != 'relative') continue;
+				
+				if(offset_x != 0){
+					if(child.offsetLeft + child.clientWidth > min_x){
+						boundry_x = child.offsetLeft+child.clientWidth
+						//console.log('BOUNDRY X = ',boundry_x,min_x)
+						break;
+					}
+				}else if(offset_y != 0){
+					if(child.offsetTop + child.clientHeight > min_y){
+						boundry_y = child.offsetTop+child.clientHeight
+						//console.log('BOUNDRY Y = ',boundry_y,min_y)
+						break;
+					}			
+				}
+				index_count++
+			}
+
+			for(var i = 0 ; i< siblings.length ; i ++){
+				var child = siblings[i];
+				//console.log(child.style)
+				if(child.style.position != 'relative') continue;
+				if(offset_x != 0){
+					if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x  && offset_x < 0){
+						///console.log("V1")
+						setX(child,-offset_x)
+						resetchild(child)
+					}else if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x*2 && offset_x > 0){
+						//console.log("V2",min_x,el.offsetLeft,el.clientWidth)
+						setX(child,-offset_x)
+						resetchild(child)				
+					}					
+				}else if(offset_y != 0){
+					if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y  && offset_y < 0){
+						//console.log("V1")
+						setY(child,-offset_y)
+						resetchild(child)
+					}else if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y*2 && offset_y > 0){
+						//console.log("V2",min_y,el.offsetTop,el.clientHeight)
+						setY(child,-offset_y)
+						resetchild(child)	
+					}										
+				}
+			}
+			//console.log("ADD TRANSITION",offset);
+		}
+	}
+}
+
+var TransManager = new DimTransitionManager();
+
 
 
 
@@ -45,28 +190,30 @@ var Slide = React.createClass({
 	*/
 
 	getInitialState: function(){
-		
+
+		//internal globals.
 		this.stage = {x:0,y:0};
 		this.styl = {inner:{},outer:{},static:{
 			
 		}};
-
 		this.prev_pos = -1;
-
 		this.ease = {
 			ease: Power4.easeOut,
 			duration: 0.5,			
 		}
-
-
 		this.rect = {
 			width:0,
 			height:0
 		}
 
+
+
 		var state = {
+			needs_dim_update: false,
 			x: 0,
 			y: 0,
+			offset_x: 0,
+			offset_y: 0,
 			index: this.props.index,
 			dim: 0,
 			beta_offset: 0,
@@ -156,19 +303,19 @@ var Slide = React.createClass({
 		//console.log("GET OUTER HW",this.props.id,this.state.dim)
 		if( this.context.total_beta == null ){
 			return {
-				height: this.props.height || this.props.beta+'%',
-				width: this.props.width || this.props.beta+'%'
+				height: this.props.height != null ? this.props.height+'px' : this.props.beta+'%',
+				width: this.props.width != null ?  this.props.width+'px' : this.props.beta+'%'
 			}
 		}
 
 		var h= null,w = null;
 
 		if(this.context.vertical){
-			h = this.props.height || this.getBeta();
+			h = this.props.height != null ? this.props.height+'px' : this.getBeta();
 			w = '100%';
 		}else{
 			h = '100%';
-			w = this.props.width || this.getBeta();
+			w = this.props.width != null ? this.props.width+'px' : this.getBeta();
 		}
 
 		return {
@@ -188,9 +335,9 @@ var Slide = React.createClass({
 			if(this.props.relative){
 				d += (child.props.beta || 100);
 			}else if(!this.props.vertical){
-				d += child.props.width != null ? parseInt(child.props.width) : this.rect.width/100*child.props.beta;
+				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
 			}else{
-				d += child.props.height != null ? parseInt(child.props.height) : this.rect.height/100*child.props.beta;
+				d += child.props.height != null ? child.props.height : this.rect.height/100*child.props.beta;
 			}
 		}	
 		//console.log("INNER DIM:",this.props.id,d);
@@ -237,6 +384,7 @@ var Slide = React.createClass({
 			height: h
 		}
 	},
+
 	getTotalBeta: function() {
 		if(!this.props.children) return 100
 		if(this.props.relative){
@@ -305,6 +453,18 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(props,state){
+
+		//transition
+		
+		var set_offset = this.animateNewDim(props);
+		if(set_offset != null){
+			//console.log("ADD NEW OFFSET TO MANAGER")
+			TransManager.add(this.refs.outer,set_offset,this.state.x);
+		}	
+		
+
+
+
 		this.getRekt();
 		return this.updateState(props,state);
 	},
@@ -340,17 +500,69 @@ var Slide = React.createClass({
 			after animation of position, set new dims of imploading children.
 
 	*/
-	calculateNewDimXY: function(new_props){
-		var x,y = 0
+	animateNewDim: function(props){
+		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
+		//console.log("ANIMATE NEW DIM",this.)
+	
+		var diff_dim = null;
+		var diff_beta = null;
 
+		//console.log(this.props.vertical, props.height,this.props.height)
+
+		if(this.context.vertical && props.height != this.props.height){
+			diff_dim = props.height - this.props.height
+		}else if(!this.context.vertical && props.width != this.props.width){
+			diff_dim = props.width - this.props.width
+		}else if(props.beta != this.props.beta){
+			diff_beta =  props.beta - this.props.beta
+		}
+
+
+
+		if(diff_dim != null){
+			return this.offsetSelfDim(diff_dim)
+		}else if(diff_beta != null){
+			return this.offsetSelfBeta(diff_beta)			
+		}else{
+			throw 'something went wrong with dim transition.'
+		}
+	},
+
+	offsetSelfBeta: function(diff_beta){
+		//var ratio = (diff_beta/this.props.beta)
+		if(this.context.total_beta == null) return null
+		var diff_dim = (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * diff_beta
+	//	console.log('offset beta',diff_beta,this.props.id,'->',diff_dim)
+		return {
+			offset_x: this.context.vertical ? 0 : diff_dim,
+			offset_y: !this.context.vertical ? 0 : diff_dim
+		}
+	},
+
+	offsetSelfDim: function(diff_dim){
+		var diff_dim = diff_dim
+	//	console.log('offset dim',diff_dim)
+		return {
+			offset_x: this.context.vertical ? 0 : diff_dim,
+			offset_y: !this.context.vertical ? 0 : diff_dim
+		}
 	},
 
 	updateState: function(props,state){
+		//if(this.props.id) console.log('UPDATE STATE',this.props.id,this.refs.outer.clientWidth);
 
 		state = state || this.state;
 		props = props || this.props;
 
-		var ratio = this.getHWRatio()
+		var ratio = this.getHWRatio();
+
+
+		// for(var i = 0; i < this.props.children.length; i++){
+		// 	var child = this.props.children[i];
+		// 	if(child == null || !child.type || child.type.displayName !== 'Slide') continue;
+		// 	if(child.props.)
+		// }
+
 
 		var d_needs_update = state.dim != ratio;
 		//var dim = null;
@@ -367,8 +579,8 @@ var Slide = React.createClass({
 
 		
 		if(props.index_pos != -1 && state.dynamic){
-			if(this.props.id) console.log(this.props.id,"SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
-			if(this.props.index_pos != props.index_pos ){
+		//	if(this.props.id) console.log(this.props.id,"SET PREV",this.prev_pos,this.props.index_pos,"NEXT->",props.index_pos)
+			if(this.props.index_pos != props.index_pos){
 				if(d_needs_update){
 					//console.log("NEEDS UPDATE",this.props.id,state.dim,ratio)
 				//	var pos = this.getIndexXY(this.props.index_pos)
@@ -388,7 +600,7 @@ var Slide = React.createClass({
 				//console.log("ANIMATE")
 					
 			}else if(this.props.index_pos == props.index_pos && d_needs_update){
-				//console.log("DONT ANIMATE")
+				//console.log("DONT ANIMATE",this.props.id)
 				this.prev_pos = true
 				// var pos = this.getIndexXY(props.index_pos)
 				// this.setXY(pos.x,pos.y)
@@ -399,9 +611,10 @@ var Slide = React.createClass({
 			}
 		}
 
-
 		if(d_needs_update){
 			this.setState({
+				offset_y: 0,
+				offset_x: 0,
 				dim: ratio,
 			});
 		}
@@ -422,7 +635,7 @@ var Slide = React.createClass({
 				}.bind(this), 1);				
 				//this.setXY(pos.x,pos.y)	
 			}else if(this.prev_pos){
-				//console.log('SET')
+				//console.log('SET',this.props.id)
 				this.setXY(pos.x,pos.y)	
 			}
 		}
@@ -480,13 +693,17 @@ var Slide = React.createClass({
 		//console.log("RENDER SLIDE",this.props.className,this.props.children);
 		var outer = this.getOuterHW();
 
+		//console.log('RENDER',this.props.id,this.state.offset_x,this.state.offset_y);
 		Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
-			'flexGrow' : this.props.width != null || this.props.height != null ? 1 : 0,
-			'flexShrink' : this.props.width != null || this.props.height != null ? 0 : 1,
-		});
+			'flexGrow' : (this.props.width != null || this.props.height != null) ? 1 : 0,
+			'flexShrink' : (this.props.width != null || this.props.height != null) ? 0 : 1,
+		
+		},this.props.style);
+
+
 
 		var inner = this.getInnerHW();
-		Object.assign(inner,this.styl.inner,this.props.style)
+		Object.assign(inner,this.styl.inner)
 
 		if(this.node_count != null && this.node_count > 0){
 			Object.assign(inner,{
