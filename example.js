@@ -41,23 +41,24 @@ var GridExample = React.createClass({
 
 
 	bg: function(){
-		var c = Math.floor(220+35*Math.random())
+		var c = Math.floor(200+55*Math.random())
 		return {
 
 			display:'flex',
 			alignContent: 'center',
+			alignItems: 'center',
 			justifyContent: 'center',
 			position:'relative',
 			color: '#242426',
 			fontFamily: 'sans-serif',
 
-			width:'calc(100% - 3px)',
-			height: 'calc(100% - 3px)',
-			borderRadius: '3px',
+			width:'calc(100%)',
+			height: 'calc(100%)',
+			//borderRadius: '2px',
 			//boxShadow: '0px 0px 2px rgba(0,0,0,0.3)',
 			fontSize: '20px',
 			color: '#000',
-			margin: '2px',
+			//margin: '2px',
 			padding: '20px',
 			boxSizing : 'border-box',
 			background: 'rgba('+(c)+','+(c)+','+(c)+','+1+')',
@@ -81,7 +82,7 @@ var GridExample = React.createClass({
 
 	render: function(){
 		return (
-			<G outer_style={{boxSizing:'border-box',padding:'1px'}} mid_size={300} min_size = {200} max_beta = {50} >
+			<G style={{boxSizing:'border-box',padding:'0px'}} >
 				{this.items}
 			</G>
 		)
@@ -191,7 +192,7 @@ var example = React.createClass({
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
-					<I beta = {100} style={{background:'#5084A3'}}>
+					<I beta = {100} scroll vertical style={{background:'#5084A3'}}>
 						<GridExample ref = 'grid'  />
 					</I>
 				</I>

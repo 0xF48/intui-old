@@ -182,7 +182,8 @@ var Slide = React.createClass({
 		this.stage = {x:0,y:0};
 		this.styl = {
 			inner:{
-				overflow:'hidden'
+				overflowX:this.props.scroll ? (this.props.vertical ? 'hidden' : 'scroll') : 'hidden',
+				overflowY:this.props.scroll ? (this.props.vertical ? 'scroll' : 'hidden') : 'hidden',
 			},
 			outer:{},
 		};
@@ -198,8 +199,9 @@ var Slide = React.createClass({
 		}
 
 
+		Object.assign(this.styl.outer,this.s.outer);
 
-		var state = {
+		return {
 			x: 0,
 			y: 0,
 			index: this.props.index,
@@ -207,12 +209,6 @@ var Slide = React.createClass({
 			dynamic : (this.props.slide || this.props.scroll) ? true : false, 
 		}
 
-		Object.assign(this.styl.outer,
-			this.s.outer,
-			this.props.scroll ? (this.props.vertical ? this.s.scroll.v : this.s.scroll.h) : null
-		);
-
-		return state;
 	},
 
 	getDefaultProps: function(){

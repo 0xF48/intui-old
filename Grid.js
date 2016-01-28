@@ -102,14 +102,6 @@ var Grid = React.createClass({
 			position:'relative',
 		}
 
-		this.outer_style = {
-			position:'relative',
-			overflowY: 'scroll',
-			overflowX: 'hidden',
-			height: '100%',
-			width: '100%'
-		}
-
 		this._init();
 
 		return {
@@ -151,7 +143,7 @@ var Grid = React.createClass({
 	},
 
 	getDiam: function(){
-		if (this.refs.outer != null){
+		if (this.refs.inner != null){
 			return this.refs.inner.clientWidth/2;
 		}else{
 			return 0
@@ -289,9 +281,9 @@ var Grid = React.createClass({
 			}
 		}
 
-		TweenLite.to(this.refs.inner,child.props.ease_dur+0.2,{
+		TweenLite.to(this.refs.inner,child.props.ease_dur,{
 			y: this.getDiam()*this.grid_shifts,
-			ease: Power4.easeOut
+			ease: child.props.ease
 		})
 
 
@@ -326,12 +318,9 @@ var Grid = React.createClass({
 		}
 		//console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
 		return (
-			<div ref = 'outer' style = {Object.assign(this.props.outer_style,this.outer_style)}>
-				<div ref = 'inner' style = {Object.assign({height:(this.getDiam()*(this.index_array.length-this.grid_shifts))+'px'},this.inner_style,this.props.inner_style)}>
-					{this.grid}
-				</div>
+			<div ref = 'inner' style = {Object.assign({height:(this.getDiam()*(this.index_array.length-this.grid_shifts))+'px'},this.inner_style,this.props.style)}>
+				{this.grid}
 			</div>
-
 		)
 	}
 })
