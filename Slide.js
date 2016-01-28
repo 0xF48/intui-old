@@ -79,15 +79,11 @@ var DimTransitionManager = function(){
 			var max_y = Outer.clientHeight-y_inner_offset;
 
 
-		//	console.log(Inner._gsTransform)
-
 
 			var boundry_x = null;
 			var boundry_y = null;
 
-		//	console.log(Inner.childNodes,Inner.children)
 
-			//console.log(siblings,child_index);
 			for(var i = 0 ; i< siblings.length ; i ++){
 				var child = siblings[i];
 				//console.log(child.style)
@@ -682,36 +678,6 @@ var Slide = React.createClass({
 		}
 	},
 
-
-	// to: function(opt){
-	// 	this.getRekt();
-
-
-	// 	opt.ease = opt.ease || Power2.easeOut;
-	// 	opt.dur = opt.dur == null ? 0 : opt.dur;
-
-	// 	var tobeta = false;
-	// 	var x,y;
-	// 	if(opt.beta != null){
-	// 		if(this.props.vertical){
-	// 			x = 0
-	// 			y = this.rect.height/100*opt.beta				
-	// 		}else{
-	// 			x = this.rect.width/100*opt.beta
-	// 			y = 0
-	// 		}
-	// 	}else if(opt.x || opt.y != null){
-	// 		x = opt.x || 0;
-	// 		y = opt.y || 0;
-	// 	}
-
-	// 	////console.log("this.to",x,y)
-	// 	this.setState({
-
-	// 		x: x,
-	// 		y: y,
-	// 	})
-	// }
 });
 
 

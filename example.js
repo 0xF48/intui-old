@@ -1,45 +1,8 @@
 var React = require('react');
 var I = require('./Slide');
-//var IMix = require('./Mixin');
-
-
-var Right = React.createClass({
-	//mixins: [IMix],
-
-	componentDidMount: function(){
-		window.right = this.refs.right;
-	},
-	//m
-	render: function(){
-		return (
-			<I vertical route = {'right'} style ={{background:'#05FF93'}}>
-				<I id = 'right' ref = 'right' slide height = {"100px"} style ={{background:'#8F308D'}} index_pos={this.props.toggle_index}>
-					<I width = {'100px'} style ={{background:'#2B1100'}}/>
-					<I beta = {100} style ={{background:'#943A00'}}/>
-					<I beta = {100} style ={{background:'#FF6402'}}/>
-				</I>
-				<I beta = {100} style ={{background:'#8F2E3B'}} />
-			</I>
-		)
-	}
-})
-
-var Left = React.createClass({
-
-	componentDidMount: function(){
-		window.sidebar = this.refs.sidebar;
-	},
-	//mixins: [IMix],
-	render: function(){
-		return (
-			<I id = 'HELLO' ref = 'sidebar' index_pos = {this.props.toggle ? 1 : 0} slide style = {{background:'#FF0036'}}>
-				<I beta ={100} style ={{background:'#8F308D'}} />
-				<I beta = {100} style ={{background:'#420232'}} />
-			</I>
-		)
-	}
-})
-
+var Grid = require('./Grid')
+var G  = Grid.Grid;
+var GItem = Grid.Item;
 
 var Toggler = React.createClass({
 	getInitialState:function(){
@@ -74,23 +37,52 @@ var Bar = React.createClass({
 })
 
 
-var G = require('./Grid').Grid
 var GridExample = React.createClass({
 
+
 	bg: function(){
+		var c = Math.floor(220+35*Math.random())
 		return {
-			background: 'rgba('+(Math.floor(255*Math.random()))+','+(Math.floor(255*Math.random()))+','+(Math.floor(255*Math.random()))+','+1+')',
+
+			display:'flex',
+			alignContent: 'center',
+			justifyContent: 'center',
+			position:'relative',
+			color: '#242426',
+			fontFamily: 'sans-serif',
+
+			width:'calc(100% - 3px)',
+			height: 'calc(100% - 3px)',
+			borderRadius: '3px',
+			//boxShadow: '0px 0px 2px rgba(0,0,0,0.3)',
+			fontSize: '20px',
+			color: '#000',
+			margin: '2px',
+			padding: '20px',
+			boxSizing : 'border-box',
+			background: 'rgba('+(c)+','+(c)+','+(c)+','+1+')',
 		}
 	},
-	render: function(){
-		return null
-		return (
-			<G mid_size={300} min_size = {200} max_beta = {50} >
-				<I size_index = {2} style = {this.bg()} />
-				<I size_index = {1} style = {this.bg()} ratio_index = {2} />
-				<I size_index = {2} style = {this.bg()} />
-				<I size_index = {3} style = {this.bg()} />
 
+	getInitialState: function(){
+		this.items = [];
+		for(var i = 0 ; i < 10 ; i ++ ){
+			var size_index = Math.floor(Math.random()*4)
+			this.items.push(<GItem key = {'item_'+i} size_index = {size_index}><div style = {this.bg()}><b>{i}</b></div></GItem>)
+		}
+		return null
+	},
+
+	addChild: function(){
+		var size_index = Math.floor(Math.random()*4)
+		this.items.push(<GItem ease_dur = {0.5+Math.random()*0.5}key = {'additem_'+this.items.length} size_index = {size_index}><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
+
+	},
+
+	render: function(){
+		return (
+			<G outer_style={{boxSizing:'border-box',padding:'1px'}} mid_size={300} min_size = {200} max_beta = {50} >
+				{this.items}
 			</G>
 		)
 	}
@@ -98,7 +90,6 @@ var GridExample = React.createClass({
 
 
 var example = React.createClass({
-
 
 
 	componentDidMount: function(){
@@ -110,39 +101,6 @@ var example = React.createClass({
 		window.addEventListener('resize',this.forceUpdate.bind(this,null))
 	},
 
-	toggleTopBar: function(){
-		this.setState({
-			right_index : this.state.right_index == 0 ? 2 : 0,
-			top_height : this.state.top_height == null ? '50px' : null,
-			//top_beta: this.state.top_beta == 20 ? null : 20
-		})
-	},
-
-	toggleRightIndex: function(){
-		this.setState({
-			right_index : this.state.right_index == 0 ? 2 : 0,
-			//top_beta: this.state.top_beta == 20 ? null : 20
-		})	
-	},
-	toggleSidebarDim: function(){
-		this.setState({
-			left_width : this.state.left_width == '200px' ? '100px' : '200px',
-			left_toggle : !this.state.left_toggle
-		})
-	},
-	toggleSidebar: function(){
-		this.setState({
-			
-			left_toggle : !this.state.left_toggle
-		})
-	},
-	toggleSidebarDisplay: function(){
-		this.setState({
-			show_sidebar : !this.state.show_sidebar
-		})
-	},
-
-
 	// getInitialState: function(){
 	// 	//this.golden_ratio = this.generateGrid()
 	// },
@@ -150,8 +108,13 @@ var example = React.createClass({
 	bg: function(a){
 		return {
 			background: 'rgba('+(255-(a*10))+','+55+(a*3)+','+185+(a*10)+','+0.2+')',
-			boxShadow: 'inset 0px 0px 1px rgba(0,0,0,0.2)'
+			//boxShadow: 'inset 0px 0px 1px rgba(0,0,0,0.2)'
 		}
+	},
+
+	addGridChild: function(){
+		this.refs.grid.addChild();
+		this.forceUpdate();
 	},
 
 	toggleToggler: function(){
@@ -215,19 +178,21 @@ var example = React.createClass({
 
 	render: function(){
 		var sidebar = null
+
 		if(this.state.show_sidebar){
-			sidebar = <I width = {this.state.left_width} style ={{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
+			sidebar = <I width = {this.state.left_width} style = {{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
 		}
 
 		var left_side = null
+
 		if(this.state.display_left){
 			var left_side = (
 				<I ref = 'b' ref='nigga' id='left' slide vertical beta = {this.state.left_beta} style = {{background:'#000'}}>
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
-					<I beta = {100} style={{background:'#002743'}}>
-						<GridExample />
+					<I beta = {100} style={{background:'#5084A3'}}>
+						<GridExample ref = 'grid'  />
 					</I>
 				</I>
 			)
@@ -248,16 +213,7 @@ var example = React.createClass({
 									
 									<I beta={38.2}  vertical ref = 'a.a.a.b.a' style = {this.bg(5)}>
 										<I beta={38.2} ref = 'a.a.a.b.a.a' style = {this.bg(6)}>
-											<I beta={38.2} ref = 'a.a.a.b.a.a.a' style = {this.bg(7)}>
 
-												<I beta={38.2} ref = 'a.a.a.b.a.a.a.b' style = {this.bg(9)}/>
-												<I beta={61.8} ref = 'a.a.a.b.a.a.a.a' style = {this.bg(9)}>
-													<Toggler on={this.state.toggle_1} vertical={true} />
-												</I>
-											</I>
-											<I beta={61.8} ref = 'a.a.a.b.a.a.b' style = {this.bg(8)}>
-												<Toggler on={this.state.toggle_1} vertical={false} />
-											</I>
 										</I>
 										<I beta={61.8} ref = 'a.a.a.b.a.b' style = {this.bg(6)}>
 											<Toggler on={this.state.toggle_1} vertical={true} />
@@ -279,12 +235,13 @@ var example = React.createClass({
 					<I beta= {this.state.right_beta} style = {{background:'#FF8200'}} />
 				</I>
 				<div style={{'padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
-					<button onClick={this.toggleToggler}>toggle toggler</button>
-					<button onClick={this.toggleTopRight}>resize top right and toggle</button>
-					<button onClick={this.toggleLeft}>resize left and toggle</button>
-					<button onClick={this.toggleLeftDisplay}>toggle left display</button>
-					<button onClick={this.toggleLeftBar}>toggle bar/resize</button>
-					<button onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
+					<button style={{backgroundColor:'green'}} onClick={this.toggleToggler}>toggle toggler</button>
+					<button style={{backgroundColor:'yellow'}} onClick={this.toggleTopRight}>resize top right and toggle</button>
+					<button style={{backgroundColor:'yellow'}} onClick={this.toggleLeft}>resize left and toggle</button>
+					<button style={{backgroundColor:'orange'}} onClick={this.toggleLeftDisplay}>toggle left display</button>
+					<button style={{backgroundColor:'green'}} onClick={this.toggleLeftBar}>toggle bar/resize</button>
+					<button style={{backgroundColor:'yellow'}} onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
+					<button style={{backgroundColor:'green'}} onClick={this.addGridChild}>add child to grid</button>
 				</div>
 			</div>
 			
