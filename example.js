@@ -23,9 +23,12 @@ var Toggler = React.createClass({
 })
 
 var Bar = React.createClass({
+	componentDidMount: function(){
+		// window.test = this.refs['test']
+	},
 	render: function(){
 		return (
-			<I>
+			<I beta={100}>
 				<I beta = {80} />
 				<I vertical index_pos = {this.props.index} slide beta = {20} style = {{background: '#00D059'}}>
 					<I height = {this.props.size*2} style ={{background:'#57000D'}}/>
@@ -192,7 +195,7 @@ var example = React.createClass({
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
-					<I beta = {100} scroll vertical style={{background:'#5084A3'}}>
+					<I beta = {100} offset={-this.state.left_bar_size} scroll vertical style={{background:'#5084A3'}}>
 						<GridExample ref = 'grid'  />
 					</I>
 				</I>

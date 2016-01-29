@@ -2,7 +2,7 @@
 var React = require('react');
 
 
-
+window._intui_render_calls = 0
 //var connect = require('react-redux').connect;
 //var render_counter = 0
 
@@ -204,7 +204,6 @@ var Slide = React.createClass({
 		return {
 			x: 0,
 			y: 0,
-			index: this.props.index,
 			dim: 0,
 			dynamic : (this.props.slide || this.props.scroll) ? true : false, 
 		}
@@ -218,26 +217,14 @@ var Slide = React.createClass({
 				duration: 1,
 				ease: Power4.easeOut,
 			},
-
-			index_pos: -1,
-			update: false, //performance
-			relative: false,
-			//split direction.
-			v: false,
+			index_pos: -1, //current nested slide index.
 			slide: null,
-			index: 0,
-			duration: 0.5,
-			auto_h: false,
-			auto_w: false,
-			snapvar: 0.8,
 			offset: 0,
 			beta: 100,
-			start: false,
-			current: null,
 			scroll: null,
 			height: null,
 			width: null,
-			path: null,
+			// path: null,
 		}
 	},
 
@@ -266,14 +253,24 @@ var Slide = React.createClass({
 	},
 
 	getBeta: function(){
-		if(!this.context.total_beta){
-			return this.props.beta+'%';
+		var beta = null
+
+		
+		if(this.context.total_beta == null){
+			beta = this.props.beta+'%';
+		}else{
+			beta =  100/this.context.total_beta*this.props.beta+'%'
 		}
-		return 100/this.context.total_beta*this.props.beta+'%'
+	//	console.log(this.props.beta,beta,this.context.total_beta,this.props.offset)
+		if(this.props.offset != 0){
+
+			return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
+		}else{
+			return beta
+		}
 	},
 
 	getOuterHW: function(){
-		//console.log("GET OUTER HW",this.props.id,this.state.dim)
 		if( this.context.total_beta == null ){
 			return {
 				height: this.props.height != null ? this.props.height+'px' : this.props.beta+'%',
@@ -305,56 +302,31 @@ var Slide = React.createClass({
 			var child = this.props.children[i];
 			if(child == null || !child.type || child.type.displayName !== 'Slide') continue;
 			this.node_count ++;
-			if(this.props.relative){
-				d += (child.props.beta || 100);
-			}else if(!this.props.vertical){
-				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
-			}else{
+			
+			if(this.props.vertical){
 				d += child.props.height != null ? child.props.height : this.rect.height/100*child.props.beta;
+			}else{
+				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
 			}
-		}	
-		//console.log("INNER DIM:",this.props.id,d);
+
+			if(child.props.offset != 0) d += child.props.offset 
+		}
 		return d	
 	},
 
 	getInnerHW: function(){
-		if( !this.state.dynamic || this.state.dim < 0 || !this.props.children) return {
-			height: '100%',
-			width: '100%'
-		}
+		if(!this.props.children){
+			return {
+				height: '100%',
+				width: '100%'
+			}
+		} 
 		
-		//INNER NODE CALCULATIONS
-		var w,h;
-
-		//calulate the dimentions of inner div by adding all the dimentions of its nested elements (this is for scrollable containers)
 		var d = this.getInnerDim();
 		
-		if(!this.props.vertical){
-			if(this.props.relative){
-				w = d+'%';
-			}else if(d < this.rect.width){
-				w = '100%';
-			}else{
-				w = d+'px';
-			}
-
-			h = '100%';
-			
-		}else{
-			if(this.props.relative){
-				h = d+'%';
-			}else if(d < this.rect.height){
-				h = '100%';
-			}else{
-				h = d+'px';
-			}
-			
-			w = '100%';
-		};
-
 		return {
-			width: w,
-			height: h
+			width: this.props.vertical || d == 0 ? '100%' : d+'px',
+			height: !this.props.vertical || d == 0 ? '100%' : d+'px',
 		}
 	},
 
@@ -569,24 +541,8 @@ var Slide = React.createClass({
 		}
 	},
 
-	componentWillUnmount: function(props,state){
-
-	},
-
 	bindPath: function(){
-		//cant bind to non dynamic.
-		// if(!this.state.dynamic) return;
-		// for(var child in this.props.children){
-		// 	if(!child.type || child.type.displayName !== 'Slide') continue;
-		// 	if(!child.props || child.props.path == null) continue;
-		// 	var self_path = this.props.path != null ? '/' + this.props.path : ''
-		// 	pathState.bind(child,this.context.path + self_path + '/' + child.props.path,function(child){
 
-		// 	}.bind(this))
-		// }
-
-		// if(!this.props.path || !this.state.dynamic) return;
-		// pathState.bind(this,this.)
 	},
 
 	componentDidMount: function(){
@@ -596,35 +552,37 @@ var Slide = React.createClass({
 		this.updateState();
 
 		
-		//this.bindPath();
-		
-		
-
 		if(!this.props.onHover) return;
-
-		
-		this.refs.outer.addEventListener('mouseenter',function(){
-			this.props.onHover(this,true)
-		}.bind(this))
-
-		this.refs.outer.addEventListener('mouseleave',function(){
-			this.props.onHover(this,false)
-		}.bind(this))
+	
+		this.refs.outer.addEventListener('mouseenter',this.props.onHover.bind(this,this,true))
+		this.refs.outer.addEventListener('mouseleave',this.props.onHover.bind(this,this,false))
 	},
 
 
 
 	render: function(){
 
+		window._intui_render_calls ++ 
 
-		var outer = Object.assign(this.getOuterHW(),this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
+		var outer = this.getOuterHW()
+
+
+		outer = Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
 			'flexGrow' : (this.props.width != null || this.props.height != null) ? 1 : 0,
 			'flexShrink' : (this.props.width != null || this.props.height != null) ? 0 : 1,
 		},this.props.style);
 
 
+		if(this.props.scroll){
+			var inner = {
+				height:'100%',
+				width:'100%'
+			}
+		}else var inner = this.getInnerHW()
 
-		var inner = Object.assign(this.getInnerHW(),this.styl.inner)
+		
+		inner = Object.assign(inner,this.styl.inner)
+		
 		if(this.node_count != null && this.node_count > 0){
 			Object.assign(inner,{
 				'flexDirection': this.props.vertical ? 'column' : 'row',
@@ -686,7 +644,4 @@ var select = function(state){
 }
 
 module.exports = Slide;
-
-
-
 
