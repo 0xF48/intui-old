@@ -45,8 +45,6 @@ var GridItem = React.createClass({
 		}
 	},
 
-
-
 	render: function(){
 	//	console.log('CONTEXT DIAM',this.context.diam)
 		var transform = null;
