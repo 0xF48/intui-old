@@ -31,7 +31,7 @@ var DimTransitionManager = function(){
 	}
 
 	function resetXY(el){
-		TweenLite.to(el,0.4,{
+		TweenLite.to(el,0.7,{
 			ease: Power4.easeOut,
 			x: 0,
 			y: 0
@@ -182,8 +182,10 @@ var Slide = React.createClass({
 		this.stage = {x:0,y:0};
 		this.styl = {
 			inner:{
+				position: 'absolute',
 				overflowX:this.props.scroll ? (this.props.vertical ? 'hidden' : 'scroll') : 'hidden',
 				overflowY:this.props.scroll ? (this.props.vertical ? 'scroll' : 'hidden') : 'hidden',
+
 			},
 			outer:{},
 		};
@@ -213,10 +215,11 @@ var Slide = React.createClass({
 	getDefaultProps: function(){
 
 		return {
-			ease: {
-				duration: 1,
-				ease: Power4.easeOut,
-			},
+			inverse: false,
+			index_offset: -1,
+			_intui_slide: true, //intui slide identifier.
+			slide_duration: 0.5,
+			slide_ease: Power4.easeOut,
 			index_pos: -1, //current nested slide index.
 			slide: null,
 			offset: 0,
@@ -226,18 +229,6 @@ var Slide = React.createClass({
 			width: null,
 			// path: null,
 		}
-	},
-
-	//check start position
-	getStart: function(){
-		for(var i in this.props.children){
-			var start_slide = this.props.children[i];
-			if(start_slide.props.start){
-				this.current = s;
-				return(s.off());
-			}
-		}
-		return 0
 	},
 
 	getXY: function(index){
@@ -271,7 +262,7 @@ var Slide = React.createClass({
 	},
 
 	getOuterHW: function(){
-		if( this.context.total_beta == null ){
+		if( ! this.context.total_beta ){
 			return {
 				height: this.props.height != null ? this.props.height+'px' : this.props.beta+'%',
 				width: this.props.width != null ?  this.props.width+'px' : this.props.beta+'%'
@@ -294,13 +285,22 @@ var Slide = React.createClass({
 		}
 	},
 
+	isValidChild: function(child){
+		if(child == null) return false
+		if(child.type.displayName == 'Slide') return true
+		if(child.type.contextTypes !=  null && child.type.contextTypes._intui_slide != null) return true
+		//redux connect
+		if(child.type.WrappedComponent != null && child.type.WrappedComponent.contextTypes._intui_slide != null) return true
+		return false
+	},
+
 	getInnerDim: function(){
 		if(!this.props.children) return 0
 		this.node_count = 0
 		var d = 0
 		for(var i = 0; i < this.props.children.length; i++){
 			var child = this.props.children[i];
-			if(child == null || !child.type || child.type.displayName !== 'Slide') continue;
+			if( !this.isValidChild(child)) continue
 			this.node_count ++;
 			
 			if(this.props.vertical){
@@ -309,7 +309,7 @@ var Slide = React.createClass({
 				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
 			}
 
-			if(child.props.offset != 0) d += child.props.offset 
+			if(child.props.offset != 0 && child.props.offset != null) d += child.props.offset 
 		}
 		return d	
 	},
@@ -325,23 +325,21 @@ var Slide = React.createClass({
 		var d = this.getInnerDim();
 		
 		return {
-			width: this.props.vertical || d == 0 ? '100%' : d+'px',
-			height: !this.props.vertical || d == 0 ? '100%' : d+'px',
+			width: (this.props.vertical || d == 0) ? '100%' : d+'px',
+			height: (!this.props.vertical || d == 0) ? '100%' : d+'px',
 		}
 	},
 
 	getTotalBeta: function() {
-		if(!this.props.children) return 100
-		if(this.props.relative){
-			var b = this.getInnerDim()
-		}else{
-			var b = this.getInnerDim()/(this.props.vertical ? this.rect.height : this.rect.width)*100
-		}
+		if(!this.props.children) return 100		
+		var b = this.getInnerDim()/(this.props.vertical ? this.rect.height : this.rect.width)*100
 		if( b < 100 ) b = 100;
+		if( b == Infinity) b = 100;
 		return b
 	},
 
 	contextTypes: {
+		_intui_slide: React.PropTypes.bool,
 		total_beta: React.PropTypes.number,
 		vertical: React.PropTypes.bool,
 		auto_h: React.PropTypes.bool,
@@ -405,7 +403,6 @@ var Slide = React.createClass({
 		
 		var set_offset = this.animateNewDim(props);
 		if(set_offset != null){
-			
 			TransManager.add(this.refs.outer,set_offset,this.state.x);
 		}
 		
@@ -482,9 +479,11 @@ var Slide = React.createClass({
 
 	updateState: function(props,state){
 		//if(this.props.id) console.log('UPDATE STATE',this.props.id,this.refs.outer.clientWidth);
-
+		
 		state = state || this.state;
 		props = props || this.props;
+
+//		console.log(props.index_offset,this.props.index_offset)
 
 		var ratio = this.getHWRatio();
 
@@ -493,13 +492,15 @@ var Slide = React.createClass({
 
  
 		
-		if(props.index_pos != -1 && state.dynamic){
-			if(this.props.index_pos != props.index_pos){
-				if(d_needs_update){
-					this.prev_pos = false		
-				}else{
-					this.prev_pos = false		
-				}
+		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
+			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
+				this.prev_pos = false
+
+				// if(d_needs_update){
+				// 	this.prev_pos = false		
+				// }else{
+				// 	this.prev_pos = false		
+				// }
 
 			}else if(this.props.index_pos == props.index_pos && d_needs_update){
 	
@@ -528,9 +529,9 @@ var Slide = React.createClass({
 	componentDidUpdate: function(props,state){
 		
 
-		if(this.props.index_pos != -1 && this.state.dynamic){
+		if( (this.props.index_pos != -1 || this.props.index_offset != -1) && this.state.dynamic){
 			var pos = this.getIndexXY(this.props.index_pos)
-			if(props.index_pos != this.props.index_pos){
+			if(props.index_pos != this.props.index_pos || props.index_offset != this.props.index_offset){
 				setTimeout(function() {
 				 	var pos = this.getIndexXY(this.props.index_pos)
 				 	this.toXY(pos.x,pos.y)					
@@ -553,9 +554,8 @@ var Slide = React.createClass({
 
 		
 		if(!this.props.onHover) return;
-	
-		this.refs.outer.addEventListener('mouseenter',this.props.onHover.bind(this,this,true))
-		this.refs.outer.addEventListener('mouseleave',this.props.onHover.bind(this,this,false))
+		this.refs.outer.addEventListener('mouseenter',this.props.onHover)
+		this.refs.outer.addEventListener('mouseleave',this.props.onHover)
 	},
 
 
@@ -593,8 +593,8 @@ var Slide = React.createClass({
 
 
 		return (
-			<div onClick={this.props.onClick} className={this.props.className || ''} style = {outer} ref='outer' >
-				<div classNameInner={this.props.classNameInner || ''} style = {inner} ref='inner' >
+			<div onClick={this.props.onClick} id = {this.props.id} className={this.props.outerClassName || this.props.className} style = {outer} ref='outer' >
+				<div className={this.props.innerClassName} style = {inner} ref='inner' >
 					{this.props.children}
 				</div>
 			</div>
@@ -604,15 +604,24 @@ var Slide = React.createClass({
 
 
 	toXY: function(x,y){
+		if(this.props.index_offset != -1){
+			if(this.props.vertical) y += this.props.index_offset
+			else x += this.props.index_offset
+		}
 		//console.log("TO XY",x,y,this.props.id)
-		TweenLite.to(this.scroller || this.refs.inner, this.props.ease.duration,{
-			ease: this.props.ease.ease,
+		TweenLite.to(this.scroller || this.refs.inner, this.props.slide_duration,{
+			ease: this.props.slide_ease,
 			x:-1*x,
 			y:-1*y,
 		})
 	},
 
 	setXY: function(x,y){
+		if(this.props.index_offset != -1){
+			if(this.props.vertical) y += this.props.index_offset
+			else x += this.props.index_offset
+		}
+		
 		//console.log("SET XY",x,y,this.props.id)
 		TweenLite.set(this.scroller || this.refs.inner,{
 			x:-1*x,
@@ -620,15 +629,56 @@ var Slide = React.createClass({
 		})
 	},
 
+
 	//get x and y coordinates of child index.
 	getIndexXY: function(index){
 		//console.log("GET INDEX",index)
 		if(this.state.dynamic == false) throw 'cant get index on static slides'
 		var child_el = this.refs.inner.childNodes[index];
 		if(child_el == null) throw 'cant get index of child that doesnt exist'
+		var x,y = 0;
+		var max_y = this.refs.inner.clientHeight-this.refs.outer.clientHeight
+		var max_x = this.refs.inner.clientWidth-this.refs.outer.clientWidth
+		if(!this.props.vertical){
+			if(this.refs.inner._gsTransform != null){
+				var self_w = this.refs.outer.clientWidth;
+				var self_x = -this.refs.inner._gsTransform.x
+				if(child_el.clientWidth < self_w){
+					//if slide top is over halfway down the screen, slide to its bottom
+					if(child_el.offsetLeft >= self_x+self_w/2){
+						x = child_el.offsetLeft-(self_w-child_el.clientWidth)
+					}else{
+						x = child_el.offsetLeft
+					}
+				}else{
+					x = child_el.offsetLeft
+				}
+			}else{
+				x = child_el.offsetLeft
+			}
+			y = 0			
+		}else{
+			if(this.refs.inner._gsTransform != null){
+
+				var self_h = this.refs.outer.clientHeight;
+				var self_y = -this.refs.inner._gsTransform.y
+				//console.log(self_h,self_y,child_el.offsetTop,child_el.clientHeight)
+				if(child_el.clientHeight < self_h){
+					if(child_el.offsetTop >= self_y+self_h/2){
+						y = child_el.offsetTop-(self_h-child_el.clientHeight)
+					}else{
+						y = child_el.offsetTop
+					}
+				}else{
+					y = child_el.offsetTop
+				}
+			}
+			x = 0
+		}
+
 		return {
-			x: this.props.vertical ? 0 : child_el.offsetLeft,
-			y: this.props.vertical ? child_el.offsetTop : 0,
+			x: x > max_x ? max_x : x,
+			y: y > max_y ? max_y : y
 		}
 	},
 

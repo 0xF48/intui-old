@@ -139,8 +139,9 @@ var example = React.createClass({
 			left_bar_inner_size: 50,
 			left_bar_index: 1,
 			display_left: true,
-			root_index: 0,
-			right_beta: 50
+			root_index: 1,
+			right_beta: 50,
+			right_index: 1
 		}
 	},
 
@@ -177,6 +178,12 @@ var example = React.createClass({
 			root_index: this.state.root_index == 1 ? 0 : 1,
 			left_beta: this.state.left_beta == 61.8 ? 38.2 : 61.8,
 			middle_beta: this.state.middle_beta == 61.8 ? 38.2 : 61.8,
+		})
+	},
+
+	setRightIndex: function(i){
+		this.setState({
+			right_index: i
 		})
 	},
 
@@ -236,7 +243,20 @@ var example = React.createClass({
 							</I>
 						</I>
 					</I>
-					<I beta= {this.state.right_beta} style = {{background:'#FF8200'}} />
+					<I beta= {this.state.right_beta} slide vertical index_pos={this.state.right_index} style = {{background:'#FFC9AF'}}>
+						<I beta={10} style = {{background:'#FF0500'}}>
+						</I>
+						<I beta={100} style = {{background:'#FF9500'}}>
+						</I>
+						<I beta={10} style = {{background:'#00FF1D'}}>
+						</I>
+						<I beta={50} style = {{background:'#FF4563'}}>
+						</I>
+						<I beta={30} style = {{background:'#1A77FF'}}>
+						</I>
+						<I beta={10} style = {{background:'#FFF153'}}>
+						</I>
+					</I>
 				</I>
 				<div style={{'padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
 					<button style={{backgroundColor:'green'}} onClick={this.toggleToggler}>toggle toggler</button>
@@ -246,6 +266,12 @@ var example = React.createClass({
 					<button style={{backgroundColor:'green'}} onClick={this.toggleLeftBar}>toggle bar/resize</button>
 					<button style={{backgroundColor:'yellow'}} onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
 					<button style={{backgroundColor:'green'}} onClick={this.addGridChild}>add child to grid</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,0)}>right index 0</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,1)}>right index 1</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,2)}>right index 2</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,3)}>right index 3</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,4)}>right index 4</button>
+					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,5)}>right index 5</button>
 				</div>
 			</div>
 			
