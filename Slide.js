@@ -105,7 +105,7 @@ var DimTransitionManager = function(){
 				index_count++
 			}
 
-			for(var i = 0 ; i< siblings.length ; i ++){
+			for( var i = 0 ; i<siblings.length ; i++ ){
 				var child = siblings[i];
 				//console.log(child.style)
 				if(child.style.position != 'relative') continue;
@@ -398,28 +398,23 @@ var Slide = React.createClass({
   	},
 
 	shouldComponentUpdate: function(props,state){
-
-		//transition
 		
-		var set_offset = this.animateNewDim(props);
-		if(set_offset != null){
-			TransManager.add(this.refs.outer,set_offset,this.state.x);
-		}
+		//get dim change
+		var set_offset = this.getDimChange(props);
 		
-
+		//if there is dim change pass offset along to transition manager
+		if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
+		
+		//get outer rectangle
 		this.getRekt();
+
+		//update self
 		return this.updateState(props,state);
 	},
 
 	getRekt: function(){
-		//console.log("GET RECT",this.refs.outer.getBoundingClientRect());
-
-
 		/* pixel perfect when not scaled */
 		//this.refs.outer.getBoundingClientRect();
-
-
-		//we got new dim props
 
 		/*use this for now */
 		this.rect = {
@@ -428,8 +423,13 @@ var Slide = React.createClass({
 		}
 	},
 
+	betaToDim: function(beta){
+		if(!this.refs.outer) return 0
+		return (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * beta
+	},
 
-	animateNewDim: function(props){
+	/* new and old dimensions change difference calculator */
+	getDimChange: function(props){
 		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
 		//console.log("ANIMATE NEW DIM",this.)
 	
@@ -437,40 +437,32 @@ var Slide = React.createClass({
 		var diff_beta = null;
 
 		//console.log(this.props.vertical, props.height,this.props.height)
-
+		//if(this.context.vertical && props.height != props.width props.width == null )
 		if(this.context.vertical && props.height != this.props.height){
-			diff_dim = props.height - this.props.height
+			if(props.height == null ){
+				diff_dim =  this.betaToDim(props.beta) - this.props.height
+			}else if(this.props.height == null){
+				diff_dim =  props.height - this.betaToDim(this.props.beta)
+			}else{
+				diff_dim = props.height - this.props.height
+			}
+			
 		}else if(!this.context.vertical && props.width != this.props.width){
-			diff_dim = props.width - this.props.width
+			if(props.width == null ){
+				diff_dim =  this.betaToDim(props.beta) - this.props.width
+			}else if(this.props.width == null){
+				diff_dim =  props.width - this.betaToDim(this.props.beta)
+			}else{
+				diff_dim = props.width - this.props.width
+			}
 		}else if(props.beta != this.props.beta){
 			diff_beta =  props.beta - this.props.beta
-		}
-
-
-
-		if(diff_dim != null){
-			return this.offsetSelfDim(diff_dim)
-		}else if(diff_beta != null){
-			return this.offsetSelfBeta(diff_beta)			
 		}else{
 			throw 'something went wrong with dim transition.'
 		}
-	},
 
-	offsetSelfBeta: function(diff_beta){
-		//var ratio = (diff_beta/this.props.beta)
-		if(this.context.total_beta == null) return null
-		var diff_dim = (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * diff_beta
-	//	console.log('offset beta',diff_beta,this.props.id,'->',diff_dim)
-		return {
-			offset_x: this.context.vertical ? 0 : diff_dim,
-			offset_y: !this.context.vertical ? 0 : diff_dim
-		}
-	},
-
-	offsetSelfDim: function(diff_dim){
-		var diff_dim = diff_dim
-	//	console.log('offset dim',diff_dim)
+		if(diff_beta) diff_dim = this.betaToDim(diff_beta)
+		
 		return {
 			offset_x: this.context.vertical ? 0 : diff_dim,
 			offset_y: !this.context.vertical ? 0 : diff_dim
@@ -478,7 +470,7 @@ var Slide = React.createClass({
 	},
 
 	updateState: function(props,state){
-		//if(this.props.id) console.log('UPDATE STATE',this.props.id,this.refs.outer.clientWidth);
+		
 		
 		state = state || this.state;
 		props = props || this.props;
@@ -487,11 +479,12 @@ var Slide = React.createClass({
 
 		var ratio = this.getHWRatio();
 
-		var d_needs_update = state.dim != ratio;
-		var i_needs_update = TransManager.needs_update(this.refs.inner);
+		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
+		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
 
  
-		
+		//if(this.props.id == 'gui') console.log('UPDATE STATE',this.props.id,d_needs_update);
+
 		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
 			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
 				this.prev_pos = false
