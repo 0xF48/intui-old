@@ -3,8 +3,10 @@ var I = require('./Slide');
 var Grid = require('./Grid')
 var G  = Grid.Grid;
 var GItem = Grid.Item;
+var SlideMixin = require('./Mixin');
 
 var Toggler = React.createClass({
+	mixins: [SlideMixin],
 	getInitialState:function(){
 		return {
 			color: '#001B2F',
@@ -14,7 +16,7 @@ var Toggler = React.createClass({
 	},
 	render: function(){
 		return (
-			<I index_pos = {this.props.on ? (this.state.inverted ? 0 : 1) : (this.state.inverted ? 1 : 0)} vertical = {this.props.vertical} slide >
+			<I {...this.props} index_pos = {this.props.on ? (this.state.inverted ? 0 : 1) : (this.state.inverted ? 1 : 0)} vertical = {this.props.vertical} slide >
 				<I beta ={100} style = {{background: !this.state.inverted ? this.state.color2 : this.state.color}}/>
 				<I beta = {100} style = {{background: this.state.inverted ? this.state.color2 : this.state.color}} />
 			</I>
@@ -139,7 +141,7 @@ var example = React.createClass({
 			left_bar_inner_size: 50,
 			left_bar_index: 1,
 			display_left: true,
-			root_index: 1,
+			root_index: 0,
 			right_beta: 50,
 			right_index: 1
 		}
@@ -175,7 +177,7 @@ var example = React.createClass({
 
 	toggleRootIndexResize: function(){
 		this.setState({
-			root_index: this.state.root_index == 1 ? 0 : 1,
+			root_index: this.state.root_index == 2 ? 0 : 2,
 			left_beta: this.state.left_beta == 61.8 ? 38.2 : 61.8,
 			middle_beta: this.state.middle_beta == 61.8 ? 38.2 : 61.8,
 		})
@@ -215,32 +217,20 @@ var example = React.createClass({
 				<I ref = 'root' id='root' slide index_pos = {this.state.root_index} beta={100} style = {{background:'#002743'}}>
 					{left_side}
 					<I ref = 'a' id='right' slide vertical beta = {this.state.middle_beta}  style = {this.bg(1)}>
-						<I ref = 'a.b' id ='top_right' beta = {this.state.top_right_beta} style = {this.bg(2)}>
-							<Toggler on={this.state.toggle_2} vertical = {true} />
-						</I>
+						<Toggler beta = {this.state.top_right_beta} style = {this.bg(2)} on={this.state.toggle_2} vertical = {true} />
 						<I ref = 'a.a' beta = {100-this.state.top_right_beta}  style = {this.bg(2)}>
 							<I ref = 'a.a.a' vertical beta = {38.2} style = {this.bg(3)}>
 								<I beta = {38.2} ref = 'a.a.a.b' style = {this.bg(4)}>
-									
 									<I beta={38.2}  vertical ref = 'a.a.a.b.a' style = {this.bg(5)}>
 										<I beta={38.2} ref = 'a.a.a.b.a.a' style = {this.bg(6)}>
-
 										</I>
-										<I beta={61.8} ref = 'a.a.a.b.a.b' style = {this.bg(6)}>
-											<Toggler on={this.state.toggle_1} vertical={true} />
-										</I>
+										<Toggler beta={61.8} style = {this.bg(6)} on={this.state.toggle_1} vertical={true} />
 									</I>
-									<I  beta={61.8}  ref = 'a.a.a.b.a' style = {this.bg(5)}>
-										<Toggler on={this.state.toggle_1} vertical={false} />
-									</I>
+									<Toggler beta={61.8} style = {this.bg(5)} on={this.state.toggle_1} vertical={false} />
 								</I>
-								<I beta = {61.8} ref = 'a.a.a.a' style = {this.bg(4)}>
-									<Toggler on={this.state.toggle_1} vertical={true} />
-								</I>
+								<Toggler beta = {61.8} style = {this.bg(4)} on={this.state.toggle_1} vertical={true} />
 							</I>
-							<I ref = 'a.a.b' beta={61.8} style = {this.bg(3)}>
-								<Toggler on={this.state.toggle_1}/>
-							</I>
+							<Toggler beta={61.8} style = {this.bg(3)} on={this.state.toggle_1}/>
 						</I>
 					</I>
 					<I beta= {this.state.right_beta} slide vertical index_pos={this.state.right_index} style = {{background:'#FFC9AF'}}>
