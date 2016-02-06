@@ -44,7 +44,6 @@ var Bar = React.createClass({
 
 var GridExample = React.createClass({
 
-
 	bg: function(){
 		var c = Math.floor(200+55*Math.random())
 		return {
@@ -82,7 +81,6 @@ var GridExample = React.createClass({
 	addChild: function(){
 		var size_index = Math.floor(Math.random()*4)
 		this.items.push(<GItem ease_dur = {0.5+Math.random()*0.5}key = {'additem_'+this.items.length} size_index = {size_index}><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
-
 	},
 
 	render: function(){

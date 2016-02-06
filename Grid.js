@@ -31,8 +31,12 @@ var GridItem = React.createClass({
 		}
 	},
 
+	componentDidUpdate: function(){
+
+	},
+
 	componentDidMount:function(state,props){
-		if(this.props.animate && !this.state.animated){
+		if(this.refs.item != null && this.props.animate && !this.state.animated){
 			TweenLite.to(this.refs.item,this.props.ease_dur,{
 				y: 0,
 				ease: this.props.ease,
@@ -52,6 +56,7 @@ var GridItem = React.createClass({
 			transform = {transform:'translate(0%,-100%)'}
 		}
 
+	
 		var style = Object.assign({
 			position: 'absolute',
 			left: this.props.c == 0 ? '0%' : '50%',
@@ -63,7 +68,7 @@ var GridItem = React.createClass({
 		},this.props.style,transform)
 
 		return (
-			<div ref='item' style={style}>
+			<div {...this.props} ref='item' style={style}>
 				{this.props.children}
 			</div>
 		)
@@ -309,7 +314,7 @@ var Grid = React.createClass({
 			console.log('update grid',this.state.length,this.props.children.length)
 
 			this.updateGrid(this.props.children)
-		}else{
+		}else if(this.refs.inner != null){
 			TweenLite.set(this.refs.inner,{
 				y: this.getDiam()*this.grid_shifts,
 			})
@@ -325,5 +330,12 @@ var Grid = React.createClass({
 
 
 
+var Mixin = {
+	contextTypes: {
+		diam: React.PropTypes.number
+	},
+}
+
+module.exports.Mixin = Mixin
 module.exports.Grid = Grid;
 module.exports.Item = GridItem;
