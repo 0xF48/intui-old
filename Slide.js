@@ -315,7 +315,7 @@ var Slide = React.createClass({
 	},
 
 	getInnerHW: function(){
-		if(!this.props.children){
+		if(!this.props.children ){
 			return {
 				height: '100%',
 				width: '100%'
@@ -561,8 +561,8 @@ var Slide = React.createClass({
 
 
 		outer = Object.assign(outer,this.styl.outer,this.context.vertical ? this.s.down : this.s.right,{
-			'flexGrow' : (this.props.width != null || this.props.height != null) ? 1 : 0,
-			'flexShrink' : (this.props.width != null || this.props.height != null) ? 0 : 1,
+			// 'flexGrow' : (this.props.width != null || this.props.height != null) ? 1 : 0,
+			// 'flexShrink' : (this.props.width != null || this.props.height != null) ? 0 : 1,
 		},this.props.style);
 
 
@@ -687,4 +687,3 @@ var select = function(state){
 }
 
 module.exports = Slide;
-

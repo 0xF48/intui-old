@@ -41,9 +41,12 @@ var Bar = React.createClass({
 	}	
 })
 
-
 var GridExample = React.createClass({
-
+	getDefaultProps: function(){
+		return {
+			fixed: false
+		}
+	},
 	bg: function(){
 		var c = Math.floor(200+55*Math.random())
 		return {
@@ -55,14 +58,10 @@ var GridExample = React.createClass({
 			position:'relative',
 			color: '#242426',
 			fontFamily: 'sans-serif',
-
 			width:'calc(100%)',
 			height: 'calc(100%)',
-			//borderRadius: '2px',
-			//boxShadow: '0px 0px 2px rgba(0,0,0,0.3)',
 			fontSize: '20px',
 			color: '#000',
-			//margin: '2px',
 			padding: '20px',
 			boxSizing : 'border-box',
 			background: 'rgba('+(c)+','+(c)+','+(c)+','+1+')',
@@ -73,19 +72,31 @@ var GridExample = React.createClass({
 		this.items = [];
 		for(var i = 0 ; i < 10 ; i ++ ){
 			var size_index = Math.floor(Math.random()*4)
-			this.items.push(<GItem key = {'item_'+i} size_index = {size_index}><div style = {this.bg()}><b>{i}</b></div></GItem>)
+			this.items.push(<GItem key={'additem_'+this.items.length} w = {Math.floor(1+Math.random()*2)}  h = {Math.floor(1+Math.random()*2)} size_index = {size_index} ><div style = {this.bg()}><b>{i}</b></div></GItem>)
 		}
-		return null
+		return {
+			id: Math.random()*500
+		}
 	},
 
 	addChild: function(){
-		var size_index = Math.floor(Math.random()*4)
-		this.items.push(<GItem ease_dur = {0.5+Math.random()*0.5}key = {'additem_'+this.items.length} size_index = {size_index}><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
+		this.items.push(<GItem w = {1}  h = {Math.floor(1+Math.random()*3)} key = {'additem_'+this.items.length} ><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
+	},
+	addManyChilds: function(){
+		for(var i = 0;i< 7;i++){
+			this.items.push(<GItem w = {Math.floor(1+Math.random()*2)}  h = {Math.floor(1+Math.random()*2)} key = {'additem_'+this.items.length} ><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
+		}
+	},
+
+	reset: function(){
+		this.setState({
+			id: Math.random()*500
+		})
 	},
 
 	render: function(){
 		return (
-			<G style={{boxSizing:'border-box',padding:'0px'}} >
+			<G list_id = {'grid'+this.state.id} w={2}  h={7} ease_dur = {2.5} fixed = {this.props.fixed} style={{boxSizing:'border-box',padding:'0px'}} >
 				{this.items}
 			</G>
 		)
@@ -117,8 +128,18 @@ var example = React.createClass({
 	},
 
 	addGridChild: function(){
-		this.refs.grid.addChild();
-		this.forceUpdate();
+		this.refs.fixed_grid.addChild();
+		this.forceUpdate()
+	},
+
+	gridReset: function(){
+		this.refs.fixed_grid.reset();
+		
+	},
+
+	addGridManyChilds: function(){
+		this.refs.fixed_grid.addManyChilds();
+		this.forceUpdate()
 	},
 
 	toggleToggler: function(){
@@ -198,12 +219,12 @@ var example = React.createClass({
 
 		if(this.state.display_left){
 			var left_side = (
-				<I ref = 'b' ref='nigga' id='left' slide vertical beta = {this.state.left_beta} style = {{background:'#000'}}>
+				<I ref = 'b' ref='nigga' slide id='left' vertical beta = {this.state.left_beta} style = {{background:'#000'}}>
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
-					<I beta = {100} offset={-this.state.left_bar_size} scroll vertical style={{background:'#5084A3'}}>
-						<GridExample ref = 'grid'  />
+					<I beta = {100} offset={-this.state.left_bar_size} style={{background:'#223947'}}>
+						<GridExample fixed ref = 'fixed_grid' />
 					</I>
 				</I>
 			)
@@ -254,6 +275,8 @@ var example = React.createClass({
 					<button style={{backgroundColor:'green'}} onClick={this.toggleLeftBar}>toggle bar/resize</button>
 					<button style={{backgroundColor:'yellow'}} onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
 					<button style={{backgroundColor:'green'}} onClick={this.addGridChild}>add child to grid</button>
+					<button style={{backgroundColor:'green'}} onClick={this.addGridManyChilds}>add children to grid</button>
+					<button style={{backgroundColor:'green'}} onClick={this.gridReset}>reset grid</button>
 					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,0)}>right index 0</button>
 					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,1)}>right index 1</button>
 					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,2)}>right index 2</button>
