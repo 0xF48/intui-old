@@ -5,11 +5,18 @@
 	parses through items and arranges them into a grid, resizing and positioning based on index and w/h amount.
 
 	NOTE:
-
-	DO NOT POPULATE GRID WITH MORE ITEMS THAN IT CAN HAVE AT ONCE.
-	gradually add new items to avoid LAG.
-	if your grid only holds about 10 items, do not add 40 in one go, this will result in extra calculations and will glitch the ui.
+		do not cycle through many offsets at once, this will result in grid resets!
+		gradually increase the offset, you may increase the max offset but beware that offsetting more than an optimal amount may result in visual glitching depending on grid size!
+		
+		It is recommended to NOT use hard_sync. Keep your data lists consistent, if you want to display unique data, its best not to replace existing list items but add new ones with custom settings!
+		hard_sync matches and diffs all cached list items and prop children to make sure that child indecies do not go out of sync with the index_array.
 	
+	NOTE:
+		if you do not use hard_sync which defaults to easy sync by default, IF you switch or shuffle the prop children, the grid will BREAK!!
+
+	NOTE:
+		remember to change grid ID (props.list_id) if you are working with different sets of children.
+
 
 
 */
