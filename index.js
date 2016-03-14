@@ -10,5 +10,11 @@ module.exports = {
 	Mixin: require('./Mixin'),
 	Loader: require('./Loader'),
 	Example: require('./example'),
-	Button: require('./Button')
+	Button: require('./Button'),
+	Modal: require('./Modal'),
+
+	//input
+	NumberField: require('./Form').NumberField,
+	ManyNumberField: require('./Form').ManyNumberField,
+	ToggleField: require('./Form').Toggler
 }

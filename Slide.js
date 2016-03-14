@@ -215,11 +215,12 @@ var Slide = React.createClass({
 	getDefaultProps: function(){
 
 		return {
-			inverse: false,
+			ease_params: [.5, 3],
+			// inverse: false, 
 			index_offset: -1,
 			_intui_slide: true, //intui slide identifier.
-			slide_duration: 0.5,
-			slide_ease: Power4.easeOut,
+			duration: 0.5,
+			ease: Power4.easeOut,
 			index_pos: -1, //current nested slide index.
 			slide: null,
 			offset: 0,
@@ -412,6 +413,16 @@ var Slide = React.createClass({
 		return this.updateState(props,state);
 	},
 
+	width: function(){
+		if(!this.refs.outer) return -1
+		else return this.refs.outer.clientWidth
+	},
+
+	height: function(){
+		if(!this.refs.outer) return -1
+		else return this.refs.outer.clientHeight
+	},
+
 	getRekt: function(){
 		/* pixel perfect when not scaled */
 		//this.refs.outer.getBoundingClientRect();
@@ -547,8 +558,12 @@ var Slide = React.createClass({
 
 		
 		if(!this.props.onHover) return;
-		this.refs.outer.addEventListener('mouseenter',this.props.onHover)
-		this.refs.outer.addEventListener('mouseleave',this.props.onHover)
+		this.refs.outer.addEventListener('mouseenter',function(){
+			this.props.onHover(true)
+		}.bind(this))
+		this.refs.outer.addEventListener('mouseleave',function(){
+			this.props.onHover(false)
+		}.bind(this))
 	},
 
 
@@ -602,10 +617,11 @@ var Slide = React.createClass({
 			else x += this.props.index_offset
 		}
 		//console.log("TO XY",x,y,this.props.id)
-		TweenLite.to(this.scroller || this.refs.inner, this.props.slide_duration,{
-			ease: this.props.slide_ease,
-			x:-1*x,
-			y:-1*y,
+		TweenLite.to(this.scroller || this.refs.inner, this.props.duration,{
+			ease: this.props.ease,
+			easeParams:this.props.ease_params,
+			x: -1*x,
+			y: -1*y,
 		})
 	},
 

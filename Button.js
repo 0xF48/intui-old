@@ -29,6 +29,12 @@ var Button = React.createClass({
 		})
 	},
 	render: function(){
+
+		if(this.props.icon_alt != null){
+			var icon_alt = <span className={this.props.icon_alt}></span>
+		}else{
+			var icon_alt = null
+		}
 		if(this.props.icon != null){
 			var icon = <span className={this.props.icon}></span>
 		}else{
@@ -65,10 +71,10 @@ var Button = React.createClass({
 		return (
 			<I {...this.props} slide vertical={vertical} slide_duration={this.active ? 1 : 0.5} index_pos={index_pos} index_offset={index_offset} onHover={this.toggleHover}>
 				<I beta={100} innerClassName={this.props.bClassName + ' ' + ((this.props.left || this.props.up) ? this.props.botClassName : this.props.topClassName)} style={top_style}>
-					{this.props.children || icon}
+					{this.props.children || icon_alt || icon}
 				</I>
 				<I beta={100} innerClassName={this.props.bClassName + ' ' + ((this.props.left || this.props.up) ? this.props.topClassName : this.props.botClassName)} style={bot_style}>
-					{this.props.children || icon}
+					{this.props.children || icon || icon_alt}
 				</I>
 			</I>
 		)
