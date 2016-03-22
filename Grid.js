@@ -26,6 +26,10 @@ var sort = require('lodash/collection/sortBy');
 var indexOf = require('lodash/array/indexOf');
 
 
+
+
+
+/* pass -1 for w/h to set size based on amount of children and grid dimentions */
 var GridItem = React.createClass({
 
 	getDefaultProps: function(){
@@ -169,13 +173,11 @@ var GridItem = React.createClass({
 
 
 
-
-
-
 var Grid = React.createClass({
 
 	getDefaultProps: function(){
 		return {
+			ease: Power2.easeOut,
 			offset: 0, //grid buffer offset.
 			fill_up: true, //fill empty spots
 			h: 2, //width of grid
@@ -221,6 +223,7 @@ var Grid = React.createClass({
 		w: React.PropTypes.number,
 		h: React.PropTypes.number,
 	},
+
 
 	getChildContext: function() {
 		return {
@@ -395,11 +398,28 @@ var Grid = React.createClass({
 		this.greatest_index = g
 	},
 
+	getH: function(child){
+		return 1
+	},
+	getW: function(child){
+		return 1
+	},
+
 
 
 	addToGrid: function(child,r,c,index){
 		//console.log('add',child.props.index,',',r,c,'#',index)
-		var child = React.cloneElement(child,{end:false,fixed: this.props.fixed,grid_shifts:this.grid_shifts,r:r,c:c,top:top || child.props.top,animate:top ? true : false})
+		var child = React.cloneElement(child,{
+			w:child.props.w == -1 ? this.getW(child) : child.props.w, 
+			h:child.props.h == -1 ? this.getH(child) : child.props.h,
+			end:false,
+			fixed: this.props.fixed,
+			grid_shifts:this.grid_shifts,
+			r:r,
+			c:c,
+			top:top || child.props.top,
+			animate:top ? true : false
+		})
 		this.grid.push(child)
 	},
 
@@ -450,7 +470,7 @@ var Grid = React.createClass({
 
 		var l = arr.length
 
-		//remove the indeces of old child in r,c position from index array
+		//remove the indecies of old child in r,c position from index array
 
 		for(var r = 0;r < l; r++){
 			var rl = arr[r].length
@@ -472,8 +492,7 @@ var Grid = React.createClass({
 		var l = arr.length
 		var lai = null //lowest average index
 
-		// ////console.log(arr);
-
+		
 		for(var r = 0;r < l;r++){
 			var rl =  arr[r].length
 			for(var c = 0;c < rl ;c++){
@@ -483,7 +502,7 @@ var Grid = React.createClass({
 						index_total += arr[r+h_i][c+w_i]
 					}
 				}
-				// ////console.log('total index for',r,c,'->',index_total)
+				
 				if(c+w <= rl && r+h <= l && (lai == null || ( reverse ? (index_total > lai) : (index_total < lai ) ) )) {
 					lai = index_total
 					spot = [r,c]
@@ -636,10 +655,9 @@ var Grid = React.createClass({
 		/*
 			NOTE:
 		 	I WILL NOT CHECK FOR REPLACED PROP CHILDREN!
-		 	do not replace prop children, if you do update list id.
+		 	do not replace prop children. if you do, update the list id.
 		 	all children are meant to be static.
-		 	you may remove children from the array, and i resync everything then.
-		 	if there are thousands of children, that may cause the grid to lag.
+		 	you may remove/add children from the array which will trigger a resync.
 		 */
 		//console.log('update grid',props.list_id)
 		//reset grid and return
@@ -766,12 +784,9 @@ var Grid = React.createClass({
 
 	fillEmptySpots: function(offset){
 		if(offset == null) throw 'cant fill empty spots with no offset'
-		//////console.log("fill empty")
+
 		var spots = this.findFreeSpots();
-		// var child_key = this.grid[0].key
-		// var max_index = this.childIndex(child_key);
-		//////console.log("max i",child_key,max_index)
-		////console.log("FILL EMPTY SPOTS",spots)
+
 		if(spots.length == 0) return
 
 		var spots = sort(spots,function(spot){
@@ -783,7 +798,7 @@ var Grid = React.createClass({
 		/*
 		first go back from offset and try and fill.
 		*/
-		////console.log("FIND BK")
+
 
 		for(var i = offset;i>= 0;i--){
 			var c = this.children[i];

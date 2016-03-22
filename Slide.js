@@ -288,6 +288,7 @@ var Slide = React.createClass({
 
 	isValidChild: function(child){
 		if(child == null) return false
+		if(child.type == null) throw 'could not check the slide child, are you nesting values in the slide?'
 		if(child.type.displayName == 'Slide') return true
 		if(child.type.contextTypes !=  null && child.type.contextTypes._intui_slide != null) return true
 		//redux connect
@@ -316,7 +317,7 @@ var Slide = React.createClass({
 	},
 
 	getInnerHW: function(){
-		if(!this.props.children ){
+		if(!this.props.children /*|| (this.getTotalBeta() >= 100 && !this.props.slide)*/ ){
 			return {
 				height: '100%',
 				width: '100%'

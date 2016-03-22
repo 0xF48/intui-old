@@ -4,7 +4,7 @@ var Grid = require('./Grid')
 var G  = Grid.Grid;
 var GItem = Grid.Item;
 var SlideMixin = require('./Mixin');
-
+var FormToggle = require('./Form').Toggle
 var Toggler = React.createClass({
 	mixins: [SlideMixin],
 	getInitialState:function(){
@@ -162,7 +162,14 @@ var example = React.createClass({
 			display_left: true,
 			root_index: 0,
 			right_beta: 50,
-			right_index: 1
+			right_index: 1,
+			toggle_radio1: false,
+			toggle_radio2: false,
+			toggle_radio3: true,
+			toggle_radio4: false,
+			toggle_radio5: true,
+			toggle_radio6: true,
+			toggle_radio7: false,
 		}
 	},
 
@@ -236,7 +243,15 @@ var example = React.createClass({
 				<I ref = 'root' id='root' slide index_pos = {this.state.root_index} beta={100} style = {{background:'#002743'}}>
 					{left_side}
 					<I ref = 'a' id='right' slide vertical beta = {this.state.middle_beta}  style = {this.bg(1)}>
-						<Toggler beta = {this.state.top_right_beta} style = {this.bg(2)} on={this.state.toggle_2} vertical = {true} />
+						<I vertical beta = {this.state.top_right_beta} >
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio1:!this.state.toggle_radio1})}.bind(this,1)} toggle={this.state.toggle_radio1} size = {50} color='#00E2FF' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio2:!this.state.toggle_radio2})}.bind(this,1)} toggle={this.state.toggle_radio2} size = {50} color='#00FF21' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio3:!this.state.toggle_radio3})}.bind(this,1)} toggle={this.state.toggle_radio3} size = {30} color='#FF7C00' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio4:!this.state.toggle_radio4})}.bind(this,1)} toggle={this.state.toggle_radio4} size = {20} color='#FF0033' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio5:!this.state.toggle_radio5})}.bind(this,1)} toggle={this.state.toggle_radio5} size = {35} color='#5EB195' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio6:!this.state.toggle_radio6})}.bind(this,1)} toggle={this.state.toggle_radio6} size = {60} color='#FF0015' />
+							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio7:!this.state.toggle_radio7})}.bind(this,1)} toggle={this.state.toggle_radio7} size = {40} color='#FFF9F9' />
+						</I>
 						<I ref = 'a.a' beta = {100-this.state.top_right_beta}  style = {this.bg(2)}>
 							<I ref = 'a.a.a' vertical beta = {38.2} style = {this.bg(3)}>
 								<I beta = {38.2} ref = 'a.a.a.b' style = {this.bg(4)}>

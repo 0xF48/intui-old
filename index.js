@@ -16,5 +16,5 @@ module.exports = {
 	//input
 	NumberField: require('./Form').NumberField,
 	ManyNumberField: require('./Form').ManyNumberField,
-	ToggleField: require('./Form').Toggler
+	ToggleField: require('./Form').Toggle
 }

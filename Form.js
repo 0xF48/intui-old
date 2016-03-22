@@ -8,6 +8,16 @@ function hexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? [parseInt(result[1], 16),parseInt(result[2], 16),parseInt(result[3], 16)] : null;
 }
+function pointOnLine(x2,y2,x1,y1,n){
+	
+	var d = Math.sqrt((x2-x1)*(x2-x1) + (y2 - y1)*(y2 - y1)) 
+	var r = n / d 
+
+	var x3 = r * x2 + (1 - r) * x1 
+	var y3 = r * y2 + (1 - r) * y1 
+
+	return [x3,y3]
+}
 
 var NumberFieldClass = {
 
@@ -39,18 +49,6 @@ var NumberFieldClass = {
 
 	componentDidMount: function(){
 	
-		// this.refs.input.scrollIntoView = null
-		// this.refs.input.scrollIntoViewIfNeeded = null		
-		// this.refs.input.onfocus = function () {
-		// 	this.refs.wrapper.refs.inner.scrollTop = 0;
-  //      		window.scrollTo(0, 0);
-  //       	document.body.scrollTop = 0;
-  //  	 	}.bind(this)
-
-		// $(this.refs.input).bind('focus focusin',function(e){
-		// 	e.preventDefault()
-		// 	return false
-		// })
 		this.refs.wrapper.refs.outer.addEventListener('focus',function(e){
 			e.preventDefault();
 			return false
@@ -68,8 +66,6 @@ var NumberFieldClass = {
 			// console.log("TOGGLE FOCUS",this.props.focus,props.focus)
 			this.toggleEdit(props.focus)
 		}
-
-
 	},
 
 	toggleEdit: function(enter){
@@ -176,10 +172,10 @@ var ManyNumberFieldClass = {
 	getDefaultProps: function(){
 		return {
 			ease: Power4.easeOut,
-			count: 4,
 			overflow_focus: true,
 			empyHolder: '-',
-			fontSize: 10
+			fontSize: 10,
+			error: null
 		}
 	},
 
@@ -189,6 +185,7 @@ var ManyNumberFieldClass = {
 
 	getInitialState: function(){
 		this.fields = []
+		this.cover = []
 		return {
 			next: 0,
 			parts: Array(this.props.count),
@@ -234,16 +231,25 @@ var ManyNumberFieldClass = {
 	},
 
 	componentWillUpdate: function(props,state){
-		if(this.fields.length != props.count || this.state.next != state.next || this.props.value != props.value){
+		if( (this.fields.length+this.cover.length) != props.children.length ||  this.state.next != state.next || this.props.value != props.value){
 			this.makeFields(props,state)
 		}
+		// if(this.props.error != props.error){
+			
+		// 		this.setState({
+		// 			error: this.props.error
+		// 		})
+			
+		// }
 		// return true
 	},
 
 	render: function(){
-		
 		return (
-			<I {...this.props} vertical slide ease = {this.state.edit_mode ? Power4.easeOut : this.props.ease} index_pos = {this.state.edit_mode ? 1 : 0} onHover={this.toggleEdit} >
+			<I {...this.props} vertical slide ease = {this.state.edit_mode && ! this.props.error ? Power4.easeOut : this.props.ease} index_pos = {this.props.error ? 0 : (this.state.edit_mode ? 2 : 1)} onHover={this.toggleEdit} >
+				<I innerClassName = '_intui_input_error' >
+					<span> {this.props.error} </span>
+				</I>
 				<I innerClassName = '_intui_input_cover' style = {{color: this.props.c2, background: this.props.c1}} >
 					{this.cover}
 				</I>
@@ -259,37 +265,192 @@ var ManyNumberFieldClass = {
 
 
 
-var TogglerFieldClass = {
+
+
+
+
+
+
+
+var ToggleFieldClass = {
 	getInitialState: function(){
+		var state = {
+			// toggle: false
+		}
+		this.stage = {
+			inner_r: 0,
+			outer_r: 10,
+			outer_ri: 10,
+			outer_c: [255,255,255],
+			inner_c: [0,0,0]
+		}
+		
+		this.inner_stage = []
+		for(var i = 0;i<this.props.inner_sections;i++){
+			this.inner_stage.push( {r:0})
+		}
+		return state
+	},
+
+	getDefaultProps: function(){
 		return {
-			toggle: false
+			color: '#00E2FF',
+			inner_sections: 40,
+			outer_sections: 1,
+			inner_stagger: 0.2,
+			outer_stagger: 0.3,
+			size: 10,
+			toggle: false,
+			x: 0,
+			y: 0
 		}
 	},
 
-	init: function(){
-
-	},
-
 	off: function(){
-		TweenLite.to(this.stage,{
+		this.stage.a = 1
+		TweenLite.to(this.stage,1,{
+			a: 0,
+			ease: Power4.easeOut,
+			easeParams:[0.4, 0.2],
+			outer_r: this.stage.max_outer_r,
+			outer_ri: this.stage.max_outer_r*0.9,
+			// inner_r: this.stage.min_inner_r,
+			onUpdate: this._render.bind(this),
+		})
 
-		})
-		this.setState({
-			toggle: false
-		})
+		for(var i = 0,l=this.props.inner_sections;i<l;i++){
+			var delay = (i+1)/l
+			TweenLite.to(this.inner_stage[i],0.3,{
+				r: this.stage.min_inner_r,
+				ease: Power4.easeOut,
+				delay: (Math.sin(i/2)*0.01)
+			})			
+		}
 	},
-	on: function(){
-		TweenLite.to(this.stage,{
 
+	on: function(){
+		this.stage.a = 0
+
+		TweenLite.to(this.stage,1,{
+			a: 1,
+			ease: Elastic.easeOut,
+			easeParams:[0.4, 0.2],
+			// inner_r: this.stage.max_inner_r,
+			outer_r: this.stage.min_outer_r,
+			outer_ri: this.stage.max_outer_r*0.9,
+			onUpdate: this._render.bind(this)
 		})
-		this.setState({
-			toggle: true
-		})
+
+		for(var i = 0,l=this.props.inner_sections;i<l;i++){
+			var delay = (i+1)/l
+			TweenLite.to(this.inner_stage[i],0.5,{
+				r: this.stage.max_inner_r,
+				ease: Power4.easeOut,
+				delay: (Math.sin(i/2)*0.01)
+			})			
+		}
+	},
+
+	_render: function(){
+
+		// console.log('_render')
+
+		// this.ctx.save();
+		this.ctx.clearRect(0, 0, this.refs.canvas.width, this.refs.canvas.height);
+		var a = this.stage.a
+
+
+
+		//inner
+		this.ctx.fillStyle = this.props.color;
+		this.ctx.beginPath();
+
+
+
+		for(var i = 0,l=this.props.inner_sections;i<l;i++){
+			var x = this.clientX+Math.cos(Math.PI*2/l*i) * this.inner_stage[i].r
+			var y = this.clientY+Math.sin(Math.PI*2/l*i) * this.inner_stage[i].r
+			if(i == 0){
+				this.ctx.moveTo(x,y);
+			}else{
+				this.ctx.lineTo(x,y);
+			}
+		}
+		this.ctx.fill()
+
+
+
+		this.ctx.globalCompositeOperation = 'destination-atop'
+
+
+
+		//outer
+		this.ctx.fillStyle = '#646464'
+		for(var i = 0,l=this.props.outer_sections,r = this.stage.outer_ri  ;i<l;i++){
+			this.ctx.beginPath();
+			this.ctx.arc(this.centerX,this.centerY,r,Math.PI*2/l*i*0.9,Math.PI*2/l*(i+1)*1.1);
+			this.ctx.lineTo(this.centerX,this.centerY)
+	      	this.ctx.fill();
+		}
+
+
+		this.ctx.fillStyle = this.props.color
+		for(var i = 0,l=this.props.outer_sections,r = this.stage.outer_r ;i<l;i++){
+			this.ctx.beginPath();
+			this.ctx.arc(this.centerX,this.centerY,r,Math.PI*2/l*i*0.9,Math.PI*2/l*(i+1)*1.1);
+			this.ctx.lineTo(this.centerX,this.centerY)
+	      	this.ctx.fill();
+		}
+
+		// this.ctx.restore();
+	},
+
+	setClientXY: function(e){
+		e = e.nativeEvent
+		var xy = pointOnLine(e.layerX,e.layerY,this.centerX,this.centerY,this.stage.max_outer_r*1.2)
+		if(!xy[0] || !xy[1] ) xy = [this.centerX,this.centerY]
+		this.clientX = xy[0]
+		this.clientY = xy[1]	
+	},
+
+	componentDidUpdate: function(props,state){
+		
+		this.centerX = this.props.size/2;
+		this.centerY = this.props.size/2;
+		
+		this.stage.max_outer_r = this.props.size/2/1.1
+		this.stage.min_outer_r = this.props.size/2/1.2
+		this.stage.max_inner_r = this.props.size
+		this.stage.min_inner_r = 0
+
+
+		if(this.props.toggle != props.toggle){
+			this.props.toggle ? this.on() : this.off();
+		}
+	},
+
+	componentDidMount: function(){
+		this.ctx = this.refs.canvas.getContext('2d');
+		this.ctx.globalCompositeOperation = 'destination-atop'
+
+		this.centerX = this.props.size/2;
+		this.centerY = this.props.size/2;
+		
+		this.stage.max_outer_r = this.props.size/2/1.1
+		this.stage.min_outer_r = this.props.size/2/1.2
+		this.stage.max_inner_r = this.props.size*3
+		this.stage.min_inner_r = 0
+		this.clientX = 	this.centerX
+		this.clientY = this.centerY
+
+		this.props.toggle ? this.on() : this.off()
 	},
 
 	render: function(){
 		return (
-			<canvas ref = 'canavas' />
+			<I {...this.props} innerClassName = '_intui_form_toggle_slide' >
+				<canvas onClick = {this.setClientXY} width = {this.props.size} height = {this.props.size} ref = 'canvas' />
+			</I>	
 		)
 	}
 }
@@ -299,7 +460,8 @@ var TogglerFieldClass = {
 
 
 
-
+var Toggle = React.createClass(ToggleFieldClass)
+module.exports.Toggle = Toggle
 
 var NumberField = React.createClass(NumberFieldClass)
 module.exports.NumberField = NumberField
