@@ -4,7 +4,8 @@ var Grid = require('./Grid')
 var G  = Grid.Grid;
 var GItem = Grid.Item;
 var SlideMixin = require('./Mixin');
-var FormToggle = require('./Form').Toggle
+var FormToggle = require('./Form').Toggle;
+
 var Toggler = React.createClass({
 	mixins: [SlideMixin],
 	getInitialState:function(){
@@ -82,6 +83,7 @@ var GridExample = React.createClass({
 	addChild: function(){
 		this.items.push(<GItem w = {1}  h = {Math.floor(1+Math.random()*3)} key = {'additem_'+this.items.length} ><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
 	},
+
 	addManyChilds: function(){
 		for(var i = 0;i< 7;i++){
 			this.items.push(<GItem w = {Math.floor(1+Math.random()*2)}  h = {Math.floor(1+Math.random()*2)} key = {'additem_'+this.items.length} ><div style = {this.bg()}><b>{this.items.length}</b></div></GItem>)
@@ -102,6 +104,177 @@ var GridExample = React.createClass({
 		)
 	}
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var NestedScrollExample = React.createClass({
+	mixins: [SlideMixin],
+
+	componentDidMount: function(){
+		window.scroller = this
+		this.refs.oc.addEventListener('scroll',function(e){
+			if(this.last_pos > this.refs.oc.scrollTop && !this.reverse) this.reverse = true
+			else if( this.last_pos < this.refs.oc.scrollTop && this.reverse ) this.reverse = false
+			this.refs.dummy.style.transform = 'translate(0,'+this.refs.oc.scrollTop+'px)'
+			this.last_pos = this.refs.oc.scrollTop
+			this.scroll();
+		}.bind(this))
+
+	
+
+		this.last_position = 0
+		
+
+
+		this.last_pos = 0
+
+		this.reverse = false
+
+		this.c2_last_pos = -1
+
+		this.scrolling = false
+
+		this.c2_scroll_pos = 0
+		this.last_position_2 = 0
+		this.speed = 0
+		this.end = false
+		this.end2 = false
+		
+		
+	},
+
+	scroll: function(){
+		this.min_scrollTop = 0
+		this.max_scrollTop = (this.refs.c2_inner.clientHeight - this.refs.c2.clientHeight)
+		
+
+		if( (this.scrollTop <= this.min_scrollTop && this.reverse) || (this.scrollTop >= this.max_scrollTop && !this.reverse) ) {
+			var off = (this.last_position - this.last_position_2)/2
+			var pull = 200
+			if(off < 1) off = 1
+			var offset = off*1/(1+off/pull)
+			if(offset > 200) offset = 200
+			
+
+
+			if(this.reverse){
+				this.last_position = this.refs.oc.scrollTop + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+			}else{
+				this.last_position = this.refs.oc.scrollTop
+			}
+			
+
+			if(!this.end2){
+				TweenLite.to(this.refs.c2_inner,0.07,{
+					y:  -this.c2_scroll_pos-offset,
+				})
+			}
+
+			if(this.end == false){
+				
+				setTimeout(function() {
+					this.end2 = true
+					TweenLite.to(this.refs.c2_inner,0.3,{
+						y: this.reverse ? 0 : -this.max_scrollTop,
+						ease: Circ.easeOut,
+					})
+				}.bind(this),0.5);
+				this.end = true
+			}
+
+		}else{
+			this.end2 = false;
+			this.end = false;
+
+
+			if(this.last_position != 0){
+				this.c2_scroll_pos = this.refs.c2.scrollHeight - this.refs.c2.clientHeight - this.last_position + this.refs.oc.scrollTop
+			}else{
+				this.c2_scroll_pos =  this.refs.oc.scrollTop
+			}
+				
+			
+			TweenLite.to(this.refs.c2_inner,0.07,{
+				y: -this.c2_scroll_pos,
+			})
+			this.scrollTop = this.c2_scroll_pos
+
+			this.last_position_2 = this.last_position
+		}
+	},
+	render: function(){
+		var children = [];
+		for(var i = 0 ; i < 35; i++){
+			children.push(<img src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#BAC4CB' : '#747A7F'),width: '100%',height:'200px'}}>scrollable {i}<br/></img>)
+		}
+		return (
+			<I ref = 'root' beta={100} vertical style = {{background:'#3F403F'}} scroll_important='top'>
+				<div ref = 'oc' id = 'input_proxy' style = {{overflow:'scroll',width:'100%',position: 'absolute',top:0,zIndex: 20,height :'100%'}}>
+					<div ref = 'dummy' id = 'input_proxy_scrolldummy' style = {{background: 'rgba(0,0,0,0)',width: '100%',height:'200%'}}/>
+				</div>
+
+
+
+				<div ref = 'c' id = 'container' style = {{height:'100%',overflow:'hidden'}}>
+					<div ref = 'c1' id = 'child1' style = {{width:'100%',background:'#CB3600',color:'#fff',height:'100px'}}>
+						<p> not scrollable </p>
+					</div>
+					<div ref = 'c2' id = 'child2' style = {{height:'calc(100% - 100px)',overflow:'hidden'}}>
+						<div ref = 'c2_inner' style = {{height:'auto',width:'100%'}}>
+							{children}
+						</div>
+					</div>
+				</div>
+			</I>
+		)
+	}
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 var example = React.createClass({
@@ -159,7 +332,7 @@ var example = React.createClass({
 			left_bar_size: 50,
 			left_bar_inner_size: 50,
 			left_bar_index: 1,
-			display_left: true,
+			display_left: false,
 			root_index: 0,
 			right_beta: 50,
 			right_index: 1,
@@ -215,11 +388,17 @@ var example = React.createClass({
 		})
 	},
 
+	setToggle: function(i){
+		var state = {}
+		state['toggle_radio'+i] = !this.state['toggle_radio'+i]
+		this.setState(state)
+	},
+
 	render: function(){
 		var sidebar = null
 
 		if(this.state.show_sidebar){
-			sidebar = <I width = {this.state.left_width} style = {{background:'#12FF00'}}><Left toggle={this.state.left_toggle} /></I>
+			sidebar = <I width = {this.state.left_width} style = {{background:'#12FF00'}}><Left active={this.state.left_toggle} /></I>
 		}
 
 		var left_side = null
@@ -237,20 +416,30 @@ var example = React.createClass({
 			)
 		}
 
+		var button_style = {
+			background: '#CBCECE',
+			color: '#000',
+			borderRadius: '3px',
+			border: 'none',
+			margin: '3px',
+			padding: '5px',
+			outline: 'none'
+		}
+
 		return (
-			<div style={{width:'100%',height:'100%'}}>
+			<div style={{width:'100%',height:'calc(100% - 100px)',marginTop:'100px'}}>
 				
 				<I ref = 'root' id='root' slide index_pos = {this.state.root_index} beta={100} style = {{background:'#002743'}}>
 					{left_side}
 					<I ref = 'a' id='right' slide vertical beta = {this.state.middle_beta}  style = {this.bg(1)}>
 						<I vertical beta = {this.state.top_right_beta} >
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio1:!this.state.toggle_radio1})}.bind(this,1)} toggle={this.state.toggle_radio1} size = {50} color='#00E2FF' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio2:!this.state.toggle_radio2})}.bind(this,1)} toggle={this.state.toggle_radio2} size = {50} color='#00FF21' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio3:!this.state.toggle_radio3})}.bind(this,1)} toggle={this.state.toggle_radio3} size = {30} color='#FF7C00' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio4:!this.state.toggle_radio4})}.bind(this,1)} toggle={this.state.toggle_radio4} size = {20} color='#FF0033' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio5:!this.state.toggle_radio5})}.bind(this,1)} toggle={this.state.toggle_radio5} size = {35} color='#5EB195' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio6:!this.state.toggle_radio6})}.bind(this,1)} toggle={this.state.toggle_radio6} size = {60} color='#FF0015' />
-							<FormToggle beta = {12} onClick = {function(e){this.setState({toggle_radio7:!this.state.toggle_radio7})}.bind(this,1)} toggle={this.state.toggle_radio7} size = {40} color='#FFF9F9' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,1)} active={this.state.toggle_radio1} size = {30} color='#00E2FF' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,2)} active={this.state.toggle_radio2} size = {30} color='#00FF21' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,3)} active={this.state.toggle_radio3} size = {30} color='#FF7C00' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,4)} active={this.state.toggle_radio4} size = {30} color='#FF0033' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,5)} active={this.state.toggle_radio5} size = {30} color='#5EB195' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,6)} active={this.state.toggle_radio6} size = {30} color='#FF0015' />
+							<FormToggle beta = {13} onClick = {this.setToggle.bind(this,7)} active={this.state.toggle_radio7} size = {30} color='#FFF9F9' />
 						</I>
 						<I ref = 'a.a' beta = {100-this.state.top_right_beta}  style = {this.bg(2)}>
 							<I ref = 'a.a.a' vertical beta = {38.2} style = {this.bg(3)}>
@@ -270,8 +459,7 @@ var example = React.createClass({
 					<I beta= {this.state.right_beta} slide vertical index_pos={this.state.right_index} style = {{background:'#FFC9AF'}}>
 						<I beta={10} style = {{background:'#FF0500'}}>
 						</I>
-						<I beta={100} style = {{background:'#FF9500'}}>
-						</I>
+						<NestedScrollExample beta = {100} />
 						<I beta={10} style = {{background:'#00FF1D'}}>
 						</I>
 						<I beta={50} style = {{background:'#FF4563'}}>
@@ -282,22 +470,22 @@ var example = React.createClass({
 						</I>
 					</I>
 				</I>
-				<div style={{'padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
-					<button style={{backgroundColor:'green'}} onClick={this.toggleToggler}>toggle toggler</button>
-					<button style={{backgroundColor:'yellow'}} onClick={this.toggleTopRight}>resize top right and toggle</button>
-					<button style={{backgroundColor:'yellow'}} onClick={this.toggleLeft}>resize left and toggle</button>
-					<button style={{backgroundColor:'orange'}} onClick={this.toggleLeftDisplay}>toggle left display</button>
-					<button style={{backgroundColor:'green'}} onClick={this.toggleLeftBar}>toggle bar/resize</button>
-					<button style={{backgroundColor:'yellow'}} onClick={this.toggleRootIndexResize}>toggle root index/resize left</button>
-					<button style={{backgroundColor:'green'}} onClick={this.addGridChild}>add child to grid</button>
-					<button style={{backgroundColor:'green'}} onClick={this.addGridManyChilds}>add children to grid</button>
-					<button style={{backgroundColor:'green'}} onClick={this.gridReset}>reset grid</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,0)}>right index 0</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,1)}>right index 1</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,2)}>right index 2</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,3)}>right index 3</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,4)}>right index 4</button>
-					<button style={{backgroundColor:'green'}} onClick={this.setRightIndex.bind(this,5)}>right index 5</button>
+				<div style={{marginTop:'-100px','padding':'5px', 'position':'absolute','top':0,'left':0,'width':'100%','height':'auto'}}>
+					<button style={button_style} onClick={this.toggleToggler}>toggle toggler</button>
+					<button style={button_style} onClick={this.toggleTopRight}>resize top right and toggle</button>
+					<button style={button_style} onClick={this.toggleLeft}>resize left and toggle</button>
+					<button style={button_style} onClick={this.toggleLeftDisplay}>toggle left display</button>
+					<button style={button_style} onClick={this.toggleLeftBar}>toggle bar/resize</button>
+					<button style={button_style} onClick={this.toggleRootIndexResize}>Toggle scroll example and resize left</button>
+					<button style={button_style} onClick={this.addGridChild}>add child to grid</button>
+					<button style={button_style} onClick={this.addGridManyChilds}>add children to grid</button>
+					<button style={button_style} onClick={this.gridReset}>reset grid</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,0)}>right index 0</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,1)}>right index 1</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,2)}>right index 2</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,3)}>right index 3</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,4)}>right index 4</button>
+					<button style={button_style} onClick={this.setRightIndex.bind(this,5)}>right index 5</button>
 				</div>
 			</div>
 			

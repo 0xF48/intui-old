@@ -113,7 +113,7 @@ var NumberFieldClass = {
 
 		if(this.props.onChange == null) return
 		return this.props.onChange(this.refs.input.value)
-	},
+	}, 
 
 
 
@@ -281,8 +281,13 @@ var ToggleFieldClass = {
 			inner_r: 0,
 			outer_r: 10,
 			outer_ri: 10,
+			outer_ri2: 10,
 			outer_c: [255,255,255],
-			inner_c: [0,0,0]
+			inner_c: [0,0,0],
+			inner_x: 0,
+			inner_y: 0,
+			inner_x2: 0, 
+			inner_y2: 0,
 		}
 		
 		this.inner_stage = []
@@ -295,12 +300,12 @@ var ToggleFieldClass = {
 	getDefaultProps: function(){
 		return {
 			color: '#00E2FF',
-			inner_sections: 40,
+			beta: 100,
 			outer_sections: 1,
 			inner_stagger: 0.2,
 			outer_stagger: 0.3,
 			size: 10,
-			toggle: false,
+			active: false,
 			x: 0,
 			y: 0
 		}
@@ -308,47 +313,39 @@ var ToggleFieldClass = {
 
 	off: function(){
 		this.stage.a = 1
-		TweenLite.to(this.stage,1,{
+		TweenLite.to(this.stage,0.7,{
 			a: 0,
-			ease: Power4.easeOut,
+			ease: Elastic.easeOut,
 			easeParams:[0.4, 0.2],
 			outer_r: this.stage.max_outer_r,
 			outer_ri: this.stage.max_outer_r*0.9,
-			// inner_r: this.stage.min_inner_r,
-			onUpdate: this._render.bind(this),
-		})
+			// outer_ri2: this.stage.max_outer_r,
+			inner_r: this.stage.max_inner_r,
+			inner_x: this.clientX,
+			inner_y: this.clientY,
 
-		for(var i = 0,l=this.props.inner_sections;i<l;i++){
-			var delay = (i+1)/l
-			TweenLite.to(this.inner_stage[i],0.3,{
-				r: this.stage.min_inner_r,
-				ease: Power4.easeOut,
-				delay: (Math.sin(i/2)*0.01)
-			})			
-		}
+			onUpdate: this._render,
+			onUpdateScope: this
+		})
 	},
 
 	on: function(){
 		this.stage.a = 0
 
-		TweenLite.to(this.stage,1,{
+		TweenLite.to(this.stage,0.5,{
 			a: 1,
-			ease: Elastic.easeOut,
-			easeParams:[0.4, 0.2],
-			// inner_r: this.stage.max_inner_r,
-			outer_r: this.stage.min_outer_r,
-			outer_ri: this.stage.max_outer_r*0.9,
-			onUpdate: this._render.bind(this)
-		})
+			ease: Power4.easeOut,
+			easeParams: [.5, 3],
+			inner_r: this.stage.max_inner_r,
+			outer_r: this.stage.max_outer_r,
+			outer_ri: this.stage.max_outer_r,
+			// outer_ri2: this.stage.max_outer_r,
+			inner_x: this.centerX,
+			inner_y: this.centerY,
 
-		for(var i = 0,l=this.props.inner_sections;i<l;i++){
-			var delay = (i+1)/l
-			TweenLite.to(this.inner_stage[i],0.5,{
-				r: this.stage.max_inner_r,
-				ease: Power4.easeOut,
-				delay: (Math.sin(i/2)*0.01)
-			})			
-		}
+			onUpdate: this._render,
+			onUpdateScope: this
+		})
 	},
 
 	_render: function(){
@@ -367,50 +364,79 @@ var ToggleFieldClass = {
 
 
 
-		for(var i = 0,l=this.props.inner_sections;i<l;i++){
-			var x = this.clientX+Math.cos(Math.PI*2/l*i) * this.inner_stage[i].r
-			var y = this.clientY+Math.sin(Math.PI*2/l*i) * this.inner_stage[i].r
-			if(i == 0){
-				this.ctx.moveTo(x,y);
-			}else{
-				this.ctx.lineTo(x,y);
-			}
-		}
-		this.ctx.fill()
+		// this.ctx.fill()
+
+
+		this.ctx.fillStyle = this.props.color
+		this.ctx.beginPath();
+		this.ctx.arc(this.stage.inner_x,this.stage.inner_y,this.stage.inner_r,0,Math.PI*2);
+		// this.ctx.lineTo(this.centerX,this.centerY);
+      	this.ctx.fill();
 
 
 
+      	// this.ctx.globalCompositeOperation = 'lighter'
 		this.ctx.globalCompositeOperation = 'destination-atop'
 
 
 
+		this.ctx.fillStyle = '#252525'
+		this.ctx.beginPath();
+		this.ctx.arc(this.centerX,this.centerY,this.stage.outer_ri*0.8,0,Math.PI*2);
+		// this.ctx.lineTo(this.centerX,this.centerY)
+		this.ctx.fill();
+
+		this.ctx.globalCompositeOperation = 'destination-over'
+
+
+
 		//outer
-		this.ctx.fillStyle = '#646464'
-		for(var i = 0,l=this.props.outer_sections,r = this.stage.outer_ri  ;i<l;i++){
-			this.ctx.beginPath();
-			this.ctx.arc(this.centerX,this.centerY,r,Math.PI*2/l*i*0.9,Math.PI*2/l*(i+1)*1.1);
-			this.ctx.lineTo(this.centerX,this.centerY)
-	      	this.ctx.fill();
-		}
+		this.ctx.fillStyle = '#252525'
+		this.ctx.beginPath();
+		this.ctx.arc(this.centerX,this.centerY,this.stage.outer_ri,0,Math.PI*2);
+		// this.ctx.lineTo(this.centerX,this.centerY)
+		this.ctx.fill();
+		
 
 
-		this.ctx.fillStyle = this.props.color
-		for(var i = 0,l=this.props.outer_sections,r = this.stage.outer_r ;i<l;i++){
-			this.ctx.beginPath();
-			this.ctx.arc(this.centerX,this.centerY,r,Math.PI*2/l*i*0.9,Math.PI*2/l*(i+1)*1.1);
-			this.ctx.lineTo(this.centerX,this.centerY)
-	      	this.ctx.fill();
-		}
 
-		// this.ctx.restore();
+		
+
+
+
+
+
+		this.ctx.fillStyle = '#454545'
+		this.ctx.beginPath();
+		this.ctx.arc(this.centerX,this.centerY,this.stage.outer_r,0,Math.PI*2);
+		// this.ctx.lineTo(this.centerX,this.centerY);
+      	this.ctx.fill();
+		
+
+
+		// this.ctx.fillStyle = 'rgba(255,255,255,'+ (this.stage.a > 0.5 ? 0.5 - this.stage.a/2 : this.stage.a/2)+')'
+		// this.ctx.beginPath();
+		// this.ctx.arc(this.centerX,this.centerY,this.stage.outer_r*1.1,0,Math.PI*2);
+		// // this.ctx.lineTo(this.centerX,this.centerY)
+		// this.ctx.fill();
 	},
 
 	setClientXY: function(e){
+		if(e.preventDefault) e.preventDefault()
 		e = e.nativeEvent
-		var xy = pointOnLine(e.layerX,e.layerY,this.centerX,this.centerY,this.stage.max_outer_r*1.2)
-		if(!xy[0] || !xy[1] ) xy = [this.centerX,this.centerY]
+		var rect = this.refs.canvas.getBoundingClientRect()
+
+
+		var x = e.pageX - rect.left;
+		var y = e.pageY - rect.top;
+
+		var xy = pointOnLine(x,y,this.centerX,this.centerY,this.props.size/1.5)
+		if(!xy[0] || !xy[1] ) xy = [-this.stage.max_outer_r,-this.stage.max_outer_r]
 		this.clientX = xy[0]
-		this.clientY = xy[1]	
+		this.clientY = xy[1]
+
+
+		if(this.props.onClick) this.props.onClick(e)
 	},
 
 	componentDidUpdate: function(props,state){
@@ -420,12 +446,12 @@ var ToggleFieldClass = {
 		
 		this.stage.max_outer_r = this.props.size/2/1.1
 		this.stage.min_outer_r = this.props.size/2/1.2
-		this.stage.max_inner_r = this.props.size
+		this.stage.max_inner_r = this.props.size/2
 		this.stage.min_inner_r = 0
 
 
-		if(this.props.toggle != props.toggle){
-			this.props.toggle ? this.on() : this.off();
+		if(this.props.active != props.active){
+			this.props.active ? this.on() : this.off();
 		}
 	},
 
@@ -438,17 +464,22 @@ var ToggleFieldClass = {
 		
 		this.stage.max_outer_r = this.props.size/2/1.1
 		this.stage.min_outer_r = this.props.size/2/1.2
-		this.stage.max_inner_r = this.props.size*3
+		this.stage.max_inner_r = this.props.size/2
 		this.stage.min_inner_r = 0
-		this.clientX = 	this.centerX
-		this.clientY = this.centerY
 
-		this.props.toggle ? this.on() : this.off()
+
+		var xy = pointOnLine(0,0,this.centerX,this.centerY,this.props.size/1.5)
+		if(!xy[0] || !xy[1] ) xy = [-this.stage.max_outer_r,-this.stage.max_outer_r]
+		this.clientX = xy[0]
+		this.clientY = xy[1]
+		
+
+		this.props.active ? this.on() : this.off()
 	},
 
 	render: function(){
 		return (
-			<I {...this.props} innerClassName = '_intui_form_toggle_slide' >
+			<I beta = {this.props.beta} innerClassName = '_intui_form_toggle_slide' >
 				<canvas onClick = {this.setClientXY} width = {this.props.size} height = {this.props.size} ref = 'canvas' />
 			</I>	
 		)

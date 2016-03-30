@@ -12,6 +12,7 @@ module.exports = {
 	Example: require('./example'),
 	Button: require('./Button'),
 	Modal: require('./Modal'),
+	ToolTip: require('./ToolTip'),
 
 	//input
 	NumberField: require('./Form').NumberField,

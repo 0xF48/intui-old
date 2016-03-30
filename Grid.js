@@ -186,6 +186,25 @@ var Grid = React.createClass({
 		}
 	},
 
+	childContextTypes:{
+		fixed: React.PropTypes.bool,
+		diam: React.PropTypes.number,
+		w: React.PropTypes.number,
+		h: React.PropTypes.number,
+	},
+
+
+
+	getChildContext: function() {
+		return {
+			fixed: this.props.fixed,
+			w: this.props.w,
+			h: this.props.h,
+			diam: this.getDiam()
+		}
+	},
+
+
 	getInitialState: function(){
 	
 		this.inner_style = {
@@ -202,9 +221,9 @@ var Grid = React.createClass({
 		return {}
 	},
 
+	/* initialize the index array with a set width and height */
 	initIndexArray: function(w,h){
-		//create index array.
-		this.index_array = []
+		this.index_array = [] 
 		for(var r = 0; r <h;r++){
 			var row = []
 			for(var c = 0; c <w;c++){
@@ -214,24 +233,6 @@ var Grid = React.createClass({
 		}
 		this.greatest_index = 0
 		this.lowest_index = 0
-	},
-
-
-	childContextTypes:{
-		fixed: React.PropTypes.bool,
-		diam: React.PropTypes.number,
-		w: React.PropTypes.number,
-		h: React.PropTypes.number,
-	},
-
-
-	getChildContext: function() {
-		return {
-			fixed: this.props.fixed,
-			w: this.props.w,
-			h: this.props.h,
-			diam: this.getDiam()
-		}
 	},
 
 
@@ -245,14 +246,6 @@ var Grid = React.createClass({
 			return this.refs.inner.clientWidth/this.props.w;
 		}
 	},
-
-
-
-
-
-
-
-
 
 	/* remove grid items that have ended their lifcycle from previous update at the start of each update*/
 	cleanGrid: function(){
@@ -347,25 +340,25 @@ var Grid = React.createClass({
 		}
 	},
 
-		//remove child from buffer
-		removeChild: function(index){
-			var child = this.children[index]
-			if(child == null) throw 'cant remove child that doesnt exist.'
-			this.children[index] = null
+	//remove child from buffer
+	removeChild: function(index){
+		var child = this.children[index]
+		if(child == null) throw 'cant remove child that doesnt exist.'
+		this.children[index] = null
 
 
-			//we also need to check if the desynced child is part of the grid, and remove it.
-			var gi = this.gridIndex(child)
-			if(gi != -1){
-				var c = this.grid[gi]
-				this.makeFreeSpot(c.props.r,c.props.c,c.props.w,c.props.h);
-			}
-		},
+		//we also need to check if the desynced child is part of the grid, and remove it.
+		var gi = this.gridIndex(child)
+		if(gi != -1){
+			var c = this.grid[gi]
+			this.makeFreeSpot(c.props.r,c.props.c,c.props.w,c.props.h);
+		}
+	},
 
-		//add child to buffer
-		addChild: function(child){
-			this.children.push(child);
-		},
+	//add child to buffer
+	addChild: function(child){
+		this.children.push(child);
+	},
 
 
 
@@ -385,7 +378,7 @@ var Grid = React.createClass({
 	},
 
 
-
+	/* set the lowest and greatest indecies of the children */
 	setMarkers: function(){
 		var g = l = null
 		for(var r = 0;r<this.index_array.length;r++){
@@ -398,20 +391,31 @@ var Grid = React.createClass({
 		this.greatest_index = g
 	},
 
-	getH: function(child){
-		return 1
+
+	/* auto dim */
+	autoDim: function(child){
+		//
+		var w = 1
+		var h = 1
+		return {w:w,h:h}
 	},
-	getW: function(child){
-		return 1
-	},
 
 
-
+	/* add to grid */
 	addToGrid: function(child,r,c,index){
 		//console.log('add',child.props.index,',',r,c,'#',index)
+		var w = child.props.w
+		var h = child.props.h
+		if( child.props.w < 0 || child.props.h < 0 ){
+			var wh = this.autoDim(child)
+			w = wh.w
+			h = wh.h
+		}
+		
+
 		var child = React.cloneElement(child,{
-			w:child.props.w == -1 ? this.getW(child) : child.props.w, 
-			h:child.props.h == -1 ? this.getH(child) : child.props.h,
+			w:w, 
+			h:h,
 			end:false,
 			fixed: this.props.fixed,
 			grid_shifts:this.grid_shifts,
@@ -423,6 +427,10 @@ var Grid = React.createClass({
 		this.grid.push(child)
 	},
 
+
+
+
+	//the final remove element from the grid index
 	removeFromGrid: function(child){
 		var i = this.gridIndex(child);
 		if(i == -1) throw 'cant remove grid child, it does not exist'
@@ -436,7 +444,7 @@ var Grid = React.createClass({
 
 
 
-
+	/* get the grid index of a child, returning -1 if none is found */
 	gridIndex: function(child){
 		for(var gi = 0;gi<this.grid.length;gi++){
 			if(this.grid[gi].key == child.key){
@@ -447,6 +455,7 @@ var Grid = React.createClass({
 	},
 
 
+	/* remove any children within the passed spot boundries and set the now empty array spots to -1 */
 	makeFreeSpot: function(r,c,w,h){
 
 		for(var n_h_i = 0;n_h_i < h; n_h_i++){
@@ -484,13 +493,13 @@ var Grid = React.createClass({
 	},
 
 
-
-	findLowestIndexSpot: function(w,h,reverse){
-		// ////console.log('find lowest index for index',index,'->',w,h)
+	/* find the lowest or highest index spot on the grid */
+	findMaxIndexSpot: function(w,h,reverse){
+		
 		var arr = this.index_array;
-		var spot = []
-		var l = arr.length
-		var lai = null //lowest average index
+		var spot = [];
+		var l = arr.length;
+		var lai = null; //lowest average index
 
 		
 		for(var r = 0;r < l;r++){
@@ -514,18 +523,20 @@ var Grid = React.createClass({
 			throw ' could not find lowest index spot ? '
 		}
 
-		// ////console.log("FOUND FIXED SPOT:",spot)
+
 
 		return spot
 	},
 
 
-	//from BOTTOM to TOP
-	findFreeSpot: function(w,h){
+	//find and index spot from BOTTOM to TOP
+	findFreeSpot: function(w,h,reverse,max_r){
 	
 		var col = this.index_array
 		var l = col.length
-		for(var r = 0;r < l;r++){
+
+		for(var r = reverse ? l-1 : 0; ( reverse ? r >= 0 : r < l ) && (  max_r ? ( reverse ?  ( r < max_r ? false : true ) : ( r > max_r ? false : true ) ) : true /* WAT */ ); r++){
+			// console.log(l,r)
 			var rl =  col[r].length;
 			for(var c = 0;c < rl ;c++){
 				if(r+h > l || c+w > rl) continue;
@@ -541,9 +552,9 @@ var Grid = React.createClass({
 					}
 				}
 				if(found == true) return [r,c]
-			
 			}
 		}
+
 		return null
 	},
 
@@ -591,7 +602,8 @@ var Grid = React.createClass({
 		return spots
 	},
 
-	addIndexRow: function(r){
+	/* add a row to the grid */
+	insertIndexRow: function(r){
 		if(this.props.fixed) throw 'cant add index rows to fixed index array, disable fixed index array option.'
 		
 		this.grid_shifts ++;
@@ -599,10 +611,11 @@ var Grid = React.createClass({
 		for(var i = 0;i<this.props.w;i++){
 			row.push(-1)
 		}
-		this.index_array.splice(r,row)	
+		this.index_array.splice(r,row)
 		
 	},
 
+	/* fill spot */
 	fillSpot: function(child_i,r,c,w,h){
 		////console.log('fill spot',r,c,w,h,'#'+child_i)
 
@@ -622,16 +635,26 @@ var Grid = React.createClass({
 		return true
 	},
 
-	isEmpty: function(r,c,h,w){
-		var col = this.index_array;
-		for(var h_i = 0;h_i<h;h_i++){
-			for(var w_i = 0; w_i < w; w_i ++ ){
-				if(col[r+h_i][c+w_i] != -1) return false
+
+	/* 123 */
+	forceFill: function(props){
+
+		for(var  i = 0 ; i < this.children.length ; i++){
+			var c = this.children[i]
+			if(this.gridIndex(this.children[i]) != -1) continue;
+			var spot = this.findFreeSpot(c.w,c.h)
+
+			while(spot == null){
+				this.insertIndexRow(this.index_array.length-1)
+				spot = this.findFreeSpot(c.w,c.h)
 			}
+			this.fillSpot(spot[0],spot[1],c.w,c.h)
 		}
-		return true
 	},
 
+
+
+	/* reset the grid, removing all state children and setting outer prop children to end their life cycle on the next update */
 	resetGrid: function(w,h){
 		//console.log("RESET GRID")
 		
@@ -645,93 +668,14 @@ var Grid = React.createClass({
 		this.children = []
 	},
 
-
-
-
-	shouldComponentUpdate: function(props,state){
-		if(!props.children) return false //no need to update grid if no children.
-		
-
-		/*
-			NOTE:
-		 	I WILL NOT CHECK FOR REPLACED PROP CHILDREN!
-		 	do not replace prop children. if you do, update the list id.
-		 	all children are meant to be static.
-		 	you may remove/add children from the array which will trigger a resync.
-		 */
-		//console.log('update grid',props.list_id)
-		//reset grid and return
-		if(this.props.list_id != props.list_id){
-			//console.log("NEW GRID ID",props.list_id)
-
-
-			if(! props.children || !props.children.length){
-				//console.log('reset to empty')
-				this.cleanGrid();
-				this.resetGrid(props.w,props.h);
-				return true
-			}
-			this.cleanGrid();
-			this.resetGrid(props.w,props.h);
-			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children);
-			this.fillInitialGrid(props.offset);
-			//console.log("FILLED INITIAL",this.grid)
-			this.fillEmptySpots(props.offset);
-			return true
-		}
-
-		//resync if children lengths dont match
-		else if(this.children.length != props.children.length){
-			this.cleanGrid();
-			//console.log("NEW GRID SIZE")
-			////console.log('update grid')
-			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children)
-			this.fillUpGrid(props.offset);
-			this.fillEmptySpots(props.offset);
-		}
-
-		//force hard resync if enabled. 
-		else if(props.hard_sync){
-			//console.log("HARD SYNC")
-			this.hardSyncChildren(props.children);
-		}
-
-
-
-		//if offset changed go back or forwards.
-		if(this.props.offset != props.offset){
-			//console.log("NEW OFFSET")
-			this.cleanGrid();
-
-			var d = props.offset - this.props.offset
-			////console.log(d)
-			if(Math.abs(d) > props.max_offset){
-				this.resetGrid(props.w,props.h);
-				this.fillInitialGrid(props.offset);	
-			}else if(d > 0){
-				for(var i = 0;i<d;i++) this.goForward()
-			}else if(d < 0){
-				for(var i = 0;i<d;i++) this.goBack()
-			}
-			this.fillEmptySpots(props.offset);
-		}
-
-
-		// if(props.fixed == false){
-		// 	TweenLite.set(this.refs.inner,{
-		// 		y: this.getDiam()*this.grid_shifts,
-		// 	})
-		// }
-
-		return true
-	},
-
-
+	/*  find the lowset index spot on the grid and replace it with an incremented one from the state children (fixed grids only) */
 	goBack: function(){
 		var prev_index = this.lowest_index-1
 		var c = this.children[prev_index]
-		if(c == null) return
-		var spot = this.findLowestIndexSpot(c.props.w,c.props.h,true)
+		if(c == null) return //we cant go back because there are no children with the next lowest index
+		
+		var spot = this.findMaxIndexSpot(c.props.w,c.props.h,true)
+
 		this.makeFreeSpot(spot[0],spot[1],c.props.w,c.props.h)
 		this.fillSpot(next_index,spot[0],spot[1],c.props.w,c.props.h)
 		this.addToGrid(c,spot[0],spot[1],prev_index)
@@ -740,15 +684,15 @@ var Grid = React.createClass({
 		return
 	},
 
-
+	/* find the highest index spot on the grid and replace it with an incremented one from the state children (fixed grids only) */
 	goForward: function(){
 
 		var next_index = this.greatest_index+1
 		var c = this.children[next_index]
-		if(c == null) return;
+		if(c == null) return; //we cant go fw because there are no children with the next highest index
 		
-		var spot = this.findLowestIndexSpot(c.props.w,c.props.h,false)
-		////console.log('found lowest index spot',spot)
+		var spot = this.findMaxIndexSpot(c.props.w,c.props.h,false)
+
 		this.makeFreeSpot(spot[0],spot[1],c.props.w,c.props.h)
 		this.fillSpot(next_index,spot[0],spot[1],c.props.w,c.props.h)
 		this.addToGrid(c,spot[0],spot[1],next_index)
@@ -757,22 +701,20 @@ var Grid = React.createClass({
 		return
 	},
 
-
-
+	/* check if a spot is empty */
 	isEmpty: function(r,c,w,h){
 		var col = this.index_array;
 		for(var h_i = 0;h_i<h;h_i++){
 			for(var w_i = 0; w_i < w; w_i ++ ){
 				if(col[r+h_i][c+w_i] != -1){
-					//////console.log(r,c,w,h,'not empty')
 					return false
 				}
 			}
 		}
-		//////console.log(r,c,h,w,'is empty')
 		return true
 	},
 
+	/* child index */
 	childIndex: function(key){
 		for(var c = 0;c < this.children.length;c++){
 			if(this.children[c].key == key) return c
@@ -780,8 +722,7 @@ var Grid = React.createClass({
 		return -1
 	},
 
-
-
+	/* fill empty spots */
 	fillEmptySpots: function(offset){
 		if(offset == null) throw 'cant fill empty spots with no offset'
 
@@ -795,11 +736,7 @@ var Grid = React.createClass({
 
 
 
-		/*
-		first go back from offset and try and fill.
-		*/
-
-
+		/* first go back from offset and try and fill. */
 		for(var i = offset;i>= 0;i--){
 			var c = this.children[i];
 			if(this.gridIndex(c) != -1) continue;
@@ -849,14 +786,94 @@ var Grid = React.createClass({
 		return
 	},
 
+	/* grid state sync has to happen before the render happens, the grid elements need to be rendered */
+	componentWillUpdate: function(props,state){
+		if(!props.children) return false //no need to update grid if no children.
+		
+
+		/*
+			NOTE:
+		 	I WILL NOT CHECK FOR REPLACED PROP CHILDREN!
+		 	do not replace prop children. if you do, update the list id.
+		 	all children are meant to be static.
+		 	you may remove/add children from the array which will trigger a resync.
+		 */
+		//console.log('update grid',props.list_id)
+		//reset grid and return
+		if(this.props.list_id != props.list_id){
+			//console.log("NEW GRID ID",props.list_id)
+
+
+			if(! props.children || !props.children.length){
+				//console.log('reset to empty')
+				this.cleanGrid();
+				this.resetGrid(props.w,props.h);
+				return true
+			}
+			this.cleanGrid();
+			this.resetGrid(props.w,props.h);
+			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children);
+			if(props.fixed){
+				this.fillInitialGrid(props.offset);
+				this.fillEmptySpots(props.offset);	
+			}else{
+				this.forceFill(props);
+			}
+
+			return true
+		}
+
+		//resync if children lengths dont match
+		else if(this.children.length != props.children.length){
+			this.cleanGrid();
+			//console.log("NEW GRID SIZE")
+			////console.log('update grid')
+			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children)
+			if(props.fixed == true){
+				this.fillUpGrid(props.offset);
+				this.fillEmptySpots(props.offset);
+			}else{
+				this.forceFill(props);
+			}
+		}
+
+		// //force hard resync if enabled. 
+		// else if(props.hard_sync){
+		// 	//console.log("HARD SYNC")
+		// 	this.hardSyncChildren(props.children);
+		// }
 
 
 
+		//if offset changed go back or forwards.
+		if(this.props.offset != props.offset){
+			//console.log("NEW OFFSET")
+			this.cleanGrid();
 
-	componentDidMount: function(){
-		// this.forceUpdate();
+			var d = props.offset - this.props.offset
+			////console.log(d)
+			if(Math.abs(d) > props.max_offset){
+				this.resetGrid(props.w,props.h);
+				this.fillInitialGrid(props.offset);	
+			}else if(d > 0){
+				for(var i = 0;i<d;i++) this.goForward()
+			}else if(d < 0){
+				for(var i = 0;i<d;i++) this.goBack()
+			}
+			this.fillEmptySpots(props.offset);
+		}
+
+
+		// if(props.fixed == false){
+		// 	TweenLite.set(this.refs.inner,{
+		// 		y: this.getDiam()*this.grid_shifts,
+		// 	})
+		// }
+
+		return true
 	},
 
+	/* render */
 	render: function(){
 	
 		if(this.props.fixed){
