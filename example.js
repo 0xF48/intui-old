@@ -6,6 +6,7 @@ var GItem = Grid.Item;
 var SlideMixin = require('./Mixin');
 var FormToggle = require('./Form').Toggle;
 
+
 var Toggler = React.createClass({
 	mixins: [SlideMixin],
 	getInitialState:function(){
@@ -134,109 +135,135 @@ var NestedScrollExample = React.createClass({
 
 	componentDidMount: function(){
 		window.scroller = this
-		this.refs.oc.addEventListener('scroll',function(e){
-			if(this.last_pos > this.refs.oc.scrollTop && !this.reverse) this.reverse = true
-			else if( this.last_pos < this.refs.oc.scrollTop && this.reverse ) this.reverse = false
-			this.refs.dummy.style.transform = 'translate(0,'+this.refs.oc.scrollTop+'px)'
-			this.last_pos = this.refs.oc.scrollTop
-			this.scroll();
-		}.bind(this))
+		// this.refs.oc.addEventListener('scroll',function(e){
+		// 	if(this.last_pos > this.refs.oc.scrollTop && !this.reverse){
+		// 		this.last_scroll_pos = this.refs.oc.scrollTop
+		// 		this.reverse = true
+		// 	} 
+		// 	else if( this.last_pos < this.refs.oc.scrollTop && this.reverse ) this.reverse = false
+		// 	// this.refs.oc.scrollHeight = Infinity
+			
+
+		// 	if(this.refs.oc.scrollTop <= 10 && this.reverse){
+			
+		// 		if(this.last_position == 0){
+		// 			this.last_position = (this.refs.oc.scrollHeight-this.refs.oc.clientHeight) + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+		// 		}else{
+		// 			this.last_position += (this.refs.oc.scrollHeight-this.refs.oc.clientHeight)
+		// 		}
+			
+		// 		this.refs.oc.scrollTop = this.refs.oc.scrollHeight-this.refs.oc.clientHeight
+
+		// 	}
+		// 	else if(this.refs.oc.scrollTop == (this.refs.oc.scrollHeight - this.refs.oc.clientHeight) && !this.reverse) {
+		// 		if(this.last_position != 0){
+		// 			this.last_position -= this.refs.oc.scrollTop
+		// 		}else{
+		// 			this.last_position = this.refs.oc.clientHeight
+		// 		}
+		// 		this.refs.oc.scrollTop = 0
+		// 	}
+		
+			
+		// 	// console.log(this.last_position)
+		// 	this.last_pos = this.refs.oc.scrollTop
+		// 	this.scroll(this.refs.oc.scrollTop);
+		// }.bind(this))
 
 	
 
 		this.last_position = 0
-		
-
-
 		this.last_pos = 0
-
 		this.reverse = false
-
 		this.c2_last_pos = -1
-
 		this.scrolling = false
-
+		this.last_scroll_pos = 0
 		this.c2_scroll_pos = 0
 		this.last_position_2 = 0
 		this.speed = 0
 		this.end = false
 		this.end2 = false
-		
-		
+		Draggable.create(this.refs.c2, {type:"scroll",autoScroll:10, edgeResistance:0.1, throwProps:true});
 	},
 
-	scroll: function(){
-		this.min_scrollTop = 0
-		this.max_scrollTop = (this.refs.c2_inner.clientHeight - this.refs.c2.clientHeight)
+	// scroll: function(pos){
+	// 	this.min_scrollTop = 0
+	// 	this.max_scrollTop = (this.refs.c2_inner.clientHeight - this.refs.c2.clientHeight)
+		
 		
 
-		if( (this.scrollTop <= this.min_scrollTop && this.reverse) || (this.scrollTop >= this.max_scrollTop && !this.reverse) ) {
-			var off = (this.last_position - this.last_position_2)/2
-			var pull = 200
-			if(off < 1) off = 1
-			var offset = off*1/(1+off/pull)
-			if(offset > 200) offset = 200
-			
 
-
-			if(this.reverse){
-				this.last_position = this.refs.oc.scrollTop + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
-			}else{
-				this.last_position = this.refs.oc.scrollTop
-			}
-			
-
-			if(!this.end2){
-				TweenLite.to(this.refs.c2_inner,0.07,{
-					y:  -this.c2_scroll_pos-offset,
-				})
-			}
-
-			if(this.end == false){
-				
-				setTimeout(function() {
-					this.end2 = true
-					TweenLite.to(this.refs.c2_inner,0.3,{
-						y: this.reverse ? 0 : -this.max_scrollTop,
-						ease: Circ.easeOut,
-					})
-				}.bind(this),0.5);
-				this.end = true
-			}
-
-		}else{
-			this.end2 = false;
-			this.end = false;
-
-
-			if(this.last_position != 0){
-				this.c2_scroll_pos = this.refs.c2.scrollHeight - this.refs.c2.clientHeight - this.last_position + this.refs.oc.scrollTop
-			}else{
-				this.c2_scroll_pos =  this.refs.oc.scrollTop
-			}
+	// 	if( (this.scrollTop <= this.min_scrollTop && this.reverse) || (this.scrollTop >= this.max_scrollTop && !this.reverse) ) {
+	// 		if(this.last_position_2 < this.last_position && this.reverse) this.last_position_2 = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+	// 		var off = (this.last_position - this.last_position_2)/2
+	// 		var pull = 1
+	// 		if(off < 1) off = 1
+	// 		var offset = off*1/(1+off/pull)
+	// 		// if(offset > 300){
+	// 		// 	pull = 500-offset
+	// 		// 	var offset = off*1/(1+off/pull)
+	// 		// }
 				
 			
-			TweenLite.to(this.refs.c2_inner,0.07,{
-				y: -this.c2_scroll_pos,
-			})
-			this.scrollTop = this.c2_scroll_pos
 
-			this.last_position_2 = this.last_position
-		}
-	},
+
+	// 		if(this.reverse){
+	// 			this.last_position = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+	// 		}else{
+	// 			this.last_position = pos
+	// 		}
+			
+
+	// 		if(!this.end2){
+	// 			TweenLite.to(this.refs.c2_inner,0.07,{
+	// 				y:  -this.c2_scroll_pos-offset,
+	// 			})
+	// 		}
+
+	// 		if(this.end == false){
+				
+	// 			setTimeout(function() {
+	// 				this.end2 = true
+	// 				TweenLite.to(this.refs.c2_inner,0.75,{
+	// 					y: this.reverse ? 0 : -this.max_scrollTop,
+	// 					ease: Power2.easeOut,
+	// 				})
+	// 				if(this.reverse){
+	// 				this.last_position = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+	// 				}else{
+	// 				this.last_position = pos
+	// 				}
+	// 			}.bind(this),50);
+	// 			this.end = true
+	// 		}
+
+	// 	}else{
+	// 		this.end2 = false;
+	// 		this.end = false;
+
+
+	// 		if(this.last_position != 0){
+	// 			this.c2_scroll_pos = this.refs.c2.scrollHeight - this.refs.c2.clientHeight - this.last_position + pos
+	// 		}else{
+	// 			this.c2_scroll_pos =  pos
+	// 		}
+				
+			
+	// 		TweenLite.to(this.refs.c2_inner,0.07,{
+	// 			y: -this.c2_scroll_pos,
+	// 		})
+	// 		this.scrollTop = this.c2_scroll_pos
+
+	// 		this.last_position_2 = this.last_position
+	// 	}
+	// },
 	render: function(){
 		var children = [];
-		for(var i = 0 ; i < 35; i++){
+		for(var i = 0 ; i < 10; i++){
 			children.push(<img src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#BAC4CB' : '#747A7F'),width: '100%',height:'200px'}}>scrollable {i}<br/></img>)
 		}
 		return (
 			<I ref = 'root' beta={100} vertical style = {{background:'#3F403F'}} scroll_important='top'>
-				<div ref = 'oc' id = 'input_proxy' style = {{overflow:'scroll',width:'100%',position: 'absolute',top:0,zIndex: 20,height :'100%'}}>
-					<div ref = 'dummy' id = 'input_proxy_scrolldummy' style = {{background: 'rgba(0,0,0,0)',width: '100%',height:'200%'}}/>
-				</div>
-
-
-
 				<div ref = 'c' id = 'container' style = {{height:'100%',overflow:'hidden'}}>
 					<div ref = 'c1' id = 'child1' style = {{width:'100%',background:'#CB3600',color:'#fff',height:'100px'}}>
 						<p> not scrollable </p>
@@ -284,8 +311,7 @@ var example = React.createClass({
 		window.example = this
 		window.test_node = this.refs['a.b'];
 		window.root_node = this.refs['root'];
-		window.nigga = this.refs['nigga']
-
+		window.app_node = this.refs['app_node'];
 		window.addEventListener('resize',this.forceUpdate.bind(this,null))
 	},
 
@@ -405,7 +431,7 @@ var example = React.createClass({
 
 		if(this.state.display_left){
 			var left_side = (
-				<I ref = 'b' ref='nigga' slide id='left' vertical beta = {this.state.left_beta} style = {{background:'#000'}}>
+				<I ref = 'b' slide id='left' vertical beta = {this.state.left_beta} style = {{background:'#000'}}>
 					<I id = 'bar' height = {this.state.left_bar_size} style={{background:'#000'}}>
 						<Bar index={this.state.left_bar_index} size={this.state.left_bar_inner_size} />
 					</I>
@@ -427,8 +453,7 @@ var example = React.createClass({
 		}
 
 		return (
-			<div style={{width:'100%',height:'calc(100% - 100px)',marginTop:'100px'}}>
-				
+			<div ref = 'app_node' onClick = {function(){console.log("CLICkED")}}style={{width:'100%',height:'calc(100% - 100px)',marginTop:'100px'}}>
 				<I ref = 'root' id='root' slide index_pos = {this.state.root_index} beta={100} style = {{background:'#002743'}}>
 					{left_side}
 					<I ref = 'a' id='right' slide vertical beta = {this.state.middle_beta}  style = {this.bg(1)}>

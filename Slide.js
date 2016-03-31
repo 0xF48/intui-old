@@ -1,8 +1,18 @@
 var React = require('react');
+var ReactDOM = require('react-dom')
+const SCROLL_PROXY_TARGET = 'app';
 
 window._intui_render_calls = 0
 
-
+function getAllEvents(element) {
+    var result = [];
+    for (var key in element) {
+        if (key.indexOf('on') === 0) {
+            result.push(key)
+        }
+    }
+    return result
+}
 
 var Slide = React.createClass({
 	getDefaultProps: function(){
@@ -27,9 +37,17 @@ var Slide = React.createClass({
 
 
 	getInitialState: function(){
-		this.stage = {x:0,y:0};
+		this.stage = {
+			x:0,
+			y:0
+		};
 		
 		this.prev_pos = -1; //im not sure what this does anymore
+		
+
+		this.max_scroll_pos = 0 // max x or y movement of inner element
+		this.min_scroll_pos = 0 // min x or y movement of inner element
+		this.last_scroll_pos = 0 //
 
 		this.rect = {
 			width:0,
@@ -148,6 +166,83 @@ var Slide = React.createClass({
 			height: (!this.props.vertical || d == 0) ? '100%' : d+'px',
 		}
 	},
+
+
+
+	scrollInner: function(pos){
+		this.min_scrollTop = 0
+		this.max_scrollTop = (this.refs.c2_inner.clientHeight - this.refs.c2.clientHeight)
+		
+		
+
+
+		if( (this.scrollTop <= this.min_scrollTop && this.reverse) || (this.scrollTop >= this.max_scrollTop && !this.reverse) ) {
+			if(this.last_position_2 < this.last_position && this.reverse) this.last_position_2 = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+			var off = (this.last_position - this.last_position_2)/2
+			var pull = 1
+			if(off < 1) off = 1
+			var offset = off*1/(1+off/pull)
+			// if(offset > 300){
+			// 	pull = 500-offset
+			// 	var offset = off*1/(1+off/pull)
+			// }
+				
+			
+
+
+			if(this.reverse){
+				this.last_position = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+			}else{
+				this.last_position = pos
+			}
+			
+
+			if(!this.end2){
+				TweenLite.to(this.refs.c2_inner,0.07,{
+					y:  -this.c2_scroll_pos-offset,
+				})
+			}
+
+			if(this.end == false){
+				
+				setTimeout(function() {
+					this.end2 = true
+					TweenLite.to(this.refs.c2_inner,0.75,{
+						y: this.reverse ? 0 : -this.max_scrollTop,
+						ease: Power2.easeOut,
+					})
+					if(this.reverse){
+					this.last_position = pos + (this.refs.c2.scrollHeight - this.refs.c2.clientHeight)
+					}else{
+					this.last_position = pos
+					}
+				}.bind(this),50);
+				this.end = true
+			}
+
+		}else{
+			this.end2 = false;
+			this.end = false;
+
+
+			if(this.last_position != 0){
+				this.c2_scroll_pos = this.refs.c2.scrollHeight - this.refs.c2.clientHeight - this.last_position + pos
+			}else{
+				this.c2_scroll_pos =  pos
+			}
+				
+			
+			TweenLite.to(this.refs.c2_inner,0.07,{
+				y: -this.c2_scroll_pos,
+			})
+			this.scrollTop = this.c2_scroll_pos
+
+			this.last_position_2 = this.last_position
+		}
+	},
+
+
+
 
 	getTotalBeta: function() {
 		if(!this.props.children) return 100		
@@ -375,6 +470,12 @@ var Slide = React.createClass({
 		this.refs.outer.addEventListener('mouseleave',function(){
 			this.props.onHover(false)
 		}.bind(this))
+
+
+		//bind scroll wrapper.
+		if(this.props.scroll){
+			this.scrollProxy.hookScroll(this.scroll)
+		}
 	},
 
 	render: function(){
@@ -388,6 +489,8 @@ var Slide = React.createClass({
 		var outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.outerClassName || '');
 		var innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' intui_slide_horizontal ') + (this.props.innerClassName || '');
 
+
+	
 		return (
 			<div onClick={this.props.onClick} id = {this.props.id} className={outerClass} style = {outer_hw_style} ref='outer' >
 				<div className={innerClass} style = {Object.assign(inner_hw_style,this.props.style)} ref='inner' >
@@ -476,8 +579,7 @@ var Slide = React.createClass({
 			x: x > max_x ? max_x : x,
 			y: y > max_y ? max_y : y
 		}
-	},
-
+	}
 });
 
 
@@ -491,11 +593,51 @@ var Slide = React.createClass({
 
 
 
-// var select = function(state){
-// 	return {
-// 		router:state.router
-// 	}
-// }
+
+var scrollProxyManager = function(){
+
+	this.proxy_outer = document.createElement('div')
+	this.proxy_outer.setAttribute('class', '_intui_scrollwrapper_outer')
+
+	this.proxy_inner = document.createElement('div')
+	this.proxy_inner.setAttribute('class', '_intui_scrollwrapper_inner')
+
+	this.proxy_outer.appendChild(this.proxy_inner)
+	document.body.appendChild(this.proxy_outer)
+	
+
+	/* proxy all events to webpiece */
+	var events = getAllEvents(this.proxy_outer)
+	
+	// if(proxy_target == null) throw new Error("Intui bad input proxy target, please set the proper target proxy element id")
+	
+	for(e in events){
+		this.document.body[events[e]] = function(e){
+			setTimeout(function(){
+				e.bubbles = true
+				window.app_node.dispatchEvent(e)
+			}, 0)
+		}
+	}
+
+	return {
+		hookScroll: function(listener){
+			this.proxy_outer.addEventListener('scroll',listener)
+		},
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 var DimTransitionManager = function(){
@@ -630,6 +772,6 @@ var DimTransitionManager = function(){
 
 
 
-
+// var scrollProxy = new scrollProxyManager()
 var TransManager = new DimTransitionManager();
 module.exports = Slide;
