@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "main": "./index.js",
   "description:": "a one of a kind react ui framework",
-  "dependencies": {
-  },
+  "dependencies": {},
   "browserify": {
     "transform": [
       "reactify"
     ]
+  },
+  "devDependencies": {
+    "reactify": "^1.1.1"
   }
 }
