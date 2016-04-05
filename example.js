@@ -119,24 +119,22 @@ var GridExample = React.createClass({
 
 var NestedScrollExample = React.createClass({
 	mixins: [SlideMixin],
+
 	render: function(){
 		var children = [];
 		var children2 = [];
 		for(var i = 0 ; i < 6; i++){
-			children.push(<img key = {"img_"+i} onClick = {function(){console.log("CLICKED")}} src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#BAC4CB' : '#747A7F'),width: '100%',height:'200px'}}>scrollable {i}<br/></img>)
+			children.push(<div key = {"img_"+i} onClick = {function(){console.log("CLICKED")}} src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#FF0000' : '#FF0000'),width: '100%',height:'200px'}}>scrollable {i}<br/></div>)
 		}
 		for(var i = 0 ; i < 6; i++){
-			children2.push(<img key = {"img_"+i} onClick = {function(){console.log("CLICKED")}} src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#BAC4CB' : '#747A7F'),width: '100%',height:'200px'}}>scrollable {i}<br/></img>)
+			children2.push(<div key = {"img_"+i} onClick = {function(){console.log("CLICKED")}} src="https://qzprod.files.wordpress.com/2016/03/rtsapb4-e1459302248942.jpg?quality=80&strip=all&w=270&h=152&crop=1" style={{background: (i%2 ? '#007CFF' : '#15FF00'),width: '100%',height:'200px'}}>scrollable {i}<br/></div>)
 		}
 		return (
-			<I ref = 'root' beta={100} vertical style = {{background:'#3F403F'}}>
-				<I scroll beta={100} vertical style = {{background:'#C59D71'}}>
+			<I ref = "root" slide scroll_index = {1} vertical ref = 'root' beta={100} vertical >
+				<I ref = "c1" scroll_index = {2} scroll overflow vertical beta={100} style = {{background:'#000000'}}>
 					{children}
 				</I>
-				<I beta={50} vertical style = {{background:'#6CC591'}}>
-					<p>slide 2</p>
-				</I>
-				<I scroll vertical beta={100} style = {{background:'#3F403F'}}>
+				<I ref = "c2" scroll_index = {0} scroll_proxy overflow vertical beta={100} style = {{background:'#004F55'}}>
 					{children2}
 				</I>
 			</I>
@@ -352,7 +350,7 @@ var example = React.createClass({
 					<I beta= {this.state.right_beta} slide vertical index_pos={this.state.right_index} style = {{background:'#FFC9AF'}}>
 						<I beta={10} style = {{background:'#FF0500'}}>
 						</I>
-						<NestedScrollExample beta = {100} />
+						<NestedScrollExample ref = 'scroller' beta = {100} />
 						<I beta={10} style = {{background:'#00FF1D'}}>
 						</I>
 						<I beta={50} style = {{background:'#FF4563'}}>

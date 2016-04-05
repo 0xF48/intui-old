@@ -46,7 +46,9 @@ var Slide = React.createClass({
 	getInitialState: function(){
 		this.stage = {
 			x:0,
-			y:0
+			y:0,
+			o_time:0,
+			velocity: 0
 		};
 		
 		this.prev_pos = -1; //im not sure what this does anymore
@@ -82,18 +84,13 @@ var Slide = React.createClass({
 		var beta = null
 
 		
-		if(this.context.total_beta == null){
-			beta = this.props.beta+'%';
-		}else{
-			beta =  100/this.context.total_beta*this.props.beta+'%'
-		}
+		if(this.context.total_beta == null) beta = this.props.beta+'%';
+		else beta =  100/this.context.total_beta*this.props.beta+'%'
+		
 
-		if(this.props.offset != 0){
-
-			return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
-		}else{
-			return beta
-		}
+		if(this.props.offset != 0) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
+		else return beta
+		
 	},
 
 	getOuterHW: function(){
@@ -163,15 +160,16 @@ var Slide = React.createClass({
 		var d = this.getInnerDim();
 		
 		return {
-			width: (this.props.vertical || d == 0) ? '100%' : d+'px',
-			height: (!this.props.vertical || d == 0) ? '100%' : d+'px',
+			width: (this.props.vertical || d == 0) ? (this.props.scroll ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			height: (!this.props.vertical || d == 0) ? (this.props.scroll ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
 		}
 	},
 
 
 	updateScrollBounds: function(){
+	
 		this.min_scroll_pos = 0;
-		this.max_scroll_pos = (this.refs.inner.clientHeight - this.refs.outer.clientHeight);
+		this.max_scroll_pos = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth);
 	},
 
 
@@ -179,73 +177,151 @@ var Slide = React.createClass({
 		/*scroll params */
 		this.max_scroll_pos = Infinity // max x or y movement of inner element
 		this.min_scroll_pos = 0 // min x or y movement of inner element
-		this.last_pos = 0
+		
 		this.speed = 0
 
 
+		this.raw_pos = 0
 		this.scroll_overflow = false
+		this.overflow_timer = null
+		this.overflow_marker = 0
+		this.velocity = 0
 		this.scroll_marker = 0 //we need to set a marker when the scroller pos goes past the inner slide limit
 		//scroll marker is the top edge
 	},
 
 
-
 	scrollTo: function(pos,dur){
 		if(this.props.vertical){
-			TweenLite.to(this.stage,0.07 || dur,{
+			TweenLite.to([this.refs.inner,this.stage],dur || 0.07,{
 				y: -pos,
 			})
 		}else{
-			TweenLite.to(this.stage,0.07 || dur,{
+			TweenLite.to([this.refs.inner,this.stage],dur || 0.07,{
 				x: -pos,
 			})
 		}
 	},
 
 
-	scrollInner: function(pos,reverse){ //absolute position.
+	sPipe: function(slide,opt){
+
+		// this.scrollInner(opt.)
+		// if(slide.props.scroll != false){
+		// 	//child has preference
+		// 	if(slide.props.slide_index > this.props.slide_index && !opt.source){
+		// 		return slide.bind(slide,{
+		// 			_child: false,
+		// 			source: this
+		// 		})
+		// 	}else if(opt.reverse){
+		// 		return self.bind(slide,{
+		// 			_child: false,
+		// 			source: this
+		// 		})
+		// 	}else if(this.props.slide_index > slide.props.slide_index){
+		// 		return slide.bind(slide,{
+		// 			_child: false,
+		// 		})
+		// 	}
+		// }
+	},
+
+	sRootPipe: function(opt){
+		this.scrollInner(opt.pos,opt.velocity)
+	},
+
+	// scrollPass: function(pos,velocity,index_pos,check){
+	// 	var ctx = this.getChildContext();
+
+	// 	this.context.passPipe();
+	// 	if(this.context.passPipe == null) return false
+	// 	for(var i in this.props.children){
+	// 		var c = this.props.children[i]
+	// 		if( c != null && c.props != null && c.props.scroll == true ){
+	// 			ca.push(c.props.scroll_index || 0)
+	// 		}
+	// 	}
+	// },
 
 
+	// syncScroll: function(pos,npos){
+	// 	this.scroll_marker = pos - npos
+	// },
+
+
+	// scrollStart: function(){
+	// 	var npos = (this.props.vertical ? -this.stage.y : -this.stage.x)
+	// 	this.syncScroll( pos , npos)
+	// },
+
+
+	// scrollPipe: function(pos,velocity){
+
+	// 	var check = this.checkOverflow(pos,velocity)
+	
+	// 	if(check == 1 || check == 0){
+	// 		if( this.passPipe(pos,velocity,this.props.index_pos,check) == false){
+	// 			return this.scrollInner(pos,velocity,check)
+	// 		}
+	// 	}else{
+	// 		return this.scrollInner(pos,velocity,check)
+	// 	}	
+	// },
+
+
+	checkOverflow: function(pos,velocity){
+		if (pos - this.scroll_marker <= this.min_scroll_pos && velocity < 0){
+			return 0
+		}if(pos - this.scroll_marker >= this.max_scroll_pos && velocity > 0){
+			return 1
+		}
+		return -1
+	},
+
+
+
+	scrollInner: function(pos,velocity,check){
 		var max = this.max_scroll_pos
 		var min = this.min_scroll_pos
 		var npos = pos - this.scroll_marker //normalized position.
 
+		// console.log(pos,npos,min,max)
 
+		var check = check != null ? check : this.checkOverflow(pos,velocity);
 
-		// scroll marker is normalized relative to the absolute position.
-		// in this case when we reach the max the marker is set to difference of inner and outer heights because that is the max.
-		
-		//overflow min start ONCE 
-		if( npos <= min && reverse && this.scroll_marker > min ){
-			console.log("OVERFLOW MIN")
-			this.scroll_marker = npos
-			if(this.props.overflow){
-				setTimeout(function() {
-					this.scrollTo(min,0.75);
-				},this.props.overflow_dur*1000)
+		if(check >= 0){
+			if(this.scroll_overflow == false){
+				this.scroll_overflow = true
+				
+				TweenLite.fromTo(this.stage,0.75,{
+					velocity : velocity,
+					o_time :  Math.sin(Math.PI/2)		
+				},{
+					ease:Sine.easeOut,
+					velocity:0,
+					o_time: 0,
+				})
 			}
-		}
 
-		//overflow max start ONCE
-		else if( npos >= max && !reverse && this.scroll_marker < max ){
-			console.log("OVERFLOW MAX")
-			this.scroll_marker = npos
-			if(this.props.overflow){
-				setTimeout(function() {
-					this.scrollTo(max,0.75);
-				},this.props.overflow_dur*1000)
+			if(check == 1){
+				this.overflow_marker = pos - max
+				npos = max + this.stage.velocity*1*Math.sin(this.stage.o_time)
+			}else if(check == 0){
+				this.overflow_marker = pos
+				npos = min + this.stage.velocity*1*Math.sin(this.stage.o_time)
 			}
-		}
-
-
-		//overflow max while pos is still overflowed
-		if( this.props.overflow && ( (npos <= min && reverse) || (npos >= max && !reverse) )){
-			var off = (this.scroll_marker - npos )/2;
-			var pull = 1;
-			var offset = off*1/(1+off/pull);
-			this.scrollTo(offset);
-		}
-
+			this.scrollTo(npos)
+			
+		}else if(this.scroll_overflow == true){
+			
+			this.scroll_overflow = false;
+			this.scroll_marker = this.overflow_marker
+			npos = pos - this.scroll_marker //normalized position.
+			this.scrollTo(npos,0.3)
+		}else{
+			this.scrollTo(npos)
+		}	
 	},
 
 
@@ -266,10 +342,16 @@ var Slide = React.createClass({
 		vertical: React.PropTypes.bool,
 		auto_h: React.PropTypes.bool,
 		auto_w: React.PropTypes.bool,
-		path: React.PropTypes.string //todo
+		path: React.PropTypes.string, //todo
+		children_indecies: React.PropTypes.array,
+		scroll_index: React.PropTypes.number,
+		passPipe: React.PropTypes.func,
 	},
 
 	childContextTypes: {
+		passPipe: React.PropTypes.func,
+		scroll_index: React.PropTypes.number,
+		children_indecies: React.PropTypes.array,
 		scroller: React.PropTypes.element, 
 		path: React.PropTypes.string, //todo
 		total_beta: React.PropTypes.number,
@@ -279,8 +361,18 @@ var Slide = React.createClass({
 	},
 
   	getChildContext: function() {
+  		var ca = [];
+  		for(var i in this.props.children){
+  			var c = this.props.children[i]
+  			if( c != null && c.props != null && c.props.scroll == true ){
+  				ca.push(c.props.scroll_index || 0)
+  			}
+  		}
+  		
   		return {
-  			scroller: this.refs.scroll_outer,
+  			passPipe: this.passPipe,
+  			children_indecies: ca,
+  			scroll_index: this.props.scroll_index,
   			path: this.context.path == null ? '/' : this.context.path  + '/' + (this.props.path != null ? this.props.path : ''), //todo
   			total_beta: this.getTotalBeta(),
   			vertical: this.props.vertical,
@@ -307,7 +399,7 @@ var Slide = React.createClass({
   		}
   	},
 
-	componentWillReceiveProps: function(props){
+	shouldComponentUpdate: function(props,state){
 		
 		//get dim change
 		var set_offset = this.getDimChange(props);
@@ -321,38 +413,7 @@ var Slide = React.createClass({
 
 		this.updateScrollBounds();
 		//update self
-			
-		state = state || this.state;
-		props = props || this.props;
-
-
-		var ratio = this.getHWRatio();
-
-		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
-		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
-
-
-		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
-			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
-				this.prev_pos = false;
-			}else if(this.props.index_pos == props.index_pos && d_needs_update){
-				this.prev_pos = true;
-			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
-				setTimeout(function() {
-				 	var pos = this.getIndexXY(this.props.index_pos)
-				 	this.toXY(pos.x,pos.y)
-				}.bind(this), 1)
-			}
-		}
-
-
-		if(d_needs_update){
-			this.setState({
-				offset_y: 0,
-				offset_x: 0,
-				dim: ratio,
-			});
-		}
+		return this.updateState(props,state);
 	},
 
 	width: function(){
@@ -422,7 +483,43 @@ var Slide = React.createClass({
 		}
 	},
 
+	updateState: function(props,state){
+		
+		
+		state = state || this.state;
+		props = props || this.props;
 
+
+		var ratio = this.getHWRatio();
+
+		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
+		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
+
+
+		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
+			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
+				this.prev_pos = false;
+			}else if(this.props.index_pos == props.index_pos && d_needs_update){
+				this.prev_pos = true;
+			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
+				setTimeout(function() {
+				 	var pos = this.getIndexXY(this.props.index_pos)
+				 	this.toXY(pos.x,pos.y)
+				}.bind(this), 1)
+			}
+		}
+
+
+		if(d_needs_update){
+			this.setState({
+				offset_y: 0,
+				offset_x: 0,
+				dim: ratio,
+			});
+		}
+		
+		return true
+	},
 
 	componentDidUpdate: function(props,state){
 		
@@ -440,6 +537,11 @@ var Slide = React.createClass({
 	},
 
 	componentDidMount: function(){
+
+
+
+
+
 		//TODO
 		//console.log("SLIDE MOUNTED",this.props.router.path,this.context)
 		this.getRekt();
@@ -457,15 +559,7 @@ var Slide = React.createClass({
 		}.bind(this))
 
 
-		//bind scroll wrapper.
-		if(this.props.scroll){
-			// if(this.context.scroller != null){
-			// 	this.scroller = this.context.scroller
-			// }
-			// this.scroller = this.refs.scroll_outer
-			this.refs.scroll_outer.addEventListener('scroll',this.scrollInner);
-			this.stage.x = this.refs.scroller.getPos();
-		}
+
 	},
 
 	render: function(){
@@ -480,7 +574,7 @@ var Slide = React.createClass({
 		var innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' intui_slide_horizontal ') + (this.props.innerClassName || '');
 
 		var scroll_proxy = null
-		if(this.props.scroll) scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.scrollInner} />
+		if(this.props.scroll) scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
 		return (
 			<div onClick={this.props.onClick} id = {this.props.id} className={outerClass} style = {outer_hw_style} ref='outer' >
 				{scroll_proxy}
@@ -632,8 +726,10 @@ var ScrollProxy = React.createClass({
 		/* every time an overflow happends total pos is incremented or decremented by height or width based on position */ 
 		this.total_pos = [0,0];
 
+		this.opt = {};
+
 		/* scroll direction comes from the difference of pos and prev_pos */
-		this.reverse = false; //direction of scroll
+		this.velocity = 0; //direction of scroll
 		
 		return {}
 	},
@@ -646,40 +742,60 @@ var ScrollProxy = React.createClass({
 		if there are hooks, they are passed the non normalized scroll variable that increments based on how many cycles the scroller has gone through.
 	*/
 
+
+	componentWillUpdate: function(){
+		// this.updateDims();
+	},
+
+
+
+
 	//scroll handler increments/decrements absolute scroll position and refreshes the scroll position. 
 	scroll: function(){
-		//input scroll left / top
-		var scroll_pos = this.vertical ? this.refs.outer.scrollTop : this.refs.outer.scrollLeft;
-		var max_pos = this.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth);
 
+
+		//input scroll left / top
+		var scroll_pos = this.props.vertical ? this.refs.outer.scrollTop : this.refs.outer.scrollLeft;
+
+		// console.log(scroll_pos,this.reverse)
+
+		var max_pos = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth);
+
+		this.pos[(this.props.vertical ? 1 : 0)] = this.total_pos[(this.props.vertical ? 1 : 0)] + scroll_pos
+
+		//set direction
+		this.velocity = this.pos[(this.props.vertical ? 1 : 0)]-this.prev_pos[(this.props.vertical ? 1 : 0)]
 
 		//bw overflow
-		if(scroll_pos  == 0 && this.reverse){
+		if(scroll_pos  == 0 && this.velocity < 0){
 			// if(this.props.onOverflow != null) this.props.onScrollMax(this.pos);
-			this.total_pos[(this.props.vertical ? 1 : 0)] -= (this.props.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth)
+			this.total_pos[(this.props.vertical ? 1 : 0)] -= max_pos
+			this.refs.outer.scrollTop = max_pos
+			this.refs.outer.scrollLeft = max_pos
 		}
 		
 
 		//fw overflow
-		else if(scroll_pos == max_pos && !this.reverse){
+		else if(scroll_pos == max_pos && this.velocity > 0){
 			// if(this.props.onScrollMin != null) this.props.onScrollMin(this.pos);
-			this.total_pos[(this.props.vertical ? 1 : 0)] += (this.props.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth)
+			this.total_pos[(this.props.vertical ? 1 : 0)] += max_pos
+			this.refs.outer.scrollTop = 0
+			this.refs.outer.scrollLeft = 0
 		}
 
-			
-		//add the normalized scrollTop to the absolute scroller position 
-		this.pos[(this.props.vertical ? 1 : 0)] = this.total_pos[(this.props.vertical ? 1 : 0)] + scroll_pos
-
-
-		//set direction
-		this.reverse = this.prev_pos[(this.props.vertical ? 1 : 0)] > this.pos[(this.props.vertical ? 1 : 0)] ? true : false
+		
+		
+		
 
 
 		//one hook per scroll
-		if(this.props.onScroll != null) this.props.onScroll(this.pos[(this.props.vertical ? 1 : 0)]);
+		this.prev_pos[(this.props.vertical ? 1 : 0)] = this.pos[(this.props.vertical ? 1 : 0)]
+
+		this.opt.pos = this.pos[(this.props.vertical ? 1 : 0)]
+		this.opt.velocity = this.velocity
 
 
-		this.prev_pos = this.pos
+		if(this.props.onScroll != null) this.props.onScroll(this.opt);
 	},
 
 
@@ -710,7 +826,7 @@ var ScrollProxy = React.createClass({
 
 	render: function(){
 		return (
-			<div ref = 'outer' className = {'_intui_scrollwrapper_outer ' + (this.props.vertical ? '_intui_scrollwrapper_vertical' : '_intui_scrollwrapper_horizontal')}>
+			<div ref = 'outer' className = {'_intui_scrollwrapper_outer ' + ( this.props.vertical ? '_intui_scrollwrapper_vertical' : '_intui_scrollwrapper_horizontal' )}>
 				<div ref = 'inner' className='_intui_scrollwrapper_inner'></div>
 			</div>
 		)
