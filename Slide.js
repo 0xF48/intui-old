@@ -694,7 +694,7 @@ var Slide = React.createClass({
 
 
 
-quickDelegate = function(event, target){
+var quickDelegate = function(event, target){
 	var eventCopy = document.createEvent("MouseEvents");
 	eventCopy.initMouseEvent(event.type, event.bubbles, event.cancelable, event.view, event.detail,
 		event.pageX || event.layerX, event.pageY || event.layerY, event.clientX, event.clientY, event.ctrlKey, event.altKey,
