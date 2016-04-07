@@ -349,6 +349,7 @@ var Slide = React.createClass({
 	},
 
 	childContextTypes: {
+		_intui_slide: React.PropTypes.bool,
 		passPipe: React.PropTypes.func,
 		scroll_index: React.PropTypes.number,
 		children_indecies: React.PropTypes.array,
@@ -370,6 +371,7 @@ var Slide = React.createClass({
   		}
   		
   		return {
+  			_intui_slide: true,
   			passPipe: this.passPipe,
   			children_indecies: ca,
   			scroll_index: this.props.scroll_index,
@@ -399,22 +401,15 @@ var Slide = React.createClass({
   		}
   	},
 
-	shouldComponentUpdate: function(props,state){
-		
-		//get dim change
-		var set_offset = this.getDimChange(props);
-		
-		//if there is dim change pass offset along to transition manager
-		if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
-		
-		//get outer rectangle
-		this.getRekt();
+	// shouldComponentUpdate: function(props,state){
+	// 	return this.updateState(props,state);
+	// },
+	componentWillUpdate: function(props,state){
+		this.updateState(props,state);
 
-
-		this.updateScrollBounds();
-		//update self
-		return this.updateState(props,state);
+		
 	},
+
 
 	width: function(){
 		if(!this.refs.outer) return -1
@@ -484,10 +479,28 @@ var Slide = React.createClass({
 	},
 
 	updateState: function(props,state){
-		
-		
+
 		state = state || this.state;
 		props = props || this.props;
+		
+
+		if(this.refs.outer != null){
+			//get dim change
+			var set_offset = this.getDimChange(props);
+			
+			//if there is dim change pass offset along to transition manager
+			if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
+			
+			//get outer rectangle
+			this.getRekt();
+
+
+			this.updateScrollBounds();
+			//update self			
+		}
+		
+
+		
 
 
 		var ratio = this.getHWRatio();
@@ -503,6 +516,7 @@ var Slide = React.createClass({
 				this.prev_pos = true;
 			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
 				setTimeout(function() {
+					
 				 	var pos = this.getIndexXY(this.props.index_pos)
 				 	this.toXY(pos.x,pos.y)
 				}.bind(this), 1)
@@ -536,6 +550,14 @@ var Slide = React.createClass({
 		}
 	},
 
+	resize: function(){
+		this.forceUpdate()
+	},
+
+	componentWillUnmount: function(){
+		window.removeEventListener('resize',this.resize)
+	},
+
 	componentDidMount: function(){
 
 
@@ -545,8 +567,18 @@ var Slide = React.createClass({
 		//TODO
 		//console.log("SLIDE MOUNTED",this.props.router.path,this.context)
 		this.getRekt();
+		
 		this.updateState();
 
+
+		if(this.props.index_pos != -1){
+			var pos = this.getIndexXY(this.props.index_pos)
+			this.setXY(pos.x,pos.y)
+		}
+
+		if(this.context._intui_slide == null){
+			this.resize = window.addEventListener('resize',this.resize)
+		}
 
 
 		
@@ -557,8 +589,6 @@ var Slide = React.createClass({
 		this.refs.outer.addEventListener('mouseleave',function(){
 			this.props.onHover(false)
 		}.bind(this))
-
-
 
 	},
 
@@ -591,10 +621,9 @@ var Slide = React.createClass({
 			if(this.props.vertical) y += this.props.index_offset
 			else x += this.props.index_offset
 		}
-		//console.log("TO XY",x,y,this.props.id)
-		TweenLite.to(this.scroller || this.refs.inner, this.props.duration,{
-			ease: this.props.ease,
-			easeParams:this.props.ease_params,
+		
+		TweenLite.to(this.refs.inner, this.props.duration,{
+			
 			x: -1*x,
 			y: -1*y,
 		})
@@ -607,7 +636,7 @@ var Slide = React.createClass({
 		}
 		
 		//console.log("SET XY",x,y,this.props.id)
-		TweenLite.set(this.scroller || this.refs.inner,{
+		TweenLite.set(this.refs.inner,{
 			x:-1*x,
 			y:-1*y
 		})
@@ -743,9 +772,6 @@ var ScrollProxy = React.createClass({
 	*/
 
 
-	componentWillUpdate: function(){
-		// this.updateDims();
-	},
 
 
 
@@ -820,6 +846,8 @@ var ScrollProxy = React.createClass({
 	componentDidMount: function(){
 		this.delegateEvents();
 		this.refs.outer.addEventListener('scroll',this.scroll);
+
+		
 		// console.log("scroller mounted h/w:",this.refs.outer.clientHeight,this.refs.outer.clientWidth);
 	},
 
