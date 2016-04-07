@@ -22,9 +22,6 @@
 */
 
 var React = require('react');
-var sort = require('lodash/collection/sortBy');
-var indexOf = require('lodash/array/indexOf');
-
 
 
 
@@ -730,8 +727,8 @@ var Grid = React.createClass({
 
 		if(spots.length == 0) return
 
-		var spots = sort(spots,function(spot){
-			return -spot.w * spot.h
+		var spots = spots.sort(function(spot1,spot2){
+			return  - (s1.w*s2.h - s2.w*s2.h)
 		})
 
 
