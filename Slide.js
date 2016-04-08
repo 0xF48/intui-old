@@ -26,10 +26,12 @@ var Slide = React.createClass({
 			index_pos: -1, //current nested slide index.
 			offset: 0, //slide offset in pixels
 			beta: 100, //beta relative to parent
-		
+			c: null, //inner and static classname shortcut
+			oc: null, //outer classname shortcut
+
 			height: null, //height override
 			width: null, //width override
-
+			center: false,
 
 			/* scroll props */
 
@@ -494,8 +496,7 @@ var Slide = React.createClass({
 			//get outer rectangle
 			this.getRekt();
 
-
-			this.updateScrollBounds();
+			if(this.props.scroll) this.updateScrollBounds();
 			//update self			
 		}
 		
@@ -516,10 +517,9 @@ var Slide = React.createClass({
 				this.prev_pos = true;
 			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
 				setTimeout(function() {
-					
 				 	var pos = this.getIndexXY(this.props.index_pos)
 				 	this.toXY(pos.x,pos.y)
-				}.bind(this), 1)
+				}.bind(this), 0)
 			}
 		}
 
@@ -595,25 +595,42 @@ var Slide = React.createClass({
 	render: function(){
 
 		// window._intui_render_calls ++ 
+		var dynamic = this.props.slide || this.props.scroll;
+		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
 
 
-		var inner_hw_style = this.getInnerHW()
-		var outer_hw_style = this.getOuterHW()
-
-		var outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.outerClassName || '');
-		var innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' intui_slide_horizontal ') + (this.props.innerClassName || '');
-
-		var scroll_proxy = null
-		if(this.props.scroll) scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
-		return (
-			<div onClick={this.props.onClick} id = {this.props.id} className={outerClass} style = {outer_hw_style} ref='outer' >
-				{scroll_proxy}
+		if(dynamic){
+			outer_hw_style = this.getOuterHW()
+			inner_hw_style = this.getInnerHW()
+			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || '') + (this.props.center ? ' _intui_slide_center' : '');
+			inner = (
 				<div className={innerClass} style = {Object.assign(inner_hw_style,this.props.style)} ref='inner' >
 					{this.props.children}
 				</div>
+			)
+			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '');
+		}else{
+			outer_hw_style = this.props.style != null ? Object.assign(this.getOuterHW(),this.props.style) : this.getOuterHW()
+			inner = this.props.children
+			staticClass = (this.props.c || this.props.innerClassName || '') + ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ')
+		}
+		
+
+		
+
+		
+		if(this.props.scroll){
+			scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
+		} 
+		
+
+
+		return (
+			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
+				{scroll_proxy}
+				{inner}
 			</div>
 		)
-
 	},
 
 	toXY: function(x,y){
@@ -623,7 +640,8 @@ var Slide = React.createClass({
 		}
 		
 		TweenLite.to(this.refs.inner, this.props.duration,{
-			
+			ease: this.props.ease,
+			params: this.props.ease_params,
 			x: -1*x,
 			y: -1*y,
 		})

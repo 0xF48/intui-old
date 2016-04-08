@@ -479,7 +479,7 @@ var ToggleFieldClass = {
 
 	render: function(){
 		return (
-			<I beta = {this.props.beta} innerClassName = '_intui_form_toggle_slide' >
+			<I center beta = {this.props.beta} c = '_intui_form_toggle_slide' >
 				<canvas onClick = {this.setClientXY} width = {this.props.size} height = {this.props.size} ref = 'canvas' />
 			</I>	
 		)
