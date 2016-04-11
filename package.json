@@ -3,14 +3,19 @@
   "version": "0.0.1",
   "main": "./index.js",
   "description:": "a one of a kind react ui framework",
-  "dependencies": {},
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jsx": "^2.0.1"
+  },
+  "scripts":{
+    "install":"gulp"
+  },
   "browserify": {
     "transform": [
       "reactify"
     ]
   },
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-jsx": "^2.0.1"
+
   }
 }
