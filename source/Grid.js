@@ -727,8 +727,11 @@ var Grid = React.createClass({
 
 		if(spots.length == 0) return
 
-		var spots = spots.sort(function(spot1,spot2){
-			return  - (s1.w*s2.h - s2.w*s2.h)
+
+		
+		var spots = spots.sort(function(s1,s2){
+			if(s1.w*s2.h < s2.w*s2.h) return -1
+			else return 1
 		})
 
 

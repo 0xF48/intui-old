@@ -10,6 +10,7 @@
     ]
   },
   "devDependencies": {
-    "reactify": "^1.1.1"
+    "gulp": "^3.9.1",
+    "gulp-jsx": "^2.0.1"
   }
 }
