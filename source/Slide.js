@@ -14,7 +14,7 @@ function getAllEvents(element) {
     return result
 }
 
-var Slide = React.createClass({
+module.exports = React.createClass({
 	getDefaultProps: function(){
 
 		return {
@@ -593,7 +593,7 @@ var Slide = React.createClass({
 	},
 
 	render: function(){
-
+		
 		// window._intui_render_calls ++ 
 		var dynamic = this.props.slide || this.props.scroll;
 		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
@@ -608,11 +608,11 @@ var Slide = React.createClass({
 					{this.props.children}
 				</div>
 			)
-			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '');
+			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
 		}else{
 			outer_hw_style = this.props.style != null ? Object.assign(this.getOuterHW(),this.props.style) : this.getOuterHW()
 			inner = this.props.children
-			staticClass = (this.props.c || this.props.innerClassName || '') + ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ')
+			staticClass = (this.props.c || this.props.innerClassName || '') + ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' )
 		}
 		
 
@@ -852,7 +852,7 @@ var ScrollProxy = React.createClass({
 				this.refs.outer.style.zIndex = -99999
 				var el = document.elementFromPoint(e.clientX,e.clientY);
 				if(el != null && e.type != 'scroll'){
-					e.bubbles = true
+					// e.bubbles = true
 					quickDelegate(e,el)
 				}
 				this.refs.outer.style.zIndex = 99999
@@ -1043,4 +1043,4 @@ var DimTransitionManager = function(){
 
 // var scrollProxy = new scrollProxyManager()
 var TransManager = new DimTransitionManager();
-module.exports = Slide;
+
