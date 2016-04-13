@@ -56,11 +56,11 @@ var Button = React.createClass({
 
 
 		if(!this.props.inverse){
-			var top_style = {color:c1,background:c2}
-			var bot_style = {color:c1,background:c2}
+			var top_style = {fill:c2,color:c2,background:c1}
+			var bot_style = {fill:c1,color:c1,background:c2}
 		}else{
-			var top_style = {color:c1,background:c2}
-			var bot_style = {color:c2,background:c1}			
+			var top_style = {fill:c1,color:c1,background:c2}
+			var bot_style = {fill:c2,color:c2,background:c1}			
 		}
 
 		if(this.props.index_offset_full && this.state.hover){

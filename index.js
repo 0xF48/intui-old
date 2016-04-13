@@ -3,23 +3,23 @@
 
 module.exports = {
 	//main slide component
-	Slide: require('./dist/Slide'),
+	Slide: require('./source/Slide'),
 
 
-	Grid: require('./dist/Grid').Grid,
+	Grid: require('./source/Grid').Grid,
 	
-	Pager: require('./dist/Pager'),
-	GridItem: require('./dist/Grid').Item,
-	GridMixin: require('./dist/Grid').Mixin,
-	Mixin: require('./dist/Mixin'),
-	Loader: require('./dist/Loader'),
-	Example: require('./dist/example'),
-	Button: require('./dist/Button'),
-	Modal: require('./dist/Modal'),
-	ToolTip: require('./dist/ToolTip'),
+	Pager: require('./source/Pager'),
+	GridItem: require('./source/Grid').Item,
+	GridMixin: require('./source/Grid').Mixin,
+	Mixin: require('./source/Mixin'),
+	Loader: require('./source/Loader'),
+	Example: require('./source/example'),
+	Button: require('./source/Button'),
+	Modal: require('./source/Modal'),
+	ToolTip: require('./source/ToolTip'),
 
 	//input
-	NumberField: require('./dist/Form').NumberField,
-	ManyNumberField: require('./dist/Form').ManyNumberField,
-	ToggleField: require('./dist/Form').Toggle
+	NumberField: require('./source/Form').NumberField,
+	ManyNumberField: require('./source/Form').ManyNumberField,
+	ToggleField: require('./source/Form').Toggle
 }
