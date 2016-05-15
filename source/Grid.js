@@ -23,12 +23,22 @@
 
 var React = require('react');
 
+var Mixin = {
+	contextTypes: {
+		
+		fixed: React.PropTypes.bool,
+		diam: React.PropTypes.number,
+		w: React.PropTypes.number,
+		h: React.PropTypes.number,
+	}
+}
 
 
 
 /* pass -1 for w/h to set size based on amount of children and grid dimentions */
 var GridItem = React.createClass({
-
+	mixins: [Mixin],
+	hidden: null,
 	getDefaultProps: function(){
 		return {
 			max_offset: 4,
@@ -41,8 +51,8 @@ var GridItem = React.createClass({
 			animated: false,
 			aniamte: false,
 			top: false, 
-			r: 4,
-			c: 4,
+			r: null,
+			c: null,
 			size_index: 0,
 			ease: Power2.easeOut,
 			ease_dur: 0.6
@@ -62,66 +72,95 @@ var GridItem = React.createClass({
 		}
 	},
 
+	checkHidden: function(){
+		// //console.log("CHECK HIDDEN")
+		if(this.props.end == true) return true
+		if(this.context.fixed == true) return false;
+		var top =  (this.props.r - this.props.grid_shifts) * this.context.diam
+		var h = this.context.diam*this.props.h
+		var scroll = document.body.scrollTop
+		// //console.log(scroll,top);
+		if(scroll > top + h + 50) return true
+		if(scroll < top - window.innerHeight ) return true
+		// if(scroll < top - window.innerHeight - window.innerHeight/2 ) return true
+		return false
+	},
+
+
 	componentDidUpdate: function(props,state){
-	//	////console.log(this.props.end,this.key)
-		if(!this.context.fixed) return
-		if(props.end != this.props.end && this.props.end == true){
-			TweenLite.fromTo(this.refs.item,this.props.ease_dur+(this.props.r*(1*this.props.delay )) ,{
-				rotationY: 0,
-				scale:1,
-				// zIndex: 1,
-			},{
-				rotationY: 180,
-				scale:0.6,
-				// zIndex: 1,
-				ease: this.props.ease,
-			})		
-		}else if(props.end != this.props.end && this.props.end == false){
-			TweenLite.fromTo(this.refs.item,this.props.ease_dur+(this.props.r*(1*this.props.delay )),{
-				rotationY: -180,
-				scale:0.6,
+
+		
+
+		// //console.log(this.props.end,this.key)
+		if(this.checkHidden()){
+		
+			// //console.log("HIDE GITEM")
+			this.hide();		
+		}else{
 			
-			},{
-				scale:1,
-				rotationY: 0,
-				ease: this.props.ease,
-			})					
+			// //console.log("SHOW GITEM")
+			this.show()
 		}
+	},
+
+	hide: function(set){
+		if(this.hidden == true) return false
+		this.hidden = true;
+		if(set == true) return TweenLite.set(this.refs.item,{
+			scale:0.6,
+			rotationY: 180,
+			ease: this.props.ease,
+		})
+
+		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
+			rotationY: 0,
+			scale:1,
+		},{
+			scale:0.6,
+			rotationY: 180,
+			ease: this.props.ease,
+		})				
+	},
+
+	show: function(set){
+		if(this.hidden == false) return false
+		this.hidden = false;
+		if(set == true) return TweenLite.set(this.refs.item,{
+			rotationY: 0,
+			scale:1,
+			ease: this.props.ease,
+		})
+		
+		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
+			rotationY: -180,
+			scale:0.6,
+		},{
+			rotationY: 0,
+			scale:1,
+			ease: this.props.ease,
+		})
 	},
 
 	componentDidMount:function(){
+		if(this.checkHidden()){
+			this.hide(true)
+		}else{
+			this.show()
+		}
 
-		if(this.props.end == true){
-			////console.log("END")
+		window.addEventListener('scroll',this.scrollUpdate)
+	},
 
-			TweenLite.fromTo(this.refs.item,this.props.ease_dur+(this.props.r*(1*this.props.delay )),{
-				rotationY: 0,
-				scale:0.6,
-			},{
-				scale:1,
-				rotationY: 180,
-				ease: this.props.ease,
-			})		
-
-		}else if(this.context.fixed){
-			// ////console.log("animate",this.props.r,this.props.c)
-			TweenLite.set(this.refs.item,{
-				rotationY: -180,
-				
-			})
-			TweenLite.to(this.refs.item,this.props.ease_dur+(this.props.r*(1*this.props.delay )),{
-				rotationY: 0,
-				
-				ease: this.props.ease,
-			})
+	scrollUpdate: function(){
+		var hide = this.checkHidden()
+		if(this.hidden != hide){
+			if(hide) this.hide()
+			else this.show()
 		}
 	},
 
-
 	render: function(){
-		//////console.log("render",this.props.c,this.props.r)
-
-
+		
 
 		if(!this.context.fixed){
 			var left = ( this.props.c * this.context.diam) + 'px';
@@ -135,14 +174,12 @@ var GridItem = React.createClass({
 			var h = ( 100/this.context.h * this.props.h) + '%';
 		}
 
-		//////console.log(this.props.r,this.props.c,this.props.grid_shifts,this.context.diam)
-	
 
 		var style = Object.assign({
 			position: 'absolute',
 			left: left,
 			top: top,
-			perspective: '500',
+			perspective: 500,
 			backfaceVisibility: 'hidden',
 			height: h,
 			width: w,
@@ -160,7 +197,7 @@ var GridItem = React.createClass({
 
 		return (
 			<div ref='item_wrapper' style={style}>
-				<div {...this.props} ref='item' style={style2}>
+				<div className = {this.props.className} ref='item' style={style2}>
 					{this.props.children}
 				</div>
 			</div>
@@ -174,6 +211,7 @@ var Grid = React.createClass({
 
 	getDefaultProps: function(){
 		return {
+			fixed: false,
 			ease: Power2.easeOut,
 			offset: 0, //grid buffer offset.
 			fill_up: true, //fill empty spots
@@ -218,6 +256,8 @@ var Grid = React.createClass({
 		return {}
 	},
 
+	grid_shifts: 0,
+
 	/* initialize the index array with a set width and height */
 	initIndexArray: function(w,h){
 		this.index_array = [] 
@@ -255,7 +295,7 @@ var Grid = React.createClass({
 		this.grid = this.grid.filter(function(g){
 			return g != null
 		})
-		// console.log("CLEANED GRID",this.grid)
+		// //console.log("CLEANED GRID",this.grid)
 	},
 
 
@@ -265,7 +305,7 @@ var Grid = React.createClass({
 		assumes grid is free to fill.
 	*/
 	fillInitialGrid: function(offset){
-		// //console.log('fill initial',this.children.length)
+	//	console.log('fill initial',this.children.length)
 	
 		for(var i = offset;i<this.children.length;i++){
 			var c = this.children[i]
@@ -275,10 +315,13 @@ var Grid = React.createClass({
 			this.fillSpot(i,spot[0],spot[1],c.props.w,c.props.h)
 			this.addToGrid(c,spot[0],spot[1],i)
 		}
-		// //console.log("done fill initial")
+	//	console.log("done fill initial")
 	},
 
 	fillUpGrid: function(offset){
+
+	//	console.log("FILL UP GRID")
+
 		for(var i = offset;i<this.children.length;i++){
 			var c = this.children[i]
 			if(this.gridIndex(c) != -1) continue
@@ -367,7 +410,7 @@ var Grid = React.createClass({
 
 	*/
 	easySyncChildren: function(new_children){
-		////console.log("EASEY SYNC",new_children)
+	//	console.log("EASEY SYNC",new_children)
 		this.children = []
 		for(var i = 0 ;i<new_children.length;i++){
 			this.children.push(new_children[i])
@@ -400,7 +443,7 @@ var Grid = React.createClass({
 
 	/* add to grid */
 	addToGrid: function(child,r,c,index){
-		//console.log('add',child.props.index,',',r,c,'#',index)
+		// //console.log('add',child.props.index,',',r,c,'#',index)
 		var w = child.props.w
 		var h = child.props.h
 		if( child.props.w < 0 || child.props.h < 0 ){
@@ -411,7 +454,7 @@ var Grid = React.createClass({
 		
 
 		var child = React.cloneElement(child,{
-			w:w, 
+			w:w,
 			h:h,
 			end:false,
 			fixed: this.props.fixed,
@@ -482,7 +525,7 @@ var Grid = React.createClass({
 			var rl = arr[r].length
 			for(var c = 0;c < rl; c++){
 				if(arr[r][c] == o_c_i){
-					// ////console.log("index ",o_c_i,"emptied for",r,c)
+					// //console.log("index ",o_c_i,"emptied for",r,c)
 					arr[r][c] = -1
 				}
 			}
@@ -527,32 +570,55 @@ var Grid = React.createClass({
 
 
 	//find and index spot from BOTTOM to TOP
-	findFreeSpot: function(w,h,reverse,max_r){
-	
+	findFreeSpot: function(w,h,reverse){
+		var self = this;
+		var max_r = null;
 		var col = this.index_array
 		var l = col.length
 
-		for(var r = reverse ? l-1 : 0; ( reverse ? r >= 0 : r < l ) && (  max_r ? ( reverse ?  ( r < max_r ? false : true ) : ( r > max_r ? false : true ) ) : true /* WAT */ ); r++){
-			// console.log(l,r)
-			var rl =  col[r].length;
-			for(var c = 0;c < rl ;c++){
-				if(r+h > l || c+w > rl) continue;
+		function find(){
+			for(var r = reverse ? l-1 : 0; ( reverse ? r >= 0 : r < l ) && (  max_r ? ( reverse ?  ( r < max_r ? false : true ) : ( r > max_r ? false : true ) ) : true /* WAT */ ); r++){
+				// //console.log(l,r)
+				var rl =  col[r].length;
+				for(var c = 0;c < rl ;c++){
+					if(r+h > l || c+w > rl) continue;
 
-				var found = true
-				for(var h_i = 0;h_i < h && found == true;h_i++){
-					for(var w_i = 0; w_i < w && found == true; w_i ++ ){
-						if(col[r+h_i][c+w_i] == -1){
-							found = true
-						}else{
-							found = false
+					var found = true
+					for(var h_i = 0;h_i < h && found == true;h_i++){
+						for(var w_i = 0; w_i < w && found == true; w_i ++ ){
+							if(col[r+h_i][c+w_i] == -1){
+								found = true
+							}else{
+								found = false
+							}
 						}
 					}
+					if(found == true) return [r,c]
 				}
-				if(found == true) return [r,c]
 			}
+
+			if(self.props.fixed) return null
+
+		
+			var row = [];
+			for(var c = 0; c <self.props.w;c++){
+				row.push(-1)
+			}
+
+			self.index_array.push(row)
+			l = self.index_array.length;
+			
+			
+
+			return find()
 		}
 
-		return null
+
+
+		
+
+
+		return find();
 	},
 
 	//from ANY free SPOT
@@ -614,7 +680,7 @@ var Grid = React.createClass({
 
 	/* fill spot */
 	fillSpot: function(child_i,r,c,w,h){
-		////console.log('fill spot',r,c,w,h,'#'+child_i)
+	//	console.log('fill spot',r,c,w,h,'#'+child_i)
 
 
 		var col = this.index_array;
@@ -625,7 +691,7 @@ var Grid = React.createClass({
 				if(col[r+h_i][c+w_i] == null) throw 'fill spot error: column does not exist not empty '+r +','+c+''
 				if(col[r+h_i][c+w_i] != -1) throw 'fill spot error: not empty '+r +','+c+''
 				else col[r+h_i][c+w_i] = child_i
-				////console.log("filled spot",r+h_i,c+w_i,"with",child_i)
+			//	console.log("filled spot",r+h_i,c+w_i,"with",child_i)
 			}
 		}
 		this.setMarkers();
@@ -635,25 +701,22 @@ var Grid = React.createClass({
 
 	/* 123 */
 	forceFill: function(props){
-
-		for(var  i = 0 ; i < this.children.length ; i++){
+	//	console.log("FORCE FILL");
+		for(var i = 0;i<this.children.length;i++){
 			var c = this.children[i]
-			if(this.gridIndex(this.children[i]) != -1) continue;
-			var spot = this.findFreeSpot(c.w,c.h)
-
-			while(spot == null){
-				this.insertIndexRow(this.index_array.length-1)
-				spot = this.findFreeSpot(c.w,c.h)
-			}
-			this.fillSpot(spot[0],spot[1],c.w,c.h)
+			var spot = this.findFreeSpot(c.props.w,c.props.h)
+			if(spot == null) return
+			this.fillSpot(i,spot[0],spot[1],c.props.w,c.props.h)
+			this.addToGrid(c,spot[0],spot[1],i)
 		}
+
 	},
 
 
 
 	/* reset the grid, removing all state children and setting outer prop children to end their life cycle on the next update */
 	resetGrid: function(w,h){
-		//console.log("RESET GRID")
+		
 		
 
 		this.initIndexArray(w,h);
@@ -763,11 +826,11 @@ var Grid = React.createClass({
 		If we failed to fill the grid up by going back from offset, 
 		go forwards from offset and if child is not in grid fill up all the way until no children remaining
 		*/
-		////console.log("FIND FW",spots)
+	//	console.log("FIND FW",spots)
 		for(var i = offset;i < this.children.length;i++){
 			var c = this.children[i];
 			if(this.gridIndex(c) != -1) continue;
-			// ////console.log('GRID INDEX OF',i,this.gridIndex(c))
+			// //console.log('GRID INDEX OF',i,this.gridIndex(c))
 			var found = false
 			for(var j = 0;j<spots.length && found == false;j++){
 				var s = spots[j]
@@ -798,14 +861,14 @@ var Grid = React.createClass({
 		 	all children are meant to be static.
 		 	you may remove/add children from the array which will trigger a resync.
 		 */
-		//console.log('update grid',props.list_id)
+	//	console.log('update grid',props.list_id,props.children.length)
 		//reset grid and return
 		if(this.props.list_id != props.list_id){
-			//console.log("NEW GRID ID",props.list_id)
+		//	console.log("NEW GRID ID",props.list_id,props.children)
 
 
 			if(! props.children || !props.children.length){
-				//console.log('reset to empty')
+				// //console.log('reset to empty')
 				this.cleanGrid();
 				this.resetGrid(props.w,props.h);
 				return true
@@ -815,9 +878,9 @@ var Grid = React.createClass({
 			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children);
 			if(props.fixed){
 				this.fillInitialGrid(props.offset);
-				this.fillEmptySpots(props.offset);	
+				this.fillEmptySpots(props.offset);
 			}else{
-				this.forceFill(props);
+				this.fillInitialGrid(props.offset);
 			}
 
 			return true
@@ -826,20 +889,20 @@ var Grid = React.createClass({
 		//resync if children lengths dont match
 		else if(this.children.length != props.children.length){
 			this.cleanGrid();
-			//console.log("NEW GRID SIZE")
-			////console.log('update grid')
+			// //console.log("NEW GRID SIZE")
+		//	console.log('update grid')
 			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children)
 			if(props.fixed == true){
 				this.fillUpGrid(props.offset);
 				this.fillEmptySpots(props.offset);
 			}else{
-				this.forceFill(props);
+				this.fillUpGrid(props.offset);
 			}
 		}
 
 		// //force hard resync if enabled. 
 		// else if(props.hard_sync){
-		// 	//console.log("HARD SYNC")
+		//	console.log("HARD SYNC")
 		// 	this.hardSyncChildren(props.children);
 		// }
 
@@ -847,11 +910,11 @@ var Grid = React.createClass({
 
 		//if offset changed go back or forwards.
 		if(this.props.offset != props.offset){
-			//console.log("NEW OFFSET")
+			// //console.log("NEW OFFSET")
 			this.cleanGrid();
 
 			var d = props.offset - this.props.offset
-			////console.log(d)
+		//	console.log(d)
 			if(Math.abs(d) > props.max_offset){
 				this.resetGrid(props.w,props.h);
 				this.fillInitialGrid(props.offset);	
@@ -873,15 +936,28 @@ var Grid = React.createClass({
 		return true
 	},
 
+	// scrollUpdate: function(){
+	// 	if(this.props.fixed) return;
+		// //console.log(this.refs)
+	// 	for(var i = 0; i <this.grid.length;i++){
+	// 		if(this.refs['item_'+i] != null){
+	// 			this.refs['item_'+i].checkScroll();
+	// 		}
+	// 	}
+	// },
+
+	// componentDidMount: function(){
+	// 	if(!this.props.fixed) window.addEventListener('scroll',this.scrollUpdate)
+	// },
+
 	/* render */
 	render: function(){
-	
 		if(this.props.fixed){
 			h = '100%'
 		}else{
 			h = (this.getDiam()*(this.index_array.length-this.grid_shifts))+'px'
 		}
-		//////console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
+		// //console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
 		return (
 			<div ref = 'inner' style = {Object.assign({height:h},this.inner_style,this.props.style)} className = {this.props.className}>
 				{this.grid}
@@ -892,15 +968,6 @@ var Grid = React.createClass({
 
 
 
-var Mixin = {
-	contextTypes: {
-		
-		fixed: React.PropTypes.bool,
-		diam: React.PropTypes.number,
-		w: React.PropTypes.number,
-		h: React.PropTypes.number,
-	}
-}
 
 module.exports.Mixin = Mixin;
 module.exports.Grid = Grid;
