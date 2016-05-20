@@ -32,15 +32,17 @@ module.exports = React.createClass({
 			height: null, //height override
 			width: null, //width override
 			center: false,
+			scrollable: false,
 
 			/* scroll props */
-
+			auto: false,
 			scroll: false,
+			scrollable: false,
 			overflow_dur: 0.3,
 			overflow: true,
-			scroll_snap: false, //if scroll is enabled, you can force scroll snapping.
-			scroll_snap_force : 1, //more force means its harder to snap.
-			scroll_directional: true, //when scroll inertia is passed down the pipeline, it will ignore nodes that go in a different direction by default, unless this is set to false.
+			//scroll_snap: false, //if scroll is enabled, you can force scroll snapping.
+			//scroll_snap_force : 1, //more force means its harder to snap.
+			//scroll_directional: true, //when scroll inertia is passed down the pipeline, it will ignore nodes that go in a different direction by default, unless this is set to false.
 		}
 	},
 
@@ -54,6 +56,7 @@ module.exports = React.createClass({
 		};
 		
 		this.prev_pos = -1; //im not sure what this does anymore
+		this.scrollPipe = [];
 		
 		this.rect = {
 			width:0,
@@ -64,10 +67,72 @@ module.exports = React.createClass({
 
 		return {
 			dim: 0,
-			dynamic : (this.props.slide || this.props.scroll) ? true : false, 
+			dynamic : (this.props.scrollable || this.props.slide || this.props.scroll), 
 		}
 
 	},
+
+
+	contextTypes: {
+		scroller: React.PropTypes.element, 
+		_intui_slide: React.PropTypes.bool,
+		total_beta: React.PropTypes.number,
+		vertical: React.PropTypes.bool,
+		auto_h: React.PropTypes.bool,
+		auto_w: React.PropTypes.bool,
+		path: React.PropTypes.string, //todo
+		children_indecies: React.PropTypes.array,
+		// scroll_index: React.PropTypes.number,
+		passPipe: React.PropTypes.func,
+	},
+
+	childContextTypes: {
+		_intui_slide: React.PropTypes.bool,
+		
+		// scroll_index: React.PropTypes.number,
+		children_indecies: React.PropTypes.array,
+		scroller: React.PropTypes.element, 
+		path: React.PropTypes.string, //todo
+		total_beta: React.PropTypes.number,
+		vertical: React.PropTypes.bool,
+		auto_h: React.PropTypes.bool,
+		auto_w: React.PropTypes.bool
+	},
+
+	getChildContext: function() {
+		// var ca = [];
+		// for(var i in this.props.children){
+		// 	var c = this.props.children[i]
+		// 	if( c != null && c.props != null && c.props.scroll == true ){
+		// 		ca.push(c.props.scroll_index || 0)
+		// 	}
+		// }
+		
+		return {
+			_intui_slide: true,
+			// children_indecies: ca,
+			//scroll_index: this.props.scroll_index,
+			path: this.context.path == null ? '/' : this.context.path  + '/' + (this.props.path != null ? this.props.path : ''), //todo
+			total_beta: this.getTotalBeta(),
+			vertical: this.props.vertical,
+			auto_h: this.props.height === 'auto' ? true : false,
+			auto_w: this.props.width === 'auto' ? true : false,
+		}
+	},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	getXY: function(index){
@@ -131,7 +196,7 @@ module.exports = React.createClass({
 
 
 	
-	getInnerDim: function(){ //trust me, this works
+	getInnerDim: function(){ 
 		if(!this.props.children) return 0
 		this.node_count = 0
 		var d = 0
@@ -150,7 +215,7 @@ module.exports = React.createClass({
 		return d	
 	},
 
-	// don't uncomment this
+
 	getInnerHW: function(){
 		if( !this.props.children || (this.getTotalBeta() >= 100 && (!this.props.slide && !this.props.scroll)) ){
 			return {
@@ -162,17 +227,47 @@ module.exports = React.createClass({
 		var d = this.getInnerDim();
 		
 		return {
-			width: (this.props.vertical || d == 0) ? (this.props.scroll ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
-			height: (!this.props.vertical || d == 0) ? (this.props.scroll ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			width: (this.props.vertical || d == 0) ? ( (this.props.scroll || this.props.scrollable) ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			height: (!this.props.vertical || d == 0) ? ( (this.props.scroll || this.props.scrollable) ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
 		}
 	},
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	updateScrollBounds: function(){
+		// if(this.props.scrollable){
+		// 	var inner = ( this.props.vertical ? this.refs.inner.clientHeight : this.refs.inner.clientWidth );
+		// }else{
+		// 	var inner = this.getInnerDim();
+		// }
+		// var outer = ( this.props.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth );
+
+		// if(inner < outer){
+		// 	inner = outer;
+		// }
 	
-		this.min_scroll_pos = 0;
-		this.max_scroll_pos = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth);
+		// this.min_scroll_pos = 0;
+		// this.max_scroll_pos = inner - outer
+
+		console.log('update scroll bounds',this.max_scroll_pos,this.refs.inner.clientHeight);
 	},
+
 
 
 	initScroll: function(){
@@ -193,6 +288,7 @@ module.exports = React.createClass({
 	},
 
 
+
 	scrollTo: function(pos,dur){
 		if(this.props.vertical){
 			TweenLite.to([this.refs.inner,this.stage],dur || 0.07,{
@@ -206,98 +302,66 @@ module.exports = React.createClass({
 	},
 
 
-	sPipe: function(slide,opt){
 
-		// this.scrollInner(opt.)
-		// if(slide.props.scroll != false){
-		// 	//child has preference
-		// 	if(slide.props.slide_index > this.props.slide_index && !opt.source){
-		// 		return slide.bind(slide,{
-		// 			_child: false,
-		// 			source: this
-		// 		})
-		// 	}else if(opt.reverse){
-		// 		return self.bind(slide,{
-		// 			_child: false,
-		// 			source: this
-		// 		})
-		// 	}else if(this.props.slide_index > slide.props.slide_index){
-		// 		return slide.bind(slide,{
-		// 			_child: false,
-		// 		})
-		// 	}
-		// }
+	pipeScroll: function(slide){
+		// console.log(this.props,"PIPE SCROLL TO",slide.props);
+		slide.scrollPipe[0] = this;
+		this.scrollPipe[1] = slide;
+		return slide;
 	},
+
+
+
 
 	sRootPipe: function(opt){
-		this.scrollInner(opt.pos,opt.velocity)
+		this.scroll(opt);
 	},
 
-	// scrollPass: function(pos,velocity,index_pos,check){
-	// 	var ctx = this.getChildContext();
-
-	// 	this.context.passPipe();
-	// 	if(this.context.passPipe == null) return false
-	// 	for(var i in this.props.children){
-	// 		var c = this.props.children[i]
-	// 		if( c != null && c.props != null && c.props.scroll == true ){
-	// 			ca.push(c.props.scroll_index || 0)
-	// 		}
-	// 	}
-	// },
+	prev_scroll_pos: 0,
+	marker_pos: 0,
+	prev_abs_pos: 0,
 
 
-	// syncScroll: function(pos,npos){
-	// 	this.scroll_marker = pos - npos
-	// },
 
 
-	// scrollStart: function(){
-	// 	var npos = (this.props.vertical ? -this.stage.y : -this.stage.x)
-	// 	this.syncScroll( pos , npos)
-	// },
+	marker_offset: 0,
+	scroll: function(opt,disable,off){
+		var off = off || 0;
+		var v = opt.velocity;
+		var a_pos = opt.pos - this.marker_offset; //absolute scroller position.
+		var r_min = 0; 	      //relative min (0px in normal scenario)
+		var r_max = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth); 	     //relative max (600px innerHeight)
+		var r_ppos = this.prev_scroll_pos; 	    //relative previous position
+		var r_pos = null 					    //relative scroll position
+		var m_pos = this.marker_pos;  //marker position;
+		// var a_ppos = this.prev_abs_pos;
 
-
-	// scrollPipe: function(pos,velocity){
-
-	// 	var check = this.checkOverflow(pos,velocity)
-	
-	// 	if(check == 1 || check == 0){
-	// 		if( this.passPipe(pos,velocity,this.props.index_pos,check) == false){
-	// 			return this.scrollInner(pos,velocity,check)
-	// 		}
-	// 	}else{
-	// 		return this.scrollInner(pos,velocity,check)
-	// 	}	
-	// },
-
-
-	checkOverflow: function(pos,velocity){
-		if (pos - this.scroll_marker <= this.min_scroll_pos && velocity < 0){
-			return 0
-		}if(pos - this.scroll_marker >= this.max_scroll_pos && velocity > 0){
-			return 1
+		r_max += off;
+		
+		if(v < 0 && r_ppos <= r_min ){ //set the overflow marker.
+			m_pos = (a_pos)
+		}else if(v > 0 && r_ppos >= r_max){
+			m_pos = (a_pos) - r_max;
 		}
-		return -1
-	},
+	
+
+		var a_min = r_min + m_pos; 
+		var a_max = r_max + m_pos;
+	
+
+		if(a_pos >= a_max){
+			r_pos = r_max;
+		}else if(a_pos <= a_min){
+			r_pos = r_min;
+		}else{
+			r_pos = a_pos - m_pos;
+		}
 
 
-
-	scrollInner: function(pos,velocity,check){
-		var max = this.max_scroll_pos
-		var min = this.min_scroll_pos
-		var npos = pos - this.scroll_marker //normalized position.
-
-		// console.log(pos,npos,min,max)
-
-		var check = check != null ? check : this.checkOverflow(pos,velocity);
-
-		if(check >= 0){
-			if(this.scroll_overflow == false){
-				this.scroll_overflow = true
-				
+		if(this.props.overflow2 && !disable){
+			if( (r_ppos > r_pos && a_pos <= a_min) || (r_ppos < r_pos && a_pos >= a_max) ){
 				TweenLite.fromTo(this.stage,0.75,{
-					velocity : velocity,
+					velocity : v,
 					o_time :  Math.sin(Math.PI/2)		
 				},{
 					ease:Sine.easeOut,
@@ -305,26 +369,44 @@ module.exports = React.createClass({
 					o_time: 0,
 				})
 			}
-
-			if(check == 1){
-				this.overflow_marker = pos - max
-				npos = max + this.stage.velocity*1*Math.sin(this.stage.o_time)
-			}else if(check == 0){
-				this.overflow_marker = pos
-				npos = min + this.stage.velocity*1*Math.sin(this.stage.o_time)
+			if(a_pos >= a_max){
+				r_pos = r_max + this.stage.velocity*1*Math.sin(this.stage.o_time)	
+			}else if(a_pos <= a_min){
+				r_pos = r_min + this.stage.velocity*1*Math.sin(this.stage.o_time)	
 			}
-			this.scrollTo(npos)
+		}
+
+
+
+		this.marker_pos = m_pos;
+		if(!disable) this.prev_scroll_pos = r_pos;
+		if(!disable) this.scrollTo(r_pos - off);
+
+
+		if(this.scrollPipe[1] != null && (a_pos >= a_max || a_pos <= a_min) ){
+			if(a_pos >= a_max){
+				this.scrollPipe[1].scroll(opt,false,r_max)
+			}else{
+				this.scrollPipe[1].scroll(opt,false,0)
+			}
 			
-		}else if(this.scroll_overflow == true){
-			
-			this.scroll_overflow = false;
-			this.scroll_marker = this.overflow_marker
-			npos = pos - this.scroll_marker //normalized position.
-			this.scrollTo(npos,0.3)
-		}else{
-			this.scrollTo(npos)
-		}	
+		}else if(this.scrollPipe[1] != null){
+			this.scrollPipe[1].scroll(opt,true,r_max)
+		}
+
+
 	},
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -337,53 +419,16 @@ module.exports = React.createClass({
 		return b
 	},
 
-	contextTypes: {
-		scroller: React.PropTypes.element, 
-		_intui_slide: React.PropTypes.bool,
-		total_beta: React.PropTypes.number,
-		vertical: React.PropTypes.bool,
-		auto_h: React.PropTypes.bool,
-		auto_w: React.PropTypes.bool,
-		path: React.PropTypes.string, //todo
-		children_indecies: React.PropTypes.array,
-		scroll_index: React.PropTypes.number,
-		passPipe: React.PropTypes.func,
-	},
 
-	childContextTypes: {
-		_intui_slide: React.PropTypes.bool,
-		passPipe: React.PropTypes.func,
-		scroll_index: React.PropTypes.number,
-		children_indecies: React.PropTypes.array,
-		scroller: React.PropTypes.element, 
-		path: React.PropTypes.string, //todo
-		total_beta: React.PropTypes.number,
-		vertical: React.PropTypes.bool,
-		auto_h: React.PropTypes.bool,
-		auto_w: React.PropTypes.bool
-	},
 
-  	getChildContext: function() {
-  		var ca = [];
-  		for(var i in this.props.children){
-  			var c = this.props.children[i]
-  			if( c != null && c.props != null && c.props.scroll == true ){
-  				ca.push(c.props.scroll_index || 0)
-  			}
-  		}
-  		
-  		return {
-  			_intui_slide: true,
-  			passPipe: this.passPipe,
-  			children_indecies: ca,
-  			scroll_index: this.props.scroll_index,
-  			path: this.context.path == null ? '/' : this.context.path  + '/' + (this.props.path != null ? this.props.path : ''), //todo
-  			total_beta: this.getTotalBeta(),
-  			vertical: this.props.vertical,
-  			auto_h: this.props.height === 'auto' ? true : false,
-  			auto_w: this.props.width === 'auto' ? true : false,
-  		}
-  	},
+
+
+
+
+
+
+
+
 
   	/* if parent element width/height ratio changes, we re-render */
   	getHWRatio: function(){
@@ -403,235 +448,11 @@ module.exports = React.createClass({
   		}
   	},
 
-	// shouldComponentUpdate: function(props,state){
-	// 	return this.updateState(props,state);
-	// },
-	componentWillUpdate: function(props,state){
-		this.updateState(props,state);
-
-		
-	},
-
-
-	width: function(){
-		if(!this.refs.outer) return -1
-		else return this.refs.outer.clientWidth
-	},
-
-	height: function(){
-		if(!this.refs.outer) return -1
-		else return this.refs.outer.clientHeight
-	},
-
-	getRekt: function(){
-		/* pixel perfect when not scaled */
-		//this.refs.outer.getBoundingClientRect();
-
-		/*use this for now */
-		this.rect = {
-			width: this.refs.outer.clientWidth,
-			height: this.refs.outer.clientHeight
-		}
-	},
-
-	betaToDim: function(beta){
-		if(!this.refs.outer) return 0
-		return (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * beta
-	},
-
-	/* new and old dimensions change difference calculator */
-	getDimChange: function(props){
-		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
-		//console.log("ANIMATE NEW DIM",this.)
-	
-		var diff_dim = null;
-		var diff_beta = null;
-
-		//console.log(this.props.vertical, props.height,this.props.height)
-		//if(this.context.vertical && props.height != props.width props.width == null )
-		if(this.context.vertical && props.height != this.props.height){
-			if(props.height == null ){
-				diff_dim =  this.betaToDim(props.beta) - this.props.height
-			}else if(this.props.height == null){
-				diff_dim =  props.height - this.betaToDim(this.props.beta)
-			}else{
-				diff_dim = props.height - this.props.height
-			}
-			
-		}else if(!this.context.vertical && props.width != this.props.width){
-			if(props.width == null ){
-			}else if(this.props.width == null){
-				diff_dim =  this.betaToDim(props.beta) - this.props.width
-				diff_dim =  props.width - this.betaToDim(this.props.beta)
-			}else{
-				diff_dim = props.width - this.props.width
-			}
-		}else if(props.beta != this.props.beta){
-			diff_beta =  props.beta - this.props.beta
-		}else{
-			throw 'something went wrong with dim transition.'
-		}
-
-		if(diff_beta) diff_dim = this.betaToDim(diff_beta)
-		
-		return {
-			offset_x: this.context.vertical ? 0 : diff_dim,
-			offset_y: !this.context.vertical ? 0 : diff_dim
-		}
-	},
-
-	updateState: function(props,state){
-
-		state = state || this.state;
-		props = props || this.props;
-		
-
-		if(this.refs.outer != null){
-			//get dim change
-			var set_offset = this.getDimChange(props);
-			
-			//if there is dim change pass offset along to transition manager
-			if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
-			
-			//get outer rectangle
-			this.getRekt();
-
-			if(this.props.scroll) this.updateScrollBounds();
-			//update self			
-		}
-		
-
-		
-
-
-		var ratio = this.getHWRatio();
-
-		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
-		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
-
-
-		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
-			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
-				this.prev_pos = false;
-			}else if(this.props.index_pos == props.index_pos && d_needs_update){
-				this.prev_pos = true;
-			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
-				setTimeout(function() {
-				 	var pos = this.getIndexXY(this.props.index_pos)
-				 	this.toXY(pos.x,pos.y)
-				}.bind(this), 0)
-			}
-		}
-
-
-		if(d_needs_update){
-			this.setState({
-				offset_y: 0,
-				offset_x: 0,
-				dim: ratio,
-			});
-		}
-		
-		return true
-	},
-
-	componentDidUpdate: function(props,state){
-		
-		if( (this.props.index_pos != -1 || this.props.index_offset != -1) && this.state.dynamic){
-			var pos = this.getIndexXY(this.props.index_pos)
-			if(props.index_pos != this.props.index_pos || props.index_offset != this.props.index_offset){
-				setTimeout(function() {
-				 	var pos = this.getIndexXY(this.props.index_pos)
-				 	this.toXY(pos.x,pos.y)					
-				}.bind(this), 1);				
-			}else if(this.prev_pos){
-				this.setXY(pos.x,pos.y)	
-			}
-		}
-	},
-
-	resize: function(){
-		this.forceUpdate()
-	},
-
-	componentWillUnmount: function(){
-		window.removeEventListener('resize',this.resize)
-	},
-
-	componentDidMount: function(){
 
 
 
 
 
-		//TODO
-		//console.log("SLIDE MOUNTED",this.props.router.path,this.context)
-		this.getRekt();
-		
-		this.updateState();
-
-
-		if(this.props.index_pos != -1){
-			var pos = this.getIndexXY(this.props.index_pos)
-			this.setXY(pos.x,pos.y)
-		}
-
-		if(this.context._intui_slide == null){
-			this.resize = window.addEventListener('resize',this.resize)
-		}
-
-
-		
-		if(!this.props.onHover) return;
-		this.refs.outer.addEventListener('mouseenter',function(){
-			this.props.onHover(true)
-		}.bind(this))
-		this.refs.outer.addEventListener('mouseleave',function(){
-			this.props.onHover(false)
-		}.bind(this))
-
-	},
-
-	render: function(){
-		
-		// window._intui_render_calls ++ 
-		var dynamic = this.props.slide || this.props.scroll;
-		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
-
-
-		if(dynamic){
-			outer_hw_style = this.getOuterHW()
-			inner_hw_style = this.getInnerHW()
-			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || '') + (this.props.center ? ' _intui_slide_center' : '');
-			inner = (
-				<div className={innerClass} style = {Object.assign(inner_hw_style,this.props.style)} ref='inner' >
-					{this.props.children}
-				</div>
-			)
-			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
-		}else{
-			outer_hw_style = this.props.style != null ? Object.assign(this.getOuterHW(),this.props.style) : this.getOuterHW()
-			inner = this.props.children
-			staticClass = (this.props.c || this.props.innerClassName || '') + ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' )
-		}
-		
-
-		
-
-		
-		if(this.props.scroll){
-			scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
-		} 
-		
-
-
-		return (
-			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
-				{scroll_proxy}
-				{inner}
-			</div>
-		)
-	},
 
 	toXY: function(x,y){
 		if(this.props.index_offset != -1){
@@ -711,7 +532,268 @@ module.exports = React.createClass({
 			x: x > max_x ? max_x : x,
 			y: y > max_y ? max_y : y
 		}
+	},
+
+
+
+
+
+
+
+
+	width: function(){
+		if(!this.refs.outer) return -1
+		else return this.refs.outer.clientWidth
+	},
+
+	height: function(){
+		if(!this.refs.outer) return -1
+		else return this.refs.outer.clientHeight
+	},
+
+	getRekt: function(){
+		/* pixel perfect when not scaled */
+		//this.refs.outer.getBoundingClientRect();
+
+		/*use this for now */
+		this.rect = {
+			width: this.refs.outer.clientWidth,
+			height: this.refs.outer.clientHeight
+		}
+	},
+
+	betaToDim: function(beta){
+		if(!this.refs.outer) return 0
+		return (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * beta
+	},
+
+	/* new and old dimensions change difference calculator */
+	getDimChange: function(props){
+		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
+		//console.log("ANIMATE NEW DIM",this.)
+	
+		var diff_dim = null;
+		var diff_beta = null;
+
+		//console.log(this.props.vertical, props.height,this.props.height)
+		//if(this.context.vertical && props.height != props.width props.width == null )
+		if(this.context.vertical && props.height != this.props.height){
+			if(props.height == null ){
+				diff_dim =  this.betaToDim(props.beta) - this.props.height
+			}else if(this.props.height == null){
+				diff_dim =  props.height - this.betaToDim(this.props.beta)
+			}else{
+				diff_dim = props.height - this.props.height
+			}
+			
+		}else if(!this.context.vertical && props.width != this.props.width){
+			if(props.width == null ){
+			}else if(this.props.width == null){
+				diff_dim =  this.betaToDim(props.beta) - this.props.width
+				diff_dim =  props.width - this.betaToDim(this.props.beta)
+			}else{
+				diff_dim = props.width - this.props.width
+			}
+		}else if(props.beta != this.props.beta){
+			diff_beta =  props.beta - this.props.beta
+		}else{
+			throw 'something went wrong with dim transition.'
+		}
+
+		if(diff_beta) diff_dim = this.betaToDim(diff_beta)
+		
+		return {
+			offset_x: this.context.vertical ? 0 : diff_dim,
+			offset_y: !this.context.vertical ? 0 : diff_dim
+		}
+	},
+
+
+
+
+
+
+
+
+
+
+
+	// shouldComponentUpdate: function(props,state){
+	// 	return this.updateState(props,state);
+	// },
+
+
+	updateState: function(props,state){
+
+		state = state || this.state;
+		props = props || this.props;
+		
+
+		if(this.refs.outer != null){
+			//get dim change
+			var set_offset = this.getDimChange(props);
+			
+			//if there is dim change pass offset along to transition manager
+			if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
+			
+			//get outer rectangle
+			this.getRekt();
+
+			if(this.props.scroll) this.updateScrollBounds();
+			//update self			
+		}
+		
+
+		
+
+
+		var ratio = this.getHWRatio();
+
+		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
+		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
+
+
+		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
+			if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
+				this.prev_pos = false;
+			}else if(this.props.index_pos == props.index_pos && d_needs_update){
+				this.prev_pos = true;
+			}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
+				setTimeout(function() {
+				 	var pos = this.getIndexXY(this.props.index_pos)
+				 	this.toXY(pos.x,pos.y)
+				}.bind(this), 0)
+			}
+		}
+
+
+		if(d_needs_update){
+			this.setState({
+				offset_y: 0,
+				offset_x: 0,
+				dim: ratio,
+			});
+		}
+		
+		return true
+	},
+
+	componentDidUpdate: function(props,state){
+		
+		if( (this.props.index_pos != -1 || this.props.index_offset != -1) && this.state.dynamic){
+			var pos = this.getIndexXY(this.props.index_pos)
+			if(props.index_pos != this.props.index_pos || props.index_offset != this.props.index_offset){
+				setTimeout(function() {
+				 	var pos = this.getIndexXY(this.props.index_pos)
+				 	this.toXY(pos.x,pos.y)					
+				}.bind(this), 1);				
+			}else if(this.prev_pos){
+				this.setXY(pos.x,pos.y)	
+			}
+		}
+	},
+
+	componentWillUpdate: function(props,state){
+		this.updateState(props,state);
+	},
+
+	resize: function(){
+		this.forceUpdate()
+	},
+
+	componentWillUnmount: function(){
+		window.removeEventListener('resize',this.resize)
+	},
+
+	componentDidMount: function(){
+
+
+
+
+
+		//TODO
+		//console.log("SLIDE MOUNTED",this.props.router.path,this.context)
+		this.getRekt();
+		
+		this.updateState();
+
+
+		if(this.props.index_pos != -1){
+			var pos = this.getIndexXY(this.props.index_pos)
+			this.setXY(pos.x,pos.y)
+		}
+
+		if(this.context._intui_slide == null){
+			this.resize = window.addEventListener('resize',this.resize)
+		}
+
+
+		
+		if(!this.props.onHover) return;
+		this.refs.outer.addEventListener('mouseenter',function(){
+			this.props.onHover(true)
+		}.bind(this))
+		this.refs.outer.addEventListener('mouseleave',function(){
+			this.props.onHover(false)
+		}.bind(this))
+
+	},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	render: function(){
+		
+		// window._intui_render_calls ++ 
+		var dynamic = this.props.slide || this.props.scroll;
+		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
+
+
+		if(dynamic){
+			outer_hw_style = this.getOuterHW()
+			inner_hw_style = this.getInnerHW()
+			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || '') + (this.props.center ? ' _intui_slide_center' : '');
+			inner = (
+				<div className={innerClass} style = {Object.assign(inner_hw_style,this.props.style)} ref='inner' >
+					{this.props.children}
+				</div>
+			)
+			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
+		}else{
+			outer_hw_style = this.props.style != null ? Object.assign(this.getOuterHW(),this.props.style) : this.getOuterHW()
+			inner = this.props.children
+			staticClass = ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed ':' ' ) + (this.props.c || this.props.innerClassName || '')
+		}
+		
+
+		
+
+		
+		if(this.props.scroll){
+			scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
+		} 
+		
+
+
+		return (
+			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
+				{scroll_proxy}
+				{inner}
+			</div>
+		)
 	}
+
 });
 
 
@@ -741,9 +823,22 @@ module.exports = React.createClass({
 
 
 
-var quickDelegate = function(event, target){
+
+
+
+
+
+
+
+
+
+
+
+
+
+var quickDelegate = function(event, target,type){
 	var eventCopy = document.createEvent("MouseEvents");
-	eventCopy.initMouseEvent(event.type, event.bubbles, event.cancelable, event.view, event.detail,
+	eventCopy.initMouseEvent(type, true, event.cancelable, event.view, event.detail,
 		event.pageX || event.layerX, event.pageY || event.layerY, event.clientX, event.clientY, event.ctrlKey, event.altKey,
 		event.shiftKey, event.metaKey, event.button, event.relatedTarget);
 	target.dispatchEvent(eventCopy);
@@ -843,25 +938,49 @@ var ScrollProxy = React.createClass({
 	},
 
 
+
+	/* IMPROVE THIS */
 	delegateEvents: function(){
+
 		var events = getAllEvents(this.refs.outer);
 		this.refs.outer.style.zIndex = 99999;
-		for(var e in events){
-			// console.log(events[e])
-			this.refs.outer[events[e]] = function(e){
+		var p_el = null;
+		this.refs.outer.addEventListener('mousemove',function(e){
+			this.refs.outer.style.zIndex = -99999
+			var el = document.elementFromPoint(e.clientX,e.clientY);
+			
+			if(p_el != null && p_el != el && p_el != el.parentNode && el != p_el.parentNode){
+				 quickDelegate(e,p_el,'mouseleave');
+				 quickDelegate(e,el,'mouseenter');
+				 p_el = el;
+			}else if(p_el == null){
+				quickDelegate(e,el,'mouseenter');
+				p_el = el;
+			}
+			this.refs.outer.style.zIndex = 99999
+		}.bind(this))
+		var events = ['click','mousedown','mousemove','mouseup','touchstart','touchend']
+		events.forEach(function(event){
+			// console.log(event);
+			this.refs.outer.addEventListener(event,function(e){
+				// if(e.type == 'mouseenter') console.log(e)
 				this.refs.outer.style.zIndex = -99999
 				var el = document.elementFromPoint(e.clientX,e.clientY);
 				if(el != null && e.type != 'scroll'){
-					// e.bubbles = true
-					quickDelegate(e,el)
+					e.bubbles = true;
+					quickDelegate(e,el,e.type)
 				}
-				this.refs.outer.style.zIndex = 99999
-			}.bind(this)
-		}
+				this.refs.outer.style.zIndex = 99999				
+			}.bind(this))
+		}.bind(this))
 	},
 
 
+
+
+
 	componentDidMount: function(){
+		// this.refs.outer.addEventListener('mousemove',this.delegateEvents);
 		this.delegateEvents();
 		this.refs.outer.addEventListener('scroll',this.scroll);
 

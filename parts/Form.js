@@ -1,7 +1,7 @@
 
 var React = require('react');
-var I = require('./Slide');
-var Mixin = require('./Mixin');
+var S = require('./Slide');
+var SlideMixin = require('./SlideMixin');
 
 
 function hexToRgb(hex) {
@@ -19,16 +19,16 @@ function pointOnLine(x2,y2,x1,y1,n){
 	return [x3,y3]
 }
 
-var NumberFieldClass = {
-
+var InputFieldClass = {
 	contextTypes: {
 		_intui_field: React.PropTypes.bool,
 	},
 
-	mixins: [Mixin],
+	mixins: [SlideMixin],
 
 	getDefaultProps: function(){
 		return {
+			type: "string",
 			bounce: false, //bounce on ease out
 			inverse: false, //the input will be above the cover.
 			hint: null,
@@ -132,15 +132,15 @@ var NumberFieldClass = {
 		}
 
 		var a = (
-			<I innerClassName = {'_intui_input_cover'} style = {edit_style} >
+			<S innerClassName = {'_intui_input_cover'} style = {edit_style} >
 				{this.props.children}
-			</I>
+			</S>
 		)
 
 		var b = (
-			<I innerClassName = {'_intui_input_wrapper'}  style = {{color: this.props.c1, background: this.props.c2}} >
-				<input autofocus="false" placeholder = {this.state.value} className = {'_intui_input'} style = {input_style} ref = "input" type="number" onChange ={this.change} onBlur = {this.toggleEdit.bind(this,false)} ></input>
-			</I>
+			<S innerClassName = {'_intui_input_wrapper'}  style = {{color: this.props.c1, background: this.props.c2}} >
+				<input autofocus="false" placeholder = {this.state.value} className = {'_intui_input'} style = {input_style} ref = "input" type={this.props.type} onChange ={this.change} onBlur = {this.toggleEdit.bind(this,false)} ></input>
+			</S>
 		)
 
 
@@ -148,12 +148,14 @@ var NumberFieldClass = {
 		var second = this.props.inverse ? a : b
 
 		return (
-			<I {...this.props} ref = 'wrapper' ease = { ( !this.state.edit_mode && this.props.bounce ) ? Bounce.easeOut : Power4.easeOut  } index_pos ={this.state.edit_mode ? 1 - (this.props.inverse ? 1 : 0) : 0 + (this.props.inverse ? 1 : 0)} slide vertical onHover={this.toggleEdit} >
+			<S height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'wrapper' ease = { ( !this.state.edit_mode && this.props.bounce ) ? Bounce.easeOut : Power4.easeOut  } index_pos ={this.state.edit_mode ? 1 - (this.props.inverse ? 1 : 0) : 0 + (this.props.inverse ? 1 : 0)} slide vertical onHover={this.toggleEdit} >
 				{first}
 				{second}
-			</I>
+			</S>
 		)
-	},
+	}		
+
+
 }
 
 
@@ -166,8 +168,8 @@ var NumberFieldClass = {
 
 
 
-var ManyNumberFieldClass = {
-	mixins: [Mixin],
+var ManyInputFieldClass = {
+	mixins: [SlideMixin],
 
 	getDefaultProps: function(){
 		return {
@@ -246,7 +248,7 @@ var ManyNumberFieldClass = {
 
 	render: function(){
 		return (
-			<I {...this.props} vertical slide ease = {this.state.edit_mode && ! this.props.error ? Power4.easeOut : this.props.ease} index_pos = {this.props.error ? 0 : (this.state.edit_mode ? 2 : 1)} onHover={this.toggleEdit} >
+			<I beta = {this.props.beta} height = {this.props.height} width = {this.props.width} vertical slide ease = {this.state.edit_mode && ! this.props.error ? Power4.easeOut : this.props.ease} index_pos = {this.props.error ? 0 : (this.state.edit_mode ? 2 : 1)} onHover={this.toggleEdit} >
 				<I innerClassName = '_intui_input_error' >
 					<span> {this.props.error} </span>
 				</I>
@@ -479,9 +481,9 @@ var ToggleFieldClass = {
 
 	render: function(){
 		return (
-			<I center beta = {this.props.beta} c = '_intui_form_toggle_slide' >
+			<S center beta = {this.props.beta} c = '_intui_form_toggle_slide' >
 				<canvas onClick = {this.setClientXY} width = {this.props.size} height = {this.props.size} ref = 'canvas' />
-			</I>	
+			</S>	
 		)
 	}
 }
@@ -494,10 +496,10 @@ var ToggleFieldClass = {
 var Toggle = React.createClass(ToggleFieldClass)
 module.exports.Toggle = Toggle
 
-var NumberField = React.createClass(NumberFieldClass)
-module.exports.NumberField = NumberField
+var InputField = React.createClass(InputFieldClass)
+module.exports.InputField = InputField
 
-var ManyNumberField = React.createClass(ManyNumberFieldClass)
-module.exports.ManyNumberField = ManyNumberField
+var ManyInputField = React.createClass(ManyInputFieldClass)
+module.exports.ManyInputField = ManyInputField
 
 

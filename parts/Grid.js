@@ -20,198 +20,19 @@
 
 
 */
+var S = require('./Slide');
+var SlideMixin = require('./SlideMixin');
 
 var React = require('react');
 
-var Mixin = {
-	contextTypes: {
-		
-		fixed: React.PropTypes.bool,
-		diam: React.PropTypes.number,
-		w: React.PropTypes.number,
-		h: React.PropTypes.number,
-	}
-}
-
-
-
-/* pass -1 for w/h to set size based on amount of children and grid dimentions */
-var GridItem = React.createClass({
-	mixins: [Mixin],
-	hidden: null,
-	getDefaultProps: function(){
-		return {
-			max_offset: 4,
-			delay: 0,
-			end: false,
-			w: null,
-			h: null,
-			list_id: 'none',
-			toggle: false,
-			animated: false,
-			aniamte: false,
-			top: false, 
-			r: null,
-			c: null,
-			size_index: 0,
-			ease: Power2.easeOut,
-			ease_dur: 0.6
-		}
-	},
-
-	contextTypes: {
-		fixed: React.PropTypes.bool,
-		diam: React.PropTypes.number,
-		w: React.PropTypes.number,
-		h: React.PropTypes.number,
-	},
-
-	getInitialState: function(){
-		return {
-			animated: false
-		}
-	},
-
-	checkHidden: function(){
-		// //console.log("CHECK HIDDEN")
-		if(this.props.end == true) return true
-		if(this.context.fixed == true) return false;
-		var top =  (this.props.r - this.props.grid_shifts) * this.context.diam
-		var h = this.context.diam*this.props.h
-		var scroll = document.body.scrollTop
-		// //console.log(scroll,top);
-		if(scroll > top + h + 50) return true
-		if(scroll < top - window.innerHeight ) return true
-		// if(scroll < top - window.innerHeight - window.innerHeight/2 ) return true
-		return false
-	},
-
-
-	componentDidUpdate: function(props,state){
-
-		
-
-		// //console.log(this.props.end,this.key)
-		if(this.checkHidden()){
-		
-			// //console.log("HIDE GITEM")
-			this.hide();		
-		}else{
-			
-			// //console.log("SHOW GITEM")
-			this.show()
-		}
-	},
-
-	hide: function(set){
-		if(this.hidden == true) return false
-		this.hidden = true;
-		if(set == true) return TweenLite.set(this.refs.item,{
-			scale:0.6,
-			rotationY: 180,
-			ease: this.props.ease,
-		})
-
-		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
-			rotationY: 0,
-			scale:1,
-		},{
-			scale:0.6,
-			rotationY: 180,
-			ease: this.props.ease,
-		})				
-	},
-
-	show: function(set){
-		if(this.hidden == false) return false
-		this.hidden = false;
-		if(set == true) return TweenLite.set(this.refs.item,{
-			rotationY: 0,
-			scale:1,
-			ease: this.props.ease,
-		})
-		
-		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
-			rotationY: -180,
-			scale:0.6,
-		},{
-			rotationY: 0,
-			scale:1,
-			ease: this.props.ease,
-		})
-	},
-
-	componentDidMount:function(){
-		if(this.checkHidden()){
-			this.hide(true)
-		}else{
-			this.show()
-		}
-
-		window.addEventListener('scroll',this.scrollUpdate)
-	},
-
-	scrollUpdate: function(){
-		var hide = this.checkHidden()
-		if(this.hidden != hide){
-			if(hide) this.hide()
-			else this.show()
-		}
-	},
-
-	render: function(){
-		
-
-		if(!this.context.fixed){
-			var left = ( this.props.c * this.context.diam) + 'px';
-			var top = ( (this.props.r - this.props.grid_shifts) * this.context.diam) + 'px';
-			var h =  this.context.diam*this.props.h + 'px';
-			var w =  this.context.diam*this.props.w + 'px';			
-		}else{
-			var left = ( 100/this.context.w * this.props.c) + '%';
-			var top =  ( 100/this.context.h * this.props.r) + '%';
-			var w = ( 100/this.context.w * this.props.w) + '%';
-			var h = ( 100/this.context.h * this.props.h) + '%';
-		}
-
-
-		var style = Object.assign({
-			position: 'absolute',
-			left: left,
-			top: top,
-			perspective: 500,
-			backfaceVisibility: 'hidden',
-			height: h,
-			width: w,
-			boxSizing: 'border-box'
-		})
-
-		var style2 = Object.assign({
-			backfaceVisibility: 'hidden',
-			transformStyle: 'preserve-3d',
-			width: '100%',
-			height: '100%',
-			position: 'relative'
-		},this.props.style)
-
-
-		return (
-			<div ref='item_wrapper' style={style}>
-				<div className = {this.props.className} ref='item' style={style2}>
-					{this.props.children}
-				</div>
-			</div>
-		)
-	}
-})
-
-
 
 var Grid = React.createClass({
+	mixins: [SlideMixin],
 
 	getDefaultProps: function(){
 		return {
 			fixed: false,
+			vertical: true,
 			ease: Power2.easeOut,
 			offset: 0, //grid buffer offset.
 			fill_up: true, //fill empty spots
@@ -224,15 +45,23 @@ var Grid = React.createClass({
 	childContextTypes:{
 		fixed: React.PropTypes.bool,
 		diam: React.PropTypes.number,
+		vertical: React.PropTypes.bool,
+		scroll: React.PropTypes.object,
+		outerWidth: React.PropTypes.number,
+		outerHeight: React.PropTypes.number,
 		w: React.PropTypes.number,
 		h: React.PropTypes.number,
 	},
 
 
-
-	getChildContext: function() {
+	getChildContext: function(){
+		// console.log(this.refs);
 		return {
 			fixed: this.props.fixed,
+			vertical: this.props.vertical,
+			scroll: this.refs.slide ? this.refs.slide.stage : null,
+			outerHeight: this.refs.slide ? this.refs.slide.refs.outer.clientHeight : 0,
+			outerWidth: this.refs.slide ? this.refs.slide.refs.outer.clientWidth : 0,
 			w: this.props.w,
 			h: this.props.h,
 			diam: this.getDiam()
@@ -454,6 +283,8 @@ var Grid = React.createClass({
 		
 
 		var child = React.cloneElement(child,{
+			// ref: 'item_'+index,
+			ease_dur: 0.3 + Math.abs(0.5*Math.sin(index/5)),
 			w:w,
 			h:h,
 			end:false,
@@ -599,18 +430,25 @@ var Grid = React.createClass({
 
 			if(self.props.fixed) return null
 
-		
-			var row = [];
-			for(var c = 0; c <self.props.w;c++){
-				row.push(-1)
+			
+			if(self.props.vertical){
+				var row = [];
+				for(var c = 0; c <self.props.w;c++){
+					row.push(-1)
+				}
+
+				self.index_array.push(row)
+			}else{
+				for(var r = 0;r < self.props.h;r++){
+					col[r].push(-1);
+				}
 			}
 
-			self.index_array.push(row)
 			l = self.index_array.length;
 			
 			
 
-			return find()
+			return find();
 		}
 
 
@@ -936,19 +774,33 @@ var Grid = React.createClass({
 		return true
 	},
 
-	// scrollUpdate: function(){
-	// 	if(this.props.fixed) return;
-		// //console.log(this.refs)
-	// 	for(var i = 0; i <this.grid.length;i++){
-	// 		if(this.refs['item_'+i] != null){
-	// 			this.refs['item_'+i].checkScroll();
-	// 		}
-	// 	}
-	// },
+	last_scroll: null,
 
-	// componentDidMount: function(){
-	// 	if(!this.props.fixed) window.addEventListener('scroll',this.scrollUpdate)
-	// },
+	scrollUpdate: function(){
+		// if(this.props.fixed) return;
+		// //console.log(this.refs)
+
+		// if(this.last_scroll != (this.props.vertical ? this.refs.slide.stage.y : this.refs.slide.stage.x)){
+		// 	for(var i = 0; i <this.grid.length;i++){
+		// 		if(this.refs['item_'+i] != null){
+		// 			this.refs['item_'+i].checkScroll();
+		// 		}
+		// 	}
+		// }
+		// this.last_scroll = (this.props.vertical ? this.refs.slide.stage.y : this.refs.slide.stage.x)
+	},
+
+	componentDidMount: function(){
+		// if(!this.props.fixed){
+		// 	this.scroll_update_interval = setInterval(this.scrollUpdate,100);
+		// }
+	},
+
+	componentWillUnmount: function(){
+		// if(!this.props.fixed){
+		// 	clearInterval(this.scroll_update_interval);
+		// }
+	},
 
 	/* render */
 	render: function(){
@@ -957,18 +809,17 @@ var Grid = React.createClass({
 		}else{
 			h = (this.getDiam()*(this.index_array.length-this.grid_shifts))+'px'
 		}
+	
 		// //console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
 		return (
-			<div ref = 'inner' style = {Object.assign({height:h},this.inner_style,this.props.style)} className = {this.props.className}>
-				{this.grid}
-			</div>
+			<S scrollable vertical = {this.props.vertical} slide height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'slide' auto >
+				<div ref = 'inner' style = {Object.assign({height:h},this.inner_style,this.props.style)} className = {this.props.className}>
+					{this.grid}
+				</div>
+			</S>
 		)
 	}
 })
 
 
-
-
-module.exports.Mixin = Mixin;
-module.exports.Grid = Grid;
-module.exports.Item = GridItem;
+module.exports = Grid
