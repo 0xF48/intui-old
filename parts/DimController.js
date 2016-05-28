@@ -33,13 +33,10 @@ function DimController(){
 	return {
 
 		needs_update: function(inner_el){
-			
 			var i = needs_update_array.indexOf(inner_el)
 			if (i != -1) needs_update_array.splice(i,1)	
 			return i == -1 ? false : true
 		},
-
-
 
 		add: function(el,offset){
 			//console.log('ADD -> WIDTH',el.clientWidth)

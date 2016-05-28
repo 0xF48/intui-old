@@ -30,7 +30,7 @@ module.exports = React.createClass({
 			beta: 100, //beta relative to parent
 			c: null, //inner and static classname shortcut
 			oc: null, //outer classname shortcut
-
+			slide: false,
 			height: null, //height override
 			width: null, //width override
 			center: false,
@@ -395,7 +395,6 @@ module.exports = React.createClass({
 			//get outer rectangle
 			this.getRekt();
 
-			if(this.props.scroll) this.updateScrollBounds();
 			//update self			
 		}
 		
@@ -498,11 +497,11 @@ module.exports = React.createClass({
 	render: function(){
 	
 		// window._intui_render_calls ++ 
-		var dynamic = this.props.slide || this.props.scroll;
-		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
+		var dynamic = this.props.slide;
+		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass;
 
 		if(dynamic){
-			outer_hw_style = this.getOuterHW()
+			outer_hw_style = Object.assign(this.getOuterHW(),this.props.style)
 			inner_hw_style = this.getInnerHW()
 			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || '') + (this.props.center ? ' _intui_slide_center' : '');
 			inner = (
@@ -510,9 +509,10 @@ module.exports = React.createClass({
 					{this.props.children}
 				</div>
 			)
-			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
+			outerClass = ' _intui_slide_outer '+(this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
 		}else{
-			outer_hw_style = this.getOuterHW()
+			outer_hw_style = Object.assign(this.getOuterHW(),this.props.style)
+
 			inner = this.props.children
 			staticClass = ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed ':' ' ) + (this.props.c || this.props.innerClassName || '')
 		}
@@ -520,7 +520,6 @@ module.exports = React.createClass({
 
 		return (
 			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
-				{scroll_proxy}
 				{inner}
 			</div>
 		)
