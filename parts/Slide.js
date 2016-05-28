@@ -1,8 +1,9 @@
 var React = require('react');
-var ReactDOM = require('react-dom')
-const SCROLL_PROXY_TARGET = 'app';
+var DimController = require('./DimController')();
 
-window._intui_render_calls = 0
+
+// window._intui_render_calls = 0
+
 
 function clamp(n,min,max){
 	if (n <= min) return min
@@ -11,8 +12,11 @@ function clamp(n,min,max){
 }
 
 
+//Slide Classes.
 
 module.exports = React.createClass({
+
+	/* default props */
 	getDefaultProps: function(){
 
 		return {
@@ -35,7 +39,7 @@ module.exports = React.createClass({
 		}
 	},
 
-
+	/* default state and instance variables */
 	getInitialState: function(){
 		this.stage = {
 			x:0,
@@ -43,9 +47,11 @@ module.exports = React.createClass({
 			o_time:0,
 			velocity: 0
 		};
-		
+
+		this.scroll_ppos = null;
+		this.scroll_pos = 0;
 		this.prev_pos = -1; //im not sure what this does anymore
-		this.scroll_cb = [];
+		
 		
 		this.rect = {
 			width:0,
@@ -58,10 +64,11 @@ module.exports = React.createClass({
 		}
 	},
 
+	/* context for talking up and down the tree */
 	contextTypes: {
-		_intui_slide: React.PropTypes.bool,
-		total_beta: React.PropTypes.number,
-		vertical: React.PropTypes.bool,
+		_intui_slide: React.PropTypes.bool, //this is a uique prop to identify a react component as an intui slide.
+		total_beta: React.PropTypes.number, //total beta is the total beta of all children for this slide passed in the declarative props
+		vertical: React.PropTypes.bool, //check to see if parent is vertical or horizontal 
 	},
 
 	childContextTypes: {
@@ -78,21 +85,18 @@ module.exports = React.createClass({
 		}
 	},
 
-	getXY: function(index){
-		if(this.props.vertical) return { y: - this.rect.height * index, }
-		else return { x: - this.rect.width * index }
-	},
-
+	//return the width/height of the slide in percentages based on parent context total beta.
 	getBeta: function(){
 		var beta = null
 
 		if(this.context.total_beta == null) beta = this.props.beta+'%';
 		else beta =  100/this.context.total_beta*this.props.beta+'%'
-		
+		//offset is extra and is barely used, may need to be removed in future
 		if(this.props.offset != 0) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
 		else return beta
 	},
-
+	
+	//get the calculated outer height and width of the slide.
 	getOuterHW: function(){
 
 		if( !this.context.total_beta ) return {
@@ -117,18 +121,25 @@ module.exports = React.createClass({
 		}
 	},
 
-	isValidChild: function(child){
-		if(child == null) return false
-		if(child.type == null) throw 'could not check the slide child, are you nesting values in the slide?'
-		if(child.type.displayName == 'Slide') return true
-		if(child.type.contextTypes !=  null && child.type.contextTypes._intui_slide != null) return true
-		if(child.type.WrappedComponent != null && child.type.WrappedComponent.contextTypes._intui_slide != null) return true
-		return false
+	//get the calculated inner height and width of the slide.
+	getInnerHW: function(){
+		if( !this.props.children || (this.getTotalBeta() >= 100 && (!this.props.slide)) ){
+			return {
+				height: '100%',
+				width: '100%'
+			}
+		} 
+		
+		var d = this.getInnerDim();
+		
+		return {
+			width: (this.props.vertical || d == 0) ? (this.props.auto ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			height: (!this.props.vertical || d == 0) ? (this.props.auto ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+		}
 	},
 
-
-	
-	getInnerDim: function(){ 
+	//get innder dimentions in pixels
+	getInnerDim: function(){
 		if(!this.props.children) return 0
 		this.node_count = 0
 		var d = 0
@@ -147,27 +158,20 @@ module.exports = React.createClass({
 		return d	
 	},
 
-
-	getInnerHW: function(){
-		if( !this.props.children || (this.getTotalBeta() >= 100 && (!this.props.slide)) ){
-			return {
-				height: '100%',
-				width: '100%'
-			}
-		} 
-		
-		var d = this.getInnerDim();
-		
-		return {
-			width: (this.props.vertical || d == 0) ? (this.props.auto ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
-			height: (!this.props.vertical || d == 0) ? (this.props.auto ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
-		}
+	//check to see if child is a valid intui slide.
+	isValidChild: function(child){
+		if(child == null) return false
+		if(child.type == null) throw 'could not check the slide child, are you nesting values in the slide?'
+		if(child.type.displayName == 'Slide') return true
+		if(child.type.contextTypes !=  null && child.type.contextTypes._intui_slide != null) return true
+		if(child.type.WrappedComponent != null && child.type.WrappedComponent.contextTypes._intui_slide != null) return true
+		return false
 	},
 
-	p_pos :null,
+	//scroll to a position, the default transition time is 0.07 but may need to be adjusted based on performance.
 	scrollTo: function(pos,dur){
-		if(this.p_pos == pos) return null
-		this.p_pos = pos
+		if(this.scroll_ppos == pos) return null
+		this.scroll_ppos = pos
 		if(this.props.vertical){
 			TweenLite.to([this.refs.inner,this.stage],dur || 0.07,{
 				y: -pos,
@@ -179,14 +183,7 @@ module.exports = React.createClass({
 		}
 	},
 
-	pipeScroll: function(overflow){
-		// console.log(this.props,"PIPE SCROLL TO",slide.props);
-		this.scroll_cb = overflow;
-		return this.scroll_delta;
-	},
-
-	scroll_pos: 0,
-
+	
 	scroll_delta: function(delta){
 		var r_min = 0
 		var r_max = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth); 	     //relative max (600px innerHeight)
@@ -393,7 +390,7 @@ module.exports = React.createClass({
 			var set_offset = this.getDimChange(props);
 			
 			//if there is dim change pass offset along to transition manager
-			if(set_offset != null) TransManager.add(this.refs.outer,set_offset);
+			if(set_offset != null) DimController.add(this.refs.outer,set_offset);
 			
 			//get outer rectangle
 			this.getRekt();
@@ -405,7 +402,7 @@ module.exports = React.createClass({
 		var ratio = this.getHWRatio();
 
 		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
-		var i_needs_update = TransManager.needs_update(d_needs_update,this.rect);
+		var i_needs_update = DimController.needs_update(d_needs_update,this.rect);
 
 
 		if( ( props.index_offset != -1 || props.index_pos != -1 ) && state.dynamic){
@@ -548,126 +545,4 @@ module.exports = React.createClass({
 
 
 
-var DimTransitionManager = function(){
-	var transitions = []
-
-	var needs_update_array = [];
-
-	function resetchild(child){
-		needs_update_array.push(child.parentElement)
-		setTimeout(function(child) {
-			resetXY(child)
-		}.bind(null,child), 1);		
-	}
-
-	function setY(el,y){
-		TweenLite.set(el,{
-			y: y
-		})
-	}
-
-	function setX(el,x){
-		TweenLite.set(el,{
-			x: x
-		})
-	}
-
-	function resetXY(el){
-		TweenLite.to(el,0.7,{
-			ease: Power4.easeOut,
-			x: 0,
-			y: 0
-		})		
-	}
-
-	return {
-
-		needs_update: function(inner_el){
-			
-			var i = needs_update_array.indexOf(inner_el)
-			if (i != -1) needs_update_array.splice(i,1)	
-			return i == -1 ? false : true
-		},
-
-
-
-		add: function(el,offset){
-			//console.log('ADD -> WIDTH',el.clientWidth)
-			var Inner = el.parentElement;
-			var Outer = el.parentElement.parentElement;
-			var siblings = Array.prototype.slice.call(  Inner.childNodes );
-			var index_count = 0;
-			var child_index = siblings.indexOf(el);
-			var offset_x = offset.offset_x;
-			var offset_y = offset.offset_y;
-
-
-			var x_inner_offset = 0
-			var y_inner_offset = 0
-			if(Inner._gsTransform != null){
-				var x_inner_offset = Inner._gsTransform.x
-			}
-			if(Inner._gsTransform != null){
-				var y_inner_offset = Inner._gsTransform.y
-			}
-
-
-			var min_x = -x_inner_offset;
-			var min_y = -y_inner_offset;
-
-			var max_x = Outer.clientWidth-x_inner_offset;
-			var max_y = Outer.clientHeight-y_inner_offset;
-
-			var boundry_x = null;
-			var boundry_y = null;
-
-
-			for(var i = 0 ; i< siblings.length ; i ++){
-				var child = siblings[i];
-				if(child.style.position != 'relative') continue;
-				
-				if(offset_x != 0){
-					if(child.offsetLeft + child.clientWidth > min_x){
-						boundry_x = child.offsetLeft+child.clientWidth
-						break;
-					}
-				}else if(offset_y != 0){
-					if(child.offsetTop + child.clientHeight > min_y){
-						boundry_y = child.offsetTop+child.clientHeight
-						break;
-					}			
-				}
-				index_count++
-			}
-
-			for( var i = 0 ; i<siblings.length ; i++ ){
-				var child = siblings[i];
-				if(child.style.position != 'relative') continue;
-				if(offset_x != 0){
-					if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x  && offset_x < 0){
-						setX(child,-offset_x)
-						resetchild(child)
-					}else if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x*2 && offset_x > 0){
-						setX(child,-offset_x)
-						resetchild(child)				
-					}					
-				}else if(offset_y != 0){
-					if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y  && offset_y < 0){
-						setY(child,-offset_y)
-						resetchild(child)
-					}else if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y*2 && offset_y > 0){
-						setY(child,-offset_y)
-						resetchild(child)	
-					}										
-				}
-			}
-			//console.log("ADD TRANSITION",offset);
-		}
-	}
-}
-
-
-
-// var scrollProxy = new scrollProxyManager()
-var TransManager = new DimTransitionManager();
 
