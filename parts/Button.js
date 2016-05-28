@@ -43,17 +43,6 @@ var Button = React.createClass({
 
 
 
-		// var c1 = this.props.up || this.props.left ? this.props.c2 : this.props.c1
-		// var c2 = this.props.up || this.props.left ? this.props.c1 : this.props.c2
-
-
-		// if(!this.props.inverse){
-		// 	var top_style = {fill:c2,color:c2,background:c1}
-		// 	var bot_style = {fill:c1,color:c1,background:c2}
-		// }else{
-		// 	var top_style = {fill:c1,color:c1,background:c2}
-		// 	var bot_style = {fill:c2,color:c2,background:c1}			
-		// }
 
 		if(this.props.index_offset_full && this.state.hover){
 			index_offset = 0

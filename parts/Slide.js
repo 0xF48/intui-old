@@ -32,13 +32,6 @@ module.exports = React.createClass({
 			center: false,
 			auto: false,
 
-
-			/* scroll props */
-			overflow_dur: 0.3,
-			overflow: true,
-			//scroll_snap: false, //if scroll is enabled, you can force scroll snapping.
-			//scroll_snap_force : 1, //more force means its harder to snap.
-			//scroll_directional: true, //when scroll inertia is passed down the pipeline, it will ignore nodes that go in a different direction by default, unless this is set to false.
 		}
 	},
 
@@ -59,109 +52,52 @@ module.exports = React.createClass({
 			height:0
 		}
 
-		
-
 		return {
 			dim: 0,
 			dynamic : (this.props.slide), 
 		}
-
 	},
 
-
 	contextTypes: {
-		scroller: React.PropTypes.element, 
 		_intui_slide: React.PropTypes.bool,
 		total_beta: React.PropTypes.number,
 		vertical: React.PropTypes.bool,
-		auto_h: React.PropTypes.bool,
-		auto_w: React.PropTypes.bool,
-		path: React.PropTypes.string, //todo
-		children_indecies: React.PropTypes.array,
-		// scroll_index: React.PropTypes.number,
-		passPipe: React.PropTypes.func,
 	},
 
 	childContextTypes: {
 		_intui_slide: React.PropTypes.bool,
-		
-		// scroll_index: React.PropTypes.number,
-		children_indecies: React.PropTypes.array,
-		scroller: React.PropTypes.element, 
-		path: React.PropTypes.string, //todo
 		total_beta: React.PropTypes.number,
 		vertical: React.PropTypes.bool,
-		auto_h: React.PropTypes.bool,
-		auto_w: React.PropTypes.bool
 	},
 
-	getChildContext: function() {
-		// var ca = [];
-		// for(var i in this.props.children){
-		// 	var c = this.props.children[i]
-		// 	if( c != null && c.props != null && c.props.scroll == true ){
-		// 		ca.push(c.props.scroll_index || 0)
-		// 	}
-		// }
-		
+	getChildContext: function() {		
 		return {
 			_intui_slide: true,
-			// children_indecies: ca,
-			//scroll_index: this.props.scroll_index,
-			path: this.context.path == null ? '/' : this.context.path  + '/' + (this.props.path != null ? this.props.path : ''), //todo
 			total_beta: this.getTotalBeta(),
 			vertical: this.props.vertical,
-			auto_h: this.props.height === 'auto' ? true : false,
-			auto_w: this.props.width === 'auto' ? true : false,
 		}
 	},
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	getXY: function(index){
-		if(this.props.vertical){
-			return {
-				y: - this.rect.height * index,
-			}
-		}else{
-			return {
-				x: - this.rect.width * index,
-			}
-		}
+		if(this.props.vertical) return { y: - this.rect.height * index, }
+		else return { x: - this.rect.width * index }
 	},
 
 	getBeta: function(){
 		var beta = null
 
-		
 		if(this.context.total_beta == null) beta = this.props.beta+'%';
 		else beta =  100/this.context.total_beta*this.props.beta+'%'
 		
-
 		if(this.props.offset != 0) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
 		else return beta
-		
 	},
 
 	getOuterHW: function(){
-		if( ! this.context.total_beta ){
-			return {
-				height: this.props.height != null ? this.props.height+'px' : this.props.beta+'%',
-				width: this.props.width != null ?  this.props.width+'px' : this.props.beta+'%'
-			}
+
+		if( !this.context.total_beta ) return {
+			height: this.props.height != null ? this.props.height+'px' : this.props.beta+'%',
+			width: this.props.width != null ?  this.props.width+'px' : this.props.beta+'%'
 		}
 
 		var h= null,w = null;
@@ -228,45 +164,6 @@ module.exports = React.createClass({
 		}
 	},
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	updateScrollBounds: function(){
-		// if(this.props.auto){
-		// 	var inner = ( this.props.vertical ? this.refs.inner.clientHeight : this.refs.inner.clientWidth );
-		// }else{
-		// 	var inner = this.getInnerDim();
-		// }
-		// var outer = ( this.props.vertical ? this.refs.outer.clientHeight : this.refs.outer.clientWidth );
-
-		// if(inner < outer){
-		// 	inner = outer;
-		// }
-	
-		// this.min_scroll_pos = 0;
-		// this.max_scroll_pos = inner - outer
-
-		console.log('update scroll bounds',this.max_scroll_pos,this.refs.inner.clientHeight);
-	},
-
-
-
-
 	p_pos :null,
 	scrollTo: function(pos,dur){
 		if(this.p_pos == pos) return null
@@ -305,16 +202,6 @@ module.exports = React.createClass({
 
 	},
 
-
-
-
-
-
-
-
-
-
-
 	getTotalBeta: function() {
 		if(!this.props.children) return 100		
 		var b = this.getInnerDim()/(this.props.vertical ? this.rect.height : this.rect.width)*100
@@ -322,17 +209,6 @@ module.exports = React.createClass({
 		if( b == Infinity) b = 100;
 		return b
 	},
-
-
-
-
-
-
-
-
-
-
-
 
   	/* if parent element width/height ratio changes, we re-render */
   	getHWRatio: function(){
@@ -351,12 +227,6 @@ module.exports = React.createClass({
   			return 0
   		}
   	},
-
-
-
-
-
-
 
 	toXY: function(x,y){
 		if(this.props.index_offset != -1){
@@ -378,17 +248,14 @@ module.exports = React.createClass({
 			else x += this.props.index_offset
 		}
 		
-		//console.log("SET XY",x,y,this.props.id)
 		TweenLite.set(this.refs.inner,{
 			x:-x,
 			y:-y
 		})
 	},
 
-
 	//get x and y coordinates of child index.
 	getIndexXY: function(index){
-		//console.log("GET INDEX",index)
 		if(this.state.dynamic == false) throw 'cant get index on static slides'
 		var child_el = this.refs.inner.childNodes[index];
 		if(child_el == null) throw 'cant get index of child that doesnt exist'
@@ -456,15 +323,10 @@ module.exports = React.createClass({
 	},
 
 	getRekt: function(){
-		/* pixel perfect when not scaled */
-		//this.refs.outer.getBoundingClientRect();
-
-		/*use this for now */
 		this.rect = {
 			width: this.props.width || this.refs.outer.clientWidth,
 			height: this.props.height || this.refs.outer.clientHeight
 		}
-		// console.log('get rekt')
 	},
 
 	betaToDim: function(beta){
@@ -472,16 +334,13 @@ module.exports = React.createClass({
 		return (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * beta
 	},
 
-	/* new and old dimensions change difference calculator */
 	getDimChange: function(props){
 		if(props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null
-		//console.log("ANIMATE NEW DIM",this.)
+	
 	
 		var diff_dim = null;
 		var diff_beta = null;
 
-		//console.log(this.props.vertical, props.height,this.props.height)
-		//if(this.context.vertical && props.height != props.width props.width == null )
 		if(this.context.vertical && props.height != this.props.height){
 			if(props.height == null ){
 				diff_dim =  this.betaToDim(props.beta) - this.props.height
@@ -523,11 +382,6 @@ module.exports = React.createClass({
 
 
 
-	// shouldComponentUpdate: function(props,state){
-	// 	return this.updateState(props,state);
-	// },
-
-
 	updateState: function(props,state){
 
 		state = state || this.state;
@@ -548,10 +402,6 @@ module.exports = React.createClass({
 			//update self			
 		}
 		
-
-		
-
-
 		var ratio = this.getHWRatio();
 
 		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta ;
@@ -609,17 +459,11 @@ module.exports = React.createClass({
 	componentWillUnmount: function(){
 		window.removeEventListener('resize',this.resize)
 	},
+
 	hovering: false,
 	componentDidMount: function(){
 
-
-
-
-
-		//TODO
-		//console.log("SLIDE MOUNTED",this.props.router.path,this.context)
 		this.getRekt();
-		
 		this.updateState();
 
 
@@ -631,29 +475,20 @@ module.exports = React.createClass({
 		if(this.context._intui_slide == null){
 			this.resize = window.addEventListener('resize',this.resize)
 		}
-
-
 		
 		if(!this.props.onHover) return;
 		this.refs.outer.addEventListener('mouseenter',function(e){
-			// if(e.target == this.refs.outer);
 			if(!this.hovering){
 				this.hovering = true
 				this.props.onHover(true)
 			}
-			// console.log("SLIDE MOUSE ENTER",e.target)
-			
 		}.bind(this))
 		this.refs.outer.addEventListener('mouseleave',function(e){
-			// if(e.target == this.refs.outer);
 			if(this.hovering){
 				this.hovering = false
 				this.props.onHover(false)
 			}
-			// console.log("SLIDE MOUSE LEAVE",e.target)
-			
 		}.bind(this))
-
 	},
 
 
@@ -663,19 +498,11 @@ module.exports = React.createClass({
 
 
 
-
-
-
-
-
-
-
 	render: function(){
-		
+	
 		// window._intui_render_calls ++ 
 		var dynamic = this.props.slide || this.props.scroll;
 		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass,scroll_proxy;
-
 
 		if(dynamic){
 			outer_hw_style = this.getOuterHW()
@@ -693,9 +520,6 @@ module.exports = React.createClass({
 			staticClass = ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed ':' ' ) + (this.props.c || this.props.innerClassName || '')
 		}
 		
-
-		
-
 
 		return (
 			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
@@ -792,12 +616,8 @@ var DimTransitionManager = function(){
 			var min_x = -x_inner_offset;
 			var min_y = -y_inner_offset;
 
-
-
 			var max_x = Outer.clientWidth-x_inner_offset;
 			var max_y = Outer.clientHeight-y_inner_offset;
-
-
 
 			var boundry_x = null;
 			var boundry_y = null;
@@ -805,19 +625,16 @@ var DimTransitionManager = function(){
 
 			for(var i = 0 ; i< siblings.length ; i ++){
 				var child = siblings[i];
-				//console.log(child.style)
 				if(child.style.position != 'relative') continue;
 				
 				if(offset_x != 0){
 					if(child.offsetLeft + child.clientWidth > min_x){
 						boundry_x = child.offsetLeft+child.clientWidth
-						//console.log('BOUNDRY X = ',boundry_x,min_x)
 						break;
 					}
 				}else if(offset_y != 0){
 					if(child.offsetTop + child.clientHeight > min_y){
 						boundry_y = child.offsetTop+child.clientHeight
-						//console.log('BOUNDRY Y = ',boundry_y,min_y)
 						break;
 					}			
 				}
@@ -826,25 +643,20 @@ var DimTransitionManager = function(){
 
 			for( var i = 0 ; i<siblings.length ; i++ ){
 				var child = siblings[i];
-				//console.log(child.style)
 				if(child.style.position != 'relative') continue;
 				if(offset_x != 0){
 					if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x  && offset_x < 0){
-						///console.log("V1")
 						setX(child,-offset_x)
 						resetchild(child)
 					}else if(el.offsetLeft < boundry_x && el.offsetLeft+el.clientWidth > min_x*2 && offset_x > 0){
-						//console.log("V2",min_x,el.offsetLeft,el.clientWidth)
 						setX(child,-offset_x)
 						resetchild(child)				
 					}					
 				}else if(offset_y != 0){
 					if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y  && offset_y < 0){
-						//console.log("V1")
 						setY(child,-offset_y)
 						resetchild(child)
 					}else if(el.offsetTop < boundry_y && el.offsetTop+el.clientHeight > min_y*2 && offset_y > 0){
-						//console.log("V2",min_y,el.offsetTop,el.clientHeight)
 						setY(child,-offset_y)
 						resetchild(child)	
 					}										
