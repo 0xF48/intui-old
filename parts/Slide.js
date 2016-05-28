@@ -509,13 +509,13 @@ module.exports = React.createClass({
 			inner_hw_style = this.getInnerHW()
 			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || '') + (this.props.center ? ' _intui_slide_center' : '');
 			inner = (
-				<div className={innerClass} style = {Object.assign(inner_hw_style,this.props.style)} ref='inner' >
+				<div className={innerClass} style = {inner_hw_style} ref='inner' >
 					{this.props.children}
 				</div>
 			)
 			outerClass = ' _intui_slide_outer ' + (this.props.scroll ? ' _intui_slide_scroll ' : '') + (this.props.oc || this.props.outerClassName || '') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed':'' );
 		}else{
-			outer_hw_style = this.props.style != null ? Object.assign(this.getOuterHW(),this.props.style) : this.getOuterHW()
+			outer_hw_style = this.getOuterHW()
 			inner = this.props.children
 			staticClass = ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + ( (this.props.height != null || this.props.width != null) ? ' _intui_slide_fixed ':' ' ) + (this.props.c || this.props.innerClassName || '')
 		}
@@ -528,7 +528,6 @@ module.exports = React.createClass({
 			</div>
 		)
 	}
-
 });
 
 
