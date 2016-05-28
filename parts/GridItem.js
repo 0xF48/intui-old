@@ -9,40 +9,22 @@ var GridItem = React.createClass({
 	hidden: null,
 	getDefaultProps: function(){
 		return {
-			max_offset: 4,
-			delay: 0,
 			end: false,
+			
 			w: null,
 			h: null,
-			list_id: 'none',
-			toggle: false,
-			animated: false,
-			aniamte: false,
-			top: false,
+			grid_shifts: 0,
 			r: null,
 			c: null,
-			size_index: 0,
+
 			ease: Power2.easeOut,
 			ease_dur: 0.6
 		}
 	},
 
-	contextTypes: {
-		scroll: React.PropTypes.object,
-		vertical: React.PropTypes.bool,
-		outerHeight: React.PropTypes.number,
-		innerHeight: React.PropTypes.number,
-		fixed: React.PropTypes.bool,
-		diam: React.PropTypes.number,
-		w: React.PropTypes.number,
-		h: React.PropTypes.number,
-	},
-
-	getInitialState: function(){
-		return {
-			animated: false
-		}
-	},
+	// getInitialState: function(){
+	
+	// },
 
 	checkHidden: function(){
 		if(this.props.end == true) return true
@@ -110,7 +92,8 @@ var GridItem = React.createClass({
 		})
 		TweenLite.to(this.refs.wrapper,this.props.ease_dur,{
 			display: 'none'
-		})			
+		})
+		
 	},
 
 	show: function(set){
@@ -136,9 +119,14 @@ var GridItem = React.createClass({
 			scale:1,
 			ease: this.props.ease,
 		})
-		TweenLite.to(this.refs.wrapper,this.props.ease_dur,{
+		TweenLite.set(this.refs.wrapper,{
 			display: 'block'
 		})
+
+		if(this.props.onShow != null){
+			this.props.onShow();
+		}
+		
 	},
 
 
@@ -174,7 +162,7 @@ var GridItem = React.createClass({
 	},
 
 	render: function(){
-		
+		// console.log("UPDATE GRID ITEM");
 
 		if(!this.context.fixed){
 			var left = ( this.props.c * this.context.diam) + 'px';
@@ -207,6 +195,10 @@ var GridItem = React.createClass({
 			height: '100%',
 			position: 'relative',
 		}
+
+		
+
+		
 
 
 		return (

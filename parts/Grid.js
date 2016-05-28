@@ -282,20 +282,19 @@ var Grid = React.createClass({
 		}
 		
 
-		var child = React.cloneElement(child,{
+		var n_child = React.cloneElement(child,{
 			// ref: 'item_'+index,
 			ease_dur: 0.3 + Math.abs(0.5*Math.sin(index/5)),
 			w:w,
 			h:h,
+
 			end:false,
-			fixed: this.props.fixed,
-			grid_shifts:this.grid_shifts,
+			
+			// grid_shifts:this.grid_shifts,
 			r:r,
 			c:c,
-			top:top || child.props.top,
-			animate:top ? true : false
 		})
-		this.grid.push(child)
+		this.grid.push(n_child)
 	},
 
 
@@ -812,7 +811,7 @@ var Grid = React.createClass({
 	
 		// //console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
 		return (
-			<S scrollable vertical = {this.props.vertical} slide height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'slide' auto >
+			<S auto vertical = {this.props.vertical} slide height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'slide' auto >
 				<div ref = 'inner' style = {Object.assign({height:h},this.inner_style,this.props.style)} className = {this.props.className}>
 					{this.grid}
 				</div>

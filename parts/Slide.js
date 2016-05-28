@@ -4,15 +4,13 @@ const SCROLL_PROXY_TARGET = 'app';
 
 window._intui_render_calls = 0
 
-function getAllEvents(element) {
-    var result = [];
-    for (var key in element) {
-        if (key.indexOf('on') === 0) {
-            result.push(key)
-        }
-    }
-    return result
+function clamp(n,min,max){
+	if (n <= min) return min
+	if(n >= max) return max
+	return n
 }
+
+
 
 module.exports = React.createClass({
 	getDefaultProps: function(){
@@ -21,7 +19,7 @@ module.exports = React.createClass({
 			ease_params: [.5, 3], //easing params
 			index_offset: -1, 
 			_intui_slide: true, //intui slide identifier.
-			duration: 0.5, //slide duration
+			ease_dur: 0.5, //slide ease_dur
 			ease: Power4.easeOut,
 			index_pos: -1, //current nested slide index.
 			offset: 0, //slide offset in pixels
@@ -32,12 +30,10 @@ module.exports = React.createClass({
 			height: null, //height override
 			width: null, //width override
 			center: false,
-			scrollable: false,
+			auto: false,
+
 
 			/* scroll props */
-			auto: false,
-			scroll: false,
-			scrollable: false,
 			overflow_dur: 0.3,
 			overflow: true,
 			//scroll_snap: false, //if scroll is enabled, you can force scroll snapping.
@@ -56,18 +52,18 @@ module.exports = React.createClass({
 		};
 		
 		this.prev_pos = -1; //im not sure what this does anymore
-		this.scrollPipe = [];
+		this.scroll_cb = [];
 		
 		this.rect = {
 			width:0,
 			height:0
 		}
 
-		this.initScroll();
+		
 
 		return {
 			dim: 0,
-			dynamic : (this.props.scrollable || this.props.slide || this.props.scroll), 
+			dynamic : (this.props.slide), 
 		}
 
 	},
@@ -217,7 +213,7 @@ module.exports = React.createClass({
 
 
 	getInnerHW: function(){
-		if( !this.props.children || (this.getTotalBeta() >= 100 && (!this.props.slide && !this.props.scroll)) ){
+		if( !this.props.children || (this.getTotalBeta() >= 100 && (!this.props.slide)) ){
 			return {
 				height: '100%',
 				width: '100%'
@@ -227,8 +223,8 @@ module.exports = React.createClass({
 		var d = this.getInnerDim();
 		
 		return {
-			width: (this.props.vertical || d == 0) ? ( (this.props.scroll || this.props.scrollable) ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
-			height: (!this.props.vertical || d == 0) ? ( (this.props.scroll || this.props.scrollable) ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			width: (this.props.vertical || d == 0) ? (this.props.auto ? (this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
+			height: (!this.props.vertical || d == 0) ? (this.props.auto ? (!this.props.vertical ? '100%' : 'auto') : '100%') : d+'px',
 		}
 	},
 
@@ -251,7 +247,7 @@ module.exports = React.createClass({
 
 
 	updateScrollBounds: function(){
-		// if(this.props.scrollable){
+		// if(this.props.auto){
 		// 	var inner = ( this.props.vertical ? this.refs.inner.clientHeight : this.refs.inner.clientWidth );
 		// }else{
 		// 	var inner = this.getInnerDim();
@@ -270,26 +266,11 @@ module.exports = React.createClass({
 
 
 
-	initScroll: function(){
-		/*scroll params */
-		this.max_scroll_pos = Infinity // max x or y movement of inner element
-		this.min_scroll_pos = 0 // min x or y movement of inner element
-		
-		this.speed = 0
 
-
-		this.raw_pos = 0
-		this.scroll_overflow = false
-		this.overflow_timer = null
-		this.overflow_marker = 0
-		this.velocity = 0
-		this.scroll_marker = 0 //we need to set a marker when the scroller pos goes past the inner slide limit
-		//scroll marker is the top edge
-	},
-
-
-
+	p_pos :null,
 	scrollTo: function(pos,dur){
+		if(this.p_pos == pos) return null
+		this.p_pos = pos
 		if(this.props.vertical){
 			TweenLite.to([this.refs.inner,this.stage],dur || 0.07,{
 				y: -pos,
@@ -301,105 +282,28 @@ module.exports = React.createClass({
 		}
 	},
 
-
-
-	pipeScroll: function(slide){
+	pipeScroll: function(overflow){
 		// console.log(this.props,"PIPE SCROLL TO",slide.props);
-		slide.scrollPipe[0] = this;
-		this.scrollPipe[1] = slide;
-		return slide;
+		this.scroll_cb = overflow;
+		return this.scroll_delta;
 	},
 
+	scroll_pos: 0,
 
-
-
-	sRootPipe: function(opt){
-		this.scroll(opt);
-	},
-
-	prev_scroll_pos: 0,
-	marker_pos: 0,
-	prev_abs_pos: 0,
-
-
-
-
-	marker_offset: 0,
-	scroll: function(opt,disable,off){
-		var off = off || 0;
-		var v = opt.velocity;
-		var a_pos = opt.pos - this.marker_offset; //absolute scroller position.
-		var r_min = 0; 	      //relative min (0px in normal scenario)
+	scroll_delta: function(delta){
+		var r_min = 0
 		var r_max = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth); 	     //relative max (600px innerHeight)
-		var r_ppos = this.prev_scroll_pos; 	    //relative previous position
-		var r_pos = null 					    //relative scroll position
-		var m_pos = this.marker_pos;  //marker position;
-		// var a_ppos = this.prev_abs_pos;
+		this.scroll_pos = clamp(this.scroll_pos+delta,r_min,r_max);
 
-		r_max += off;
-		
-		if(v < 0 && r_ppos <= r_min ){ //set the overflow marker.
-			m_pos = (a_pos)
-		}else if(v > 0 && r_ppos >= r_max){
-			m_pos = (a_pos) - r_max;
-		}
-	
-
-		var a_min = r_min + m_pos; 
-		var a_max = r_max + m_pos;
-	
-
-		if(a_pos >= a_max){
-			r_pos = r_max;
-		}else if(a_pos <= a_min){
-			r_pos = r_min;
-		}else{
-			r_pos = a_pos - m_pos;
-		}
-
-
-		if(this.props.overflow2 && !disable){
-			if( (r_ppos > r_pos && a_pos <= a_min) || (r_ppos < r_pos && a_pos >= a_max) ){
-				TweenLite.fromTo(this.stage,0.75,{
-					velocity : v,
-					o_time :  Math.sin(Math.PI/2)		
-				},{
-					ease:Sine.easeOut,
-					velocity:0,
-					o_time: 0,
-				})
-			}
-			if(a_pos >= a_max){
-				r_pos = r_max + this.stage.velocity*1*Math.sin(this.stage.o_time)	
-			}else if(a_pos <= a_min){
-				r_pos = r_min + this.stage.velocity*1*Math.sin(this.stage.o_time)	
-			}
-		}
+		this.scrollTo(this.scroll_pos)
 
 
 
-		this.marker_pos = m_pos;
-		if(!disable) this.prev_scroll_pos = r_pos;
-		if(!disable) this.scrollTo(r_pos - off);
-
-
-		if(this.scrollPipe[1] != null && (a_pos >= a_max || a_pos <= a_min) ){
-			if(a_pos >= a_max){
-				this.scrollPipe[1].scroll(opt,false,r_max)
-			}else{
-				this.scrollPipe[1].scroll(opt,false,0)
-			}
-			
-		}else if(this.scrollPipe[1] != null){
-			this.scrollPipe[1].scroll(opt,true,r_max)
-		}
-
+		if(this.scroll_pos == r_max) return 1//this.scroll_cb(1,delta);
+		else if(this.scroll_pos == r_min) return -1 //this.scroll_cb(-1,delta);
+		else return 0//this.scroll_cb(0,delta);
 
 	},
-
-
-
-
 
 
 
@@ -460,11 +364,11 @@ module.exports = React.createClass({
 			else x += this.props.index_offset
 		}
 		
-		TweenLite.to(this.refs.inner, this.props.duration,{
+		TweenLite.to(this.refs.inner, this.props.ease_dur,{
 			ease: this.props.ease,
 			params: this.props.ease_params,
-			x: -1*x,
-			y: -1*y,
+			x: -x,
+			y: -y,
 		})
 	},
 
@@ -476,8 +380,8 @@ module.exports = React.createClass({
 		
 		//console.log("SET XY",x,y,this.props.id)
 		TweenLite.set(this.refs.inner,{
-			x:-1*x,
-			y:-1*y
+			x:-x,
+			y:-y
 		})
 	},
 
@@ -557,9 +461,10 @@ module.exports = React.createClass({
 
 		/*use this for now */
 		this.rect = {
-			width: this.refs.outer.clientWidth,
-			height: this.refs.outer.clientHeight
+			width: this.props.width || this.refs.outer.clientWidth,
+			height: this.props.height || this.refs.outer.clientHeight
 		}
+		// console.log('get rekt')
 	},
 
 	betaToDim: function(beta){
@@ -704,7 +609,7 @@ module.exports = React.createClass({
 	componentWillUnmount: function(){
 		window.removeEventListener('resize',this.resize)
 	},
-
+	hovering: false,
 	componentDidMount: function(){
 
 
@@ -730,11 +635,23 @@ module.exports = React.createClass({
 
 		
 		if(!this.props.onHover) return;
-		this.refs.outer.addEventListener('mouseenter',function(){
-			this.props.onHover(true)
+		this.refs.outer.addEventListener('mouseenter',function(e){
+			// if(e.target == this.refs.outer);
+			if(!this.hovering){
+				this.hovering = true
+				this.props.onHover(true)
+			}
+			// console.log("SLIDE MOUSE ENTER",e.target)
+			
 		}.bind(this))
-		this.refs.outer.addEventListener('mouseleave',function(){
-			this.props.onHover(false)
+		this.refs.outer.addEventListener('mouseleave',function(e){
+			// if(e.target == this.refs.outer);
+			if(this.hovering){
+				this.hovering = false
+				this.props.onHover(false)
+			}
+			// console.log("SLIDE MOUSE LEAVE",e.target)
+			
 		}.bind(this))
 
 	},
@@ -779,12 +696,6 @@ module.exports = React.createClass({
 
 		
 
-		
-		if(this.props.scroll){
-			scroll_proxy = <ScrollProxy vertical = {this.props.vertical} ref = 'scroll_proxy' onScroll = {this.sRootPipe} />
-		} 
-		
-
 
 		return (
 			<div onClick={this.props.onClick} id = {this.props.id} className={dynamic ? outerClass : staticClass} style = {outer_hw_style} ref='outer' >
@@ -795,220 +706,6 @@ module.exports = React.createClass({
 	}
 
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var quickDelegate = function(event, target,type){
-	var eventCopy = document.createEvent("MouseEvents");
-	eventCopy.initMouseEvent(type, true, event.cancelable, event.view, event.detail,
-		event.pageX || event.layerX, event.pageY || event.layerY, event.clientX, event.clientY, event.ctrlKey, event.altKey,
-		event.shiftKey, event.metaKey, event.button, event.relatedTarget);
-	target.dispatchEvent(eventCopy);
-// ... and in webkit I could just dispath the same event without copying it. eh.
-};
-
-
-
-
-/* scroll proxy is a private class used only by slide */
-var ScrollProxy = React.createClass({
-
-	getDefaultProps: function(){
-		return {
-			scroll_pos: 0,
-			vertical: false, //vertical or horizontal scrolling ?
-		}
-	},
-
-	getInitialState: function(){
-		/* prev pos is pos from the last iteration */
-		this.prev_pos = [0,0];
-		
-		/* the most recently updated x y position */
-		this.pos = [0,0];
-		
-		/* every time an overflow happends total pos is incremented or decremented by height or width based on position */ 
-		this.total_pos = [0,0];
-
-		this.opt = {};
-
-		/* scroll direction comes from the difference of pos and prev_pos */
-		this.velocity = 0; //direction of scroll
-		
-		return {}
-	},
-
-
-
-	/* this scroll method is part of the proxy and handles calling scroll hooks and making sure the scroll proxy  never has a top or bottom,
-	therfore capturing the inertia algorithm used by native ios */
-	/*
-		if there are hooks, they are passed the non normalized scroll variable that increments based on how many cycles the scroller has gone through.
-	*/
-
-
-
-
-
-
-	//scroll handler increments/decrements absolute scroll position and refreshes the scroll position. 
-	scroll: function(){
-
-
-		//input scroll left / top
-		var scroll_pos = this.props.vertical ? this.refs.outer.scrollTop : this.refs.outer.scrollLeft;
-
-		// console.log(scroll_pos,this.reverse)
-
-		var max_pos = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth);
-
-		this.pos[(this.props.vertical ? 1 : 0)] = this.total_pos[(this.props.vertical ? 1 : 0)] + scroll_pos
-
-		//set direction
-		this.velocity = this.pos[(this.props.vertical ? 1 : 0)]-this.prev_pos[(this.props.vertical ? 1 : 0)]
-
-		//bw overflow
-		if(scroll_pos  == 0 && this.velocity < 0){
-			// if(this.props.onOverflow != null) this.props.onScrollMax(this.pos);
-			this.total_pos[(this.props.vertical ? 1 : 0)] -= max_pos
-			this.refs.outer.scrollTop = max_pos
-			this.refs.outer.scrollLeft = max_pos
-		}
-		
-
-		//fw overflow
-		else if(scroll_pos == max_pos && this.velocity > 0){
-			// if(this.props.onScrollMin != null) this.props.onScrollMin(this.pos);
-			this.total_pos[(this.props.vertical ? 1 : 0)] += max_pos
-			this.refs.outer.scrollTop = 0
-			this.refs.outer.scrollLeft = 0
-		}
-
-		
-		
-		
-
-
-		//one hook per scroll
-		this.prev_pos[(this.props.vertical ? 1 : 0)] = this.pos[(this.props.vertical ? 1 : 0)]
-
-		this.opt.pos = this.pos[(this.props.vertical ? 1 : 0)]
-		this.opt.velocity = this.velocity
-
-
-		if(this.props.onScroll != null) this.props.onScroll(this.opt);
-	},
-
-
-
-	/* IMPROVE THIS */
-	delegateEvents: function(){
-
-		var events = getAllEvents(this.refs.outer);
-		this.refs.outer.style.zIndex = 99999;
-		var p_el = null;
-		this.refs.outer.addEventListener('mousemove',function(e){
-			this.refs.outer.style.zIndex = -99999
-			var el = document.elementFromPoint(e.clientX,e.clientY);
-			
-			if(p_el != null && p_el != el && p_el != el.parentNode && el != p_el.parentNode){
-				 quickDelegate(e,p_el,'mouseleave');
-				 quickDelegate(e,el,'mouseenter');
-				 p_el = el;
-			}else if(p_el == null){
-				quickDelegate(e,el,'mouseenter');
-				p_el = el;
-			}
-			this.refs.outer.style.zIndex = 99999
-		}.bind(this))
-		var events = ['click','mousedown','mousemove','mouseup','touchstart','touchend']
-		events.forEach(function(event){
-			// console.log(event);
-			this.refs.outer.addEventListener(event,function(e){
-				// if(e.type == 'mouseenter') console.log(e)
-				this.refs.outer.style.zIndex = -99999
-				var el = document.elementFromPoint(e.clientX,e.clientY);
-				if(el != null && e.type != 'scroll'){
-					e.bubbles = true;
-					quickDelegate(e,el,e.type)
-				}
-				this.refs.outer.style.zIndex = 99999				
-			}.bind(this))
-		}.bind(this))
-	},
-
-
-
-
-
-	componentDidMount: function(){
-		// this.refs.outer.addEventListener('mousemove',this.delegateEvents);
-		this.delegateEvents();
-		this.refs.outer.addEventListener('scroll',this.scroll);
-
-		
-		// console.log("scroller mounted h/w:",this.refs.outer.clientHeight,this.refs.outer.clientWidth);
-	},
-
-
-	render: function(){
-		return (
-			<div ref = 'outer' className = {'_intui_scrollwrapper_outer ' + ( this.props.vertical ? '_intui_scrollwrapper_vertical' : '_intui_scrollwrapper_horizontal' )}>
-				<div ref = 'inner' className='_intui_scrollwrapper_inner'></div>
-			</div>
-		)
-	}
-})
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

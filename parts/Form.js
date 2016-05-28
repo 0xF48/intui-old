@@ -28,6 +28,7 @@ var InputFieldClass = {
 
 	getDefaultProps: function(){
 		return {
+			prefix: '',
 			type: "string",
 			bounce: false, //bounce on ease out
 			inverse: false, //the input will be above the cover.
@@ -95,6 +96,7 @@ var InputFieldClass = {
 	},
 
 	change: function(e){
+		e.r
 		if(e.target.value.length >= this.props.maxChar){
 
 			console.log("TRIGGER OVERFLOW",this.props.maxChar,e.target.value.length)
@@ -139,6 +141,7 @@ var InputFieldClass = {
 
 		var b = (
 			<S innerClassName = {'_intui_input_wrapper'}  style = {{color: this.props.c1, background: this.props.c2}} >
+				<span style={{position:'relative','color':'rgba('+c1[0]+','+c1[1]+','+c1[2]+',0.5)'}}>{this.props.prefix}</span>
 				<input autofocus="false" placeholder = {this.state.value} className = {'_intui_input'} style = {input_style} ref = "input" type={this.props.type} onChange ={this.change} onBlur = {this.toggleEdit.bind(this,false)} ></input>
 			</S>
 		)
@@ -294,7 +297,7 @@ var ToggleFieldClass = {
 		
 		this.inner_stage = []
 		for(var i = 0;i<this.props.inner_sections;i++){
-			this.inner_stage.push( {r:0})
+			this.inner_stage.push( { r : 0 } )
 		}
 		return state
 	},

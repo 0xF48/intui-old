@@ -61,7 +61,7 @@ var Button = React.createClass({
 		}
 
 		return (
-			<I center onClick = {this.props.onClick} slide vertical={vertical} slide_duration={this.active ? 1 : 0.5} index_pos={index_pos} index_offset={index_offset} onHover={this.toggleHover}>
+			<I width = {this.props.width} height = {this.props.height} beta = {this.props.beta} center onClick = {this.props.onClick} slide vertical={vertical} slide_duration={this.active ? 1 : 0.5} index_pos={index_pos} index_offset={index_offset} onHover={this.toggleHover}>
 				<I beta={100} c = {this.props.c} >
 					{ this.props.left || this.props.up ? this.props.children[1] : this.props.children[0]}
 				</I>
