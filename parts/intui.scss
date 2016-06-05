@@ -1,37 +1,56 @@
 
 
 
-/* scroll wrapper */
 
-
-
-._intui_scrollwrapper_inner{
-  height: 900%;
-  width: 900%;
+._intui_grid_inner{
+  padding-bottom: 50px;
+  width: 100%;
+  height: auto;
+  position: relative;
 }
 
-._intui_scrollwrapper_outer{
+._intui_grid{
+  transform: translateZ(0);
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
 
+._intui_overlay{
+  transition: opacity 0.5s ease;
   position: absolute;
-  overflow: scroll;
   left: 0;
   top: 0;
-  z-index: 100;
-  height: 100%;
   width: 100%;
-}
-
-._intui_scrollwrapper_vertical{
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
-
-._intui_scrollwrapper_horizontal{
-  overflow-x: scroll;
-  overflow-y: hidden;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
 }
 
 
+._intui_angle{
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  left: calc(50% - 25px);
+}
+
+._intui_angle_bottom{
+  left: calc(50% - 25px);
+  bottom:0;
+}
+._intui_angle_top{
+  left: calc(50% - 25px);
+  top:0;
+}
+._intui_angle_right{
+  left: 100;
+  top: calc(50% - 25px);
+}
+._intui_angle_left{
+  right: 0%;
+  top: calc(50% - 25px);
+
+}
 
 
 /* slide start */
@@ -53,8 +72,9 @@
 ._intui_slide_static{
   box-sizing: border-box;
   position: relative;
+  flex-direction: row;
   display: flex;
-  overflow: scroll;
+  overflow: hidden;
 }
 
 ._intui_slide_outer{
@@ -179,20 +199,6 @@
   width: 100%;
 }
 
-._intui_overlay {
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
 
 ._intui_loader {
   pointer-events: none;

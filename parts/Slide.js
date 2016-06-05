@@ -20,6 +20,7 @@ module.exports = React.createClass({
 	getDefaultProps: function(){
 
 		return {
+			pause_scroll: false,
 			ease_params: [.5, 3], //easing params
 			index_offset: -1, 
 			_intui_slide: true, //intui slide identifier.
@@ -51,7 +52,7 @@ module.exports = React.createClass({
 		this.scroll_ppos = null;
 		this.scroll_pos = 0;
 		this.prev_pos = -1; //im not sure what this does anymore
-		
+		this.scroll_events = [];
 		
 		this.rect = {
 			width:0,
@@ -185,9 +186,25 @@ module.exports = React.createClass({
 
 	
 	scroll_delta: function(delta){
+		if(this.props.pause_scroll == true){
+			// this.scrollTo(this.scroll_pos,true)
+			return null
+		}
+
 		var r_min = 0
 		var r_max = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth); 	     //relative max (600px innerHeight)
+		if(r_max < 0) r_max = 0;
+
+
 		this.scroll_pos = clamp(this.scroll_pos+delta,r_min,r_max);
+
+
+		for(var i = 0;i<this.scroll_events.length;i++){
+			// if (this.scroll_pos == r_min) this.scroll_events[i](0,r_max);
+			// else if(this.scroll_pos == r_max) this.scroll_events[i](r_max,0);
+			this.scroll_events[i](this.scroll_pos,r_max-this.scroll_pos)
+		}
+
 
 		this.scrollTo(this.scroll_pos)
 
@@ -303,6 +320,13 @@ module.exports = React.createClass({
 	},
 
 
+
+	
+	on: function(event,listener){
+		if(event == 'scroll'){
+			this.scroll_events.push(listener)
+		}
+	},
 
 
 
@@ -495,7 +519,7 @@ module.exports = React.createClass({
 
 
 	render: function(){
-	
+		// window._intui_render_calls = window._intui_render_calls || 0
 		// window._intui_render_calls ++ 
 		var dynamic = this.props.slide;
 		var outer_hw_style,inner_hw_style,innerClass,inner,outerClass,staticClass;
@@ -525,23 +549,3 @@ module.exports = React.createClass({
 		)
 	}
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

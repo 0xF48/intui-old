@@ -50,6 +50,8 @@ var GridItem = React.createClass({
 		return false
 	},
 
+	
+
 
 	componentDidUpdate: function(props,state){
 
@@ -84,10 +86,12 @@ var GridItem = React.createClass({
 
 		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
 			rotationY: 0,
+			rotationX: 0,
 			scale:1,
 		},{
 			scale:0.6,
-			rotationY: 180,
+			rotationX: this.props.w > this.props.h ? 180 : 0,
+			rotationY: this.props.w > this.props.h ? 0 : 180,
 			ease: this.props.ease,
 		})
 		TweenLite.to(this.refs.wrapper,this.props.ease_dur,{
@@ -103,6 +107,7 @@ var GridItem = React.createClass({
 		if(set == true){
 			TweenLite.set(this.refs.item,{
 				rotationY: 0,
+				rotationX: 0,
 				scale:1,
 			})
 			TweenLite.set(this.refs.wrapper,{
@@ -112,10 +117,12 @@ var GridItem = React.createClass({
 		}	
 
 		TweenLite.fromTo(this.refs.item,this.props.ease_dur,{
-			rotationY: -180,
+			rotationX: this.props.w > this.props.h ? -180 : 0,
+			rotationY: this.props.w > this.props.h ? 0 : -180,
 			scale:0.6,
 		},{
 			rotationY: 0,
+			rotationX: 0,
 			scale:1,
 			ease: this.props.ease,
 		})
@@ -181,7 +188,7 @@ var GridItem = React.createClass({
 			position: 'absolute',
 			left: left,
 			top: top,
-			perspective: 600,
+			perspective: 650,
 			backfaceVisibility: 'hidden',
 			height: h,
 			width: w,
