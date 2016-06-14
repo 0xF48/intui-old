@@ -1041,9 +1041,11 @@ var Grid = React.createClass({
 
 	/* render */
 	render: function(){
-		var inner_style,inner,outer_style;
+		var inner_style,inner,outer_style,top_loader;
 
-
+		if(this.min_scroll_pos != 0){
+			top_loader = <div className = {'load-circle '} style={{position: 'absolute',left:'50%',top:(this.min_scroll_pos+25)+'px'}} />
+		}
 		// console.log('render grid',this.visible_grid.length,this.grid.length);
 
 		//fixed grid render options
@@ -1064,7 +1066,7 @@ var Grid = React.createClass({
 			var inner = (
 				<div style = {inner_style}  ref = 'inner' className = {'_intui_grid_inner'}>
 					{this.visible_grid}
-					<div className = {'load-circle ' + (this.min_scroll_pos == 0 ? 'hidden' : '')} style={{position: 'absolute',left:'50%',top:(this.min_scroll_pos+25)+'px'}} />
+					{top_loader}
 					<div className = {'load-circle ' + (this.props.max_reached && this.total_max_pos == this.max_scroll_pos ? 'load-circle-stop' : '')} style={{position: 'absolute',left:'50%',bottom:(25)+'px'}} />
 				</div>				
 			)

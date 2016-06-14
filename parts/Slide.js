@@ -92,7 +92,7 @@ module.exports = React.createClass({
 		if(this.props.root || this.context.total_beta == null) beta = this.props.beta+'%';
 		else beta =  100/this.context.total_beta*this.props.beta+'%'
 		//offset is extra and is barely used, may need to be removed in future
-		if(this.props.offset != 0) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
+		if(this.props.offset) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
 		else return beta
 	},
 
@@ -153,7 +153,7 @@ module.exports = React.createClass({
 			}else{
 				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
 			}
-			if(child.props.offset) d -= child.props.offset 
+			if(child.props.offset) d += child.props.offset 
 		}
 		return d	
 	},
