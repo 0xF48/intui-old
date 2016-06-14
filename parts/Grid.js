@@ -5,12 +5,15 @@
 	parses through items and arranges them into a grid, resizing and positioning based on index and w/h amount.
 
 	NOTE:
-		do not cycle through many offsets at once, this will result in grid resets!
-		gradually increase the offset, you may increase the max offset but beware that offsetting more than an optimal amount may result in visual glitching depending on grid size!
-		
-		It is recommended to NOT use hard_sync. Keep your data lists consistent, if you want to display unique data, its best not to replace existing list items but add new ones with custom settings!
-		hard_sync matches and diffs all cached list items and prop children to make sure that child indecies do not go out of sync with the index_array.
-	
+		FIXED GRIDS:
+			do not cycle through many offsets at once, this will result in grid resets!
+			gradually increase the offset, you may increase the max offset but beware that offsetting more than an optimal amount may result in visual glitching depending on grid size!
+			
+			It is recommended to NOT use hard_sync. Keep your data lists consistent, if you want to display unique data, its best not to replace existing list items but add new ones with custom settings!
+		ALL GRIDS:
+			hard_sync matches and diffs all cached list items and prop children to make sure that child indecies do not go out of sync with the index_array.
+		SCROLLABLE GRIDS:
+
 	NOTE:
 		if you do not use hard_sync which defaults to easy sync by default, IF you switch or shuffle the prop children, the grid will BREAK!!
 
@@ -36,11 +39,14 @@ function clamp(n,min,max){
 
 
 var Grid = React.createClass({
-	mixins: [SlideMixin],
+	// mixins: [SlideMixin],
 
 	getDefaultProps: function(){
 		return {
-			max_length: 100,
+			update_offset_beta: 1,
+			max_reached: false,
+			native_scroll:false,
+			max_grid_height_beta: 3,
 			pause_scroll: false,
 			fixed: false,
 			vertical: true,
@@ -80,40 +86,6 @@ var Grid = React.createClass({
 	},
 
 
-	getInitialState: function(){
-	
-		this.grid = []
-		this.markers = []
-		this.children = []
-
-		this.initIndexArray(this.props.w,this.props.h)
-		this.scroll_pos = 0;
-		this.scroll_ppos = 0;
-		this.scroll_check_pos = 0;
-		this.scrolling = false;
-		this.check_end_interval = null;
-		this.last_grid_index = 0;
-		this.min_scroll_pos = 0;
-		// this.scroll_events = [];
-		this.stage = {
-			y:0,
-			x:0
-		}
-
-
-		// this.addEvent('scroll');
-		// this.addEvent('scroll_start');
-		// this.addEvent('scroll_end');
-
-
-		// this.emitEvent = {
-		// 	scroll: function(){
-			
-		// 	},
-		// }
-
-		return {}
-	},
 
 	grid_shifts: 0,
 
@@ -141,26 +113,13 @@ var Grid = React.createClass({
 		if (this.refs.inner == null) return 0
 
 		if(this.props.fixed){
-			return 	
+			return null
 		}else{
 			return this.refs.inner.clientWidth/this.props.w;
 		}
 	},
 
-	/* remove grid items that have ended their lifcycle from previous update at the start of each update*/
-	cleanGrid: function(){
-		for(var c = 0;c<this.grid.length;c++){
-			if(this.grid[c].props.end == true){
-				this.grid[c] = null
-			}
-		}
-	
-		this.grid = this.grid.filter(function(g){
-			return g != null
-		})
-		// //console.log("CLEANED GRID",this.grid)
-	},
-
+	/* remove grid items that from previous update at the start of each update*/
 
 
 	/*
@@ -335,7 +294,8 @@ var Grid = React.createClass({
 			r:r,
 			c:c,
 		})
-		this.grid.push(n_child)
+		this.grid.push(n_child);
+		this.grid_keys.push(n_child.key);
 	},
 
 
@@ -357,12 +317,7 @@ var Grid = React.createClass({
 
 	/* get the grid index of a child, returning -1 if none is found */
 	gridIndex: function(child){
-		for(var gi = 0;gi<this.grid.length;gi++){
-			if(this.grid[gi].key == child.key){
-				return gi
-			}
-		}
-		return -1
+		return this.grid_keys.indexOf(child.key);
 	},
 
 
@@ -753,7 +708,6 @@ var Grid = React.createClass({
 
 		/*
 			NOTE:
-		 	I WILL NOT CHECK FOR REPLACED PROP CHILDREN!
 		 	do not replace prop children. if you do, update the list id.
 		 	all children are meant to be static.
 		 	you may remove/add children from the array which will trigger a resync.
@@ -761,33 +715,37 @@ var Grid = React.createClass({
 	//	console.log('update grid',props.list_id,props.children.length)
 		//reset grid and return
 		if(this.props.list_id != props.list_id){
+			if(!this.props.fixed){
+				this.resetGridPos();
+			}
+			
 		//	console.log("NEW GRID ID",props.list_id,props.children)
 
 
 			if(! props.children || !props.children.length){
 				// //console.log('reset to empty')
-				this.cleanGrid();
+				// this.cleanGrid();
 				this.resetGrid(props.w,props.h);
-				return true
-			}
-			this.cleanGrid();
-			this.resetGrid(props.w,props.h);
-			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children);
-			if(props.fixed){
-				this.fillUpGrid(props.offset);
-				this.fillEmptySpots(props.offset);
 			}else{
-				this.fillUpGrid(props.offset);
+				this.resetGrid(props.w,props.h);
+				props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children);
+				if(props.fixed){
+					this.fillUpGrid(props.offset);
+					this.fillEmptySpots(props.offset);
+				}else{
+					this.fillUpGrid(props.offset);
+				}
 			}
+			// this.cleanGrid();
+			
 
-			return true
+			
 		}
 
 		//resync if children lengths dont match
 		else if(this.children.length != props.children.length){
-			this.cleanGrid();
-			// //console.log("NEW GRID SIZE")
-		//	console.log('update grid')
+
+
 			props.hard_sync ? this.hardSyncChildren(props.children) : this.easySyncChildren(props.children)
 			if(props.fixed == true){
 				this.fillUpGrid(props.offset);
@@ -808,7 +766,7 @@ var Grid = React.createClass({
 		//if offset changed go back or forwards.
 		if(this.props.offset != props.offset){
 			// //console.log("NEW OFFSET")
-			this.cleanGrid();
+			// this.cleanGrid();
 
 			var d = props.offset - this.props.offset
 		//	console.log(d)
@@ -823,67 +781,189 @@ var Grid = React.createClass({
 			this.fillEmptySpots(props.offset);
 		}
 
+		this.visible_grid = this.getGrid();
 
-		// if(props.fixed == false){
-		// 	TweenLite.set(this.refs.inner,{
-		// 		y: this.getDiam()*this.grid_shifts,
-		// 	})
-		// }
-
-		return true
 	},
 
 	
+	// updateGrid: function(){
+
+		
+		
+		
+	// },
+
+	resetGridPos: function(){
+		this.scroll_pos = 0;
+		this.refs.outer.scrollTop = 0;
+		this.stage.y = 0
+		this.stage.x = 0
+		this.min_scroll_pos = 0
+		this.max_scroll_pos = 0
+	},
 
 
 	componentDidMount: function(){
+
+		//if grid is not fixed (scrollable) we set an interval to check if the container has stopped scrolling
+		//this is needed for updating the grid buffer
 		if(!this.props.fixed){
 			this.check_end_interval = setInterval(this.checkEndScroll,(200+Math.random()*300));
 		}
+
+		//if native scroll is true, we need to freeze container scrolling if we reach a min and also update the scroll position variable
+		//the scroll position variable is used in other methods and should be up to date.
+		if(this.props.native_scroll == true){
+			
+			//mousewheel for scrolling.
+			this.refs.outer.addEventListener('mousewheel',(e)=>{
+				if(this.scroll_pos <= this.min_scroll_pos && e.deltaY < 0){
+					if(this.scrolling == true){
+		
+						TweenLite.set(this.refs.outer,{
+							scrollTop: this.min_scroll_pos
+						})
+						
+
+						e.preventDefault();
+						e.stopPropagation();
+					}					
+					
+					return false;
+				}
+			})
+			
+			this.refs.outer.addEventListener('scroll',(e)=>{
+				
+				this.scroll_pos = e.target.scrollTop;
+				
+
+				if(this.scrolling == false){
+					if(this.props.onScrollStart){
+						this.props.onScrollStart(this.scroll_pos,r_max-this.scroll_pos)
+					}
+					this.scrolling = true;
+				}
+				this.stage.y = -e.target.scrollTop
+				this.stage.x = -e.target.scrollLeft
+			})
+		}
+
+		this.forceUpdate();
 	},
 
+	componentWillMount: function(){
+		this.total_max_pos = 0;
+		// this.current_max = 0;
+		this.children = []
+		this.grid = []
+		this.visible_grid = []
+		this.grid_keys = []
+
+		this.max_scroll_pos = 0
+		this.min_scroll_pos = 0
+
+		this.initIndexArray(this.props.w,this.props.h)
+		this.scroll_pos = 0;
+		this.scroll_ppos = 0;
+		this.scroll_check_pos = 0;
+		this.scrolling = false;
+		this.check_end_interval = null;
+		this.last_grid_index = 0;
+		
+		this.stage = {
+			y:0,
+			x:0
+		}
+
+	},
 
 	componentWillUnmount: function(){
 		clearInterval(this.check_end_interval);
 	},
 
+	needsGridUpdate: function(){
+		var scroll = this.scroll_pos
+		var min = this.min_scroll_pos
+		var max = this.max_scroll_pos
 
-	removeExtraGridItems: function(){
-		// console.log("REMOVE EXTRA GRID ITEMS")
+		// console.log(scroll- min,min);
 
-	
-		var arr = this.index_array 
-		var l = arr.length;
-		var lai = null; //lowest average index
-
-		var start = this.grid.length-this.props.max_length
-		if(start <= 0){
-			return;
+		if( (max - scroll) <= this.refs.outer.clientHeight*this.props.update_offset_beta && !this.props.max_reached && this.max_scroll_pos == this.total_max_pos ){
+			return 1
 		}
 
-		this.last_grid_index += start;
-		this.grid.splice(0,start)
-		var min = null;
+		if( (min != -50 && scroll - min <= this.refs.outer.clientHeight*this.props.update_offset_beta) || ( max - scroll <= this.refs.outer.clientHeight*this.props.update_offset_beta && (this.max_scroll_pos != this.total_max_pos) )){
+			return 0
+		}
+
+		return -1
+	},
+
+
+	getGrid: function(off){
+
+
+		var scroll = this.scroll_pos
+		var d = this.getDiam()
+		var grid = []
+		var min_c, max_c;
+
+		// console.log("GET GRID",this.grid);
+		var min = scroll - this.refs.outer.clientHeight * this.props.max_grid_height_beta
+		var max = scroll + this.refs.outer.clientHeight * (this.props.max_grid_height_beta+1)
+		// var current_max = false
 		for(var i = 0;i<this.grid.length;i++){
-			if(!min || this.grid[i].props.r < min.props.r){
-				min = this.grid[i]
+			var c = this.grid[i]
+			var pos = c.props.r * d
+			
+			// console.log(pos,min,max);
+			if(pos <= max && pos >= min){
+				grid.push(c)
+				if(!min_c || c.props.r < min_c.props.r){
+					min_c = c
+				}
+				if(!max_c || c.props.r > max_c.props.r){
+					max_c = c
+				}
+				// if(i == this.grid.length){
+				// 	current_max = true
+				// }
+			}else{
+				if(c.props.end != false){
+					this.removeFromGrid(c)
+					grid.push(c)
+				}
 			}
 		}
 
-		var d = this.getDiam()
-		// console.log("REMOVED GRID AND SET NEW MIN,",min.props.r*d);
-		this.min_scroll_pos = min.props.r*d;
+		// this.current_max = current_max;
+
+		this.min_scroll_pos = min_c ? min_c.props.r*d-50 : this.min_scroll_pos;
+		this.max_scroll_pos = max_c ? ( max_c.props.r*d + d*max_c.props.h ) - this.refs.outer.clientHeight : this.max_scroll_pos;
+
+		this.total_max_pos = this.max_scroll_pos > this.total_max_pos ? this.max_scroll_pos : this.total_max_pos;
+
+		return grid;
+	},
+
+	getGridOffset: function(){
+		return Math.floor(this.scroll_pos/this.refs.outer.clientHeight)
 	},
 
 
 	checkEndScroll: function(){
 		//console.log(this.scrolling);
 		if(this.scroll_check_pos == this.scroll_pos && this.scrolling == true){
-			var r_max = this.props.vertical ? (this.refs.inner.clientHeight - this.refs.outer.clientHeight) : (this.refs.inner.clientWidth - this.refs.outer.clientWidth); 	     
 			this.scrolling = false;
-			if(this.props.onScrollEnd != null){
-				this.removeExtraGridItems();
-				this.props.onScrollEnd(this.scroll_pos,r_max-this.scroll_pos)
+
+			//if the grid needs more children and max has not been reached return 1 if grid just needs update return 0 else return 1
+			var upd = this.needsGridUpdate()
+			console.log(upd);
+			if(upd == 1){
+				if(this.props.onUpdate) this.props.onUpdate();			
+			}else if(upd == 0){
+				this.forceUpdate()
 			}
 		}
 		this.scroll_check_pos = this.scroll_pos
@@ -894,8 +974,19 @@ var Grid = React.createClass({
 
 	scrollTo: function(pos){
 		this.scroll_pos = pos;
-		this.stage.y = -pos;
-		this.refs.inner.style.transform = 'translate3d(0,'+(-pos)+'px,0)';
+		if(this.props.vertical){
+			this.stage.y = -pos;
+			TweenMax.set(this.refs.inner,{
+				y: -pos
+			})			
+		}else{
+			this.stage.x = -pos;
+			TweenMax.set(this.refs.inner,{
+				x: -pos
+			})			
+		}
+
+		// this.refs.inner.style.transform = 'translateY('+(-pos)+'px)';
 		this.scroll_ppos = pos
 	},
 
@@ -945,29 +1036,43 @@ var Grid = React.createClass({
 		else if(this.scroll_pos == r_min) return -1 //this.scroll_cb(-1,delta);
 		else return 0 //this.scroll_cb(0,delta);
 
-
 	},
+
 
 	/* render */
 	render: function(){
-		var h = null;
-		var inner_style = {}
-		if(this.props.vertical && !this.props.fixed){
-			var inner_style = {
-				height: (this.getDiam()*(this.index_array.length-this.grid_shifts))+'px'
+		var inner_style,inner,outer_style;
+
+
+		// console.log('render grid',this.visible_grid.length,this.grid.length);
+
+		//fixed grid render options
+		if(this.props.fixed){
+			if(this.props.width || this.props.height){
+				outer_style = { width: this.props.width, height: this.props.height }
 			}
-		}
+			inner = this.visible_grid;
 		
-	
 
+		//scrollable grid render options	
+		}else{
+			if(this.props.vertical){
+				inner_style = {
+					height: this.props.fixed ? '100%' : (this.max_scroll_pos+(this.refs.outer? this.refs.outer.clientHeight : 0)+50)+'px',
+				}
+			}
+			var inner = (
+				<div style = {inner_style}  ref = 'inner' className = {'_intui_grid_inner'}>
+					{this.visible_grid}
+					<div className = {'load-circle ' + (this.min_scroll_pos == 0 ? 'hidden' : '')} style={{position: 'absolute',left:'50%',top:(this.min_scroll_pos+25)+'px'}} />
+					<div className = {'load-circle ' + (this.props.max_reached && this.total_max_pos == this.max_scroll_pos ? 'load-circle-stop' : '')} style={{position: 'absolute',left:'50%',bottom:(25)+'px'}} />
+				</div>				
+			)
+		}
 
-		// //console.log("INNER WIDTH:",this.getDiam()*this.index_array.length)
 		return (
-			<div ref = 'outer' className= '_intui_grid'>
-				<div ref = 'inner' style = {inner_style} className = '_intui_grid_inner'>
-					{this.grid}
-					{this.markers}
-				</div>
+			<div key = {this.key} ref = 'outer' style = {outer_style} className= {'_intui_grid '+(this.props.native_scroll ? '_intui_grid_scroll':'')+' '+this.props.className}>
+				{inner}
 			</div>
 		)
 	}

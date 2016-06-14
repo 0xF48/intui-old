@@ -27,6 +27,7 @@ var GridItem = React.createClass({
 	// },
 
 	checkHidden: function(){
+		// console.log(this.props.end);
 		if(this.props.end == true) return true
 		if(this.context.fixed == true) return false;
 		// if(!this.context.scroll && !this.context.fixed) return false
@@ -100,7 +101,7 @@ var GridItem = React.createClass({
 		
 	},
 
-	show: function(set){
+	show: function(set,delay){
 		if(this.hidden == false) return false
 		this.hidden = false;
 
@@ -120,12 +121,16 @@ var GridItem = React.createClass({
 			rotationX: this.props.w > this.props.h ? -180 : 0,
 			rotationY: this.props.w > this.props.h ? 0 : -180,
 			scale:0.6,
+			opacity:0,
 		},{
+			opacity:1,
+			delay: delay,
 			rotationY: 0,
 			rotationX: 0,
 			scale:1,
 			ease: this.props.ease,
 		})
+
 		TweenLite.set(this.refs.wrapper,{
 			display: 'block'
 		})
@@ -144,14 +149,22 @@ var GridItem = React.createClass({
 
 		if(this.checkHidden()){
 			this.hide(true)
+
 		}else{
-			this.show()
+			if(this.context.fixed){
+				
+				this.show(true)
+			}else{
+				this.show(false,0.4)
+				
+			}
 		}
 
 		if(!this.context.fixed) this.update_scroll_interval = setInterval(this.scrollUpdate,100);		
 	},
 
 	componentWillUnmount: function(){
+		// console.log("UNMOUNT ITEM")
 		if(!this.context.fixed) clearInterval(this.update_scroll_interval);
 	},
 
@@ -169,7 +182,7 @@ var GridItem = React.createClass({
 	},
 
 	render: function(){
-		// console.log("UPDATE GRID ITEM");
+		
 
 		if(!this.context.fixed){
 			var left = ( this.props.c * this.context.diam) + 'px';
@@ -185,23 +198,12 @@ var GridItem = React.createClass({
 
 
 		var style = {
-			position: 'absolute',
 			left: left,
 			top: top,
-			perspective: 650,
-			backfaceVisibility: 'hidden',
 			height: h,
 			width: w,
-			boxSizing: 'border-box'
 		}
 
-		var style2 = {
-			backfaceVisibility: 'hidden',
-			transformStyle: 'preserve-3d',
-			width: '100%',
-			height: '100%',
-			position: 'relative',
-		}
 
 		
 
@@ -209,8 +211,8 @@ var GridItem = React.createClass({
 
 
 		return (
-			<div ref='wrapper' style={style}>
-				<div className = {this.props.className} ref='item' style={style2}>
+			<div className = {'_intui_grid_item_outer'} onMouseEnter = {this.props.onMouseEnter} onMouseLeave = {this.props.onMouseLeave} ref='wrapper' style={style}>
+				<div className = {'_intui_grid_item_inner '+this.props.className} ref='item'>
 					{this.props.children}
 				</div>
 			</div>

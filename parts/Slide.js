@@ -88,15 +88,14 @@ module.exports = React.createClass({
 
 	//return the width/height of the slide in percentages based on parent context total beta.
 	getBeta: function(){
-		var beta = null
-
-		if(this.context.total_beta == null) beta = this.props.beta+'%';
+		var beta = null;
+		if(this.props.root || this.context.total_beta == null) beta = this.props.beta+'%';
 		else beta =  100/this.context.total_beta*this.props.beta+'%'
 		//offset is extra and is barely used, may need to be removed in future
 		if(this.props.offset != 0) return 'calc('+beta+' '+ (this.props.offset>0 ? '+ ' : '- ') + Math.abs(this.props.offset) + 'px)';
 		else return beta
 	},
-	
+
 	//get the calculated outer height and width of the slide.
 	getOuterHW: function(){
 
@@ -146,7 +145,7 @@ module.exports = React.createClass({
 		var d = 0
 		for(var i = 0; i < this.props.children.length; i++){
 			var child = this.props.children[i];
-			if( !this.isValidChild(child)) continue
+			if( !this.isValidChild(child)) continue;
 			this.node_count ++;
 			
 			if(this.props.vertical){
@@ -154,7 +153,7 @@ module.exports = React.createClass({
 			}else{
 				d += child.props.width != null ? child.props.width : this.rect.width/100*child.props.beta;
 			}
-			if(child.props.offset != 0 && child.props.offset != null) d += child.props.offset 
+			if(child.props.offset) d -= child.props.offset 
 		}
 		return d	
 	},
@@ -162,10 +161,13 @@ module.exports = React.createClass({
 	//check to see if child is a valid intui slide.
 	isValidChild: function(child){
 		if(child == null) return false
+		if(child.props && child.props.fixed == true) return false
+
 		if(child.type == null) throw 'could not check the slide child, are you nesting values in the slide?'
 		if(child.type.displayName == 'Slide') return true
 		if(child.type.contextTypes !=  null && child.type.contextTypes._intui_slide != null) return true
 		if(child.type.WrappedComponent != null && child.type.WrappedComponent.contextTypes._intui_slide != null) return true
+
 		return false
 	},
 
@@ -253,6 +255,11 @@ module.exports = React.createClass({
 			params: this.props.ease_params,
 			x: -x,
 			y: -y,
+			onComplete: function(){
+				if(this.props.onSlideEnd != null){
+					this.props.onSlideEnd(this.props.index_pos)
+				}
+			}.bind(this)
 		})
 	},
 
