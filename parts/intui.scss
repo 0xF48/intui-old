@@ -17,9 +17,6 @@
     margin-top: -8px;
     padding-bottom: 2px;
     opacity: 0.5;
-    /* position: absolute; */
-    /* left: 2px; */
-    /* top: 2px; */
     font-size: 14px;
     text-transform: uppercase;
 }
@@ -34,30 +31,10 @@
 	color: rgba(0,0,0,0.8);
 }
 
-._intui_modal_wrapper{
-	pointer-events: none;
-	position: absolute;
-    height: 100vh;
-    width: 100vw;
-	left: 0;
-    // perspective: 650px;
-    top: 0; 
-	align-items: center;
-    display: flex;
-    align-content: center;
-    justify-content: center;
-  
-}
-
-
-
 ._intui_modal{
-	// z-index: 91;
 	pointer-events: all;
 	position: relative;
     transform: perspective(500px) rotateX(0deg);
-    // transform-origin: top;
-    /* backface-visibility: hidden; */
     transition: transform 0.3s cubic-bezier(.29,.3,.08,1);
     height: auto;
     min-width: 200px;
@@ -88,6 +65,7 @@
 	box-sizing: border-box;
 	backface-visibility: hidden;
 }
+
 ._intui_grid_item_inner{
 	backface-visibility: hidden;
 	transform-style: preserve-3d;
@@ -138,24 +116,25 @@
 }
 
 ._intui_angle_bottom{
-	left: calc(50vw - 25px);
+	left: calc(50% - 25px);
 	bottom:0;
 }
 ._intui_angle_top{
-	left: calc(50vw - 25px);
+	left: calc(50% - 25px);
 	top:0;
 }
 ._intui_angle_right{
 	right: 0%;
-	top: calc(50vh - 25px);
+	top: calc(50% - 25px);
 }
 ._intui_angle_left{
 	left: 0%;
-	top: calc(50vh - 25px);
+	top: calc(50% - 25px);
 }
 
 
-/* slide start */
+
+
 
 
 ._intui_slide_fixed{
@@ -194,7 +173,6 @@
 	flex-direction: column;
 }
 
-/* slide end */
 
 
 
@@ -204,6 +182,7 @@
 
 
 
+/* TOOL TIP */
 ._intui_tooltip_wrapper{
 	position: absolute;
 	z-index: 999;
@@ -217,23 +196,26 @@
 
 
 
-/* INPUT START */
+
+
+
+/* FORM */
 
 ._intui_form_toggle_slide{
 	@include center;
 }
 
 ._intui_input {
-/* padding: 10px; */
-width: 60%;
-border: none;
-font-size: 14px;
-font-weight: 300;
-background: none;
-outline: none;
-color: #000;
-padding-bottom: 4px;
-border-bottom: #000 1px solid;
+	/* padding: 10px; */
+	width: 60%;
+	border: none;
+	font-size: 14px;
+	font-weight: 300;
+	background: none;
+	outline: none;
+	color: #000;
+	padding-bottom: 4px;
+	border-bottom: #000 1px solid;
 }
 
 ._intui_input_error {
@@ -264,7 +246,14 @@ border-bottom: #000 1px solid;
 	}
 }
 
-/* INPUT END */
+
+
+
+
+
+
+
+
 
 
 
@@ -357,22 +346,3 @@ border-bottom: #000 1px solid;
 }
 
 
-
-
-._intui_pager_root{
-	position: relative;
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-}
-
-._intui_pager_child{
-	backface-visibility: hidden;
-	-webkit-backface-visibility: hidden;
-	overflow: hidden;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width:100%;
-	height:100%;
-}

@@ -12,7 +12,7 @@
     ]
   },
 
-  "description:": "ui web components for react",
+  "description:": "react ui component library for web based apps",
   "devDependencies" : {},
   "dependencies" : {},
   "homepage": "https://github.com/arxii/intui#readme",
