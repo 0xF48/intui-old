@@ -11,23 +11,15 @@ function DimController(){
 	}
 
 	function setY(el,y){
-		TweenLite.set(el,{
-			y: y
-		})
+		el.style.transform = 'matrix(1, 0, 0, 1, -'+0+', -'+y+')'
 	}
 
 	function setX(el,x){
-		TweenLite.set(el,{
-			x: x
-		})
+		el.style.transform = 'matrix(1, 0, 0, 1, -'+x+', -'+0+')'
 	}
 
 	function resetXY(el){
-		TweenLite.to(el,0.7,{
-			ease: Power4.easeOut,
-			x: 0,
-			y: 0
-		})		
+		el.style.transform = 'matrix(1, 0, 0, 1, -'+0+', -'+0+')'	
 	}
 
 	return {

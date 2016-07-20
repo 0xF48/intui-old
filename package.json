@@ -1,41 +1,8 @@
 {
-  "_args": [
-    [
-      "intui@git+https://github.com/arxii/intui.git",
-      "/Users/arxii/Documents/activity-stream/client"
-    ]
-  ],
-  "_from": "git+https://github.com/arxii/intui.git",
-  "_id": "intui@0.0.1",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/intui",
-  "_phantomChildren": {},
-  "_requested": {
-    "hosted": {
-      "directUrl": "https://raw.githubusercontent.com/arxii/intui/master/package.json",
-      "gitUrl": "git://github.com/arxii/intui.git",
-      "httpsUrl": "git+https://github.com/arxii/intui.git",
-      "shortcut": "github:arxii/intui",
-      "ssh": "git@github.com:arxii/intui.git",
-      "sshUrl": "git+ssh://git@github.com/arxii/intui.git",
-      "type": "github"
-    },
-    "name": "intui",
-    "raw": "intui@git+https://github.com/arxii/intui.git",
-    "rawSpec": "git+https://github.com/arxii/intui.git",
-    "scope": null,
-    "spec": "git+https://github.com/arxii/intui.git",
-    "type": "hosted"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arxii/intui/issues"
   },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "git+https://github.com/arxii/intui.git#fe60ab37d64d9e5d542d03e4ae7338a99e3591bc",
-  "_shasum": "21df96182b450d97c985c933b4143addb29b6fef",
-  "_shrinkwrap": null,
-  "_spec": "intui@git+https://github.com/arxii/intui.git",
-  "_where": "/Users/arxii/Documents/activity-stream/client",
   "author": {
     "name": "arxii"
   },
@@ -44,23 +11,16 @@
       "reactify"
     ]
   },
-  "bugs": {
-    "url": "https://github.com/arxii/intui/issues"
-  },
-  "dependencies": {},
-  "description": "---- desktop based react ui component library, documentation coming soon. right now untui is designed specifically for dekstop browser single page apps",
+
   "description:": "ui web components for react",
-  "devDependencies": {},
-  "gitHead": "fe60ab37d64d9e5d542d03e4ae7338a99e3591bc",
+  "devDependencies" : {},
+  "dependencies" : {},
   "homepage": "https://github.com/arxii/intui#readme",
   "keywords": [
     "react",
     "ui"
   ],
-  "license": "MIT",
   "name": "intui",
-  "optionalDependencies": {},
-  "readme": "# intui\n----\ndesktop based react ui component library, documentation coming soon.\nright now untui is designed specifically for dekstop browser single page apps\n\n\n\nThe goal of the library is to create a fully animated desktop browser experience on the lowest level possible, the component library provides an easy, straightforward, and standard way to create a single static applicaiton layout with no actual dom element switching or removing. As the application scales, so the does the UI in a recursive and standard manner. This results in a new level of user experience and a whole new world of design possibilities within a standard and proven layout/ux pattern.\n\nTo achive this, each dom layout element is replaced, or rather wrapped, with a \"Slide\" component. Each slide can be recursively nested in other slides, sliding to spcific indicies when appropriate information is needed to be displayed. Sliding of components is set with props so is declarative and its up to the developer to decide how and when they want to slide. \n\nSlides can ofcourse be detached / attached by toggling their rendering through react render. But is not recommended in most cases as that would defeat the purpose of the library.\n\nresizing slides is somewhat supported but is not (yet) a completly fluid experience. Ofcourse, intui does not actually animate the size vairables as that its highly impractical, but does cheat its through transitions so that it appears in a more fluid way.\n\nThe library provides a way to render your react view in a very static way, transitioning when appropriate.",
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",

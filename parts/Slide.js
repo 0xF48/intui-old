@@ -281,10 +281,6 @@ module.exports = React.createClass({
 			}
 		}, this.props.ease_dur*1000);
 		
-		// TweenLite.set(this.refs.inner,{
-		// 	x:-x,
-		// 	y:-y
-		// })
 	},
 
 	//get x and y coordinates of child index.
