@@ -253,9 +253,9 @@ module.exports = React.createClass({
 		this.refs.inner.style.transform = 'matrix(1, 0, 0, 1, -'+x+', -'+y+')'
 		this.stage.y = -y;
 		this.stage.x = -x;
-		setTimeout(()=>{
+		setTimeout(function(){
 			if(this.props.onSlideEnd != null) this.props.onSlideEnd(this.props.index_pos)
-		}, this.props.ease_dur*1000);
+		}.bind(this), this.props.ease_dur*1000);
 	},
 
 	setXY: function(x,y){
@@ -271,7 +271,7 @@ module.exports = React.createClass({
 		this.stage.y = -y;
 		this.stage.x = -x;
 
-		this.set_timer = setTimeout(()=>{
+		this.set_timer = setTimeout(function(){
 			if(this.refs.inner){
 				if(this.props.scroll){
 					this.refs.inner.style.transition = ''
@@ -279,7 +279,7 @@ module.exports = React.createClass({
 					this.refs.inner.style.transition = 'transform '+(this.props.ease_dur)+'s '+this.props.ease
 				}			
 			}
-		}, this.props.ease_dur*1000);
+		}.bind(this), this.props.ease_dur*1000);
 		
 	},
 

@@ -124,10 +124,10 @@ var GridItem = React.createClass({
 		this.refs.item.style.display = 'block'
 		
 		
-		this.hide_t = setTimeout(()=>{
+		this.hide_t = setTimeout(function(){
 			this.refs.item.style.transition = 'transform '+(this.props.ease_dur)+'s cubic-bezier(.29,.3,.08,1)'
 			this.refs.item.style.transform = ' scale(1) perspective(500px) matrix3d(1,0,0.00,0,0.00,1,0.00,0,0,0,1,0,0,0,0,1)';
-		}, Math.floor(Math.random()*100));
+		}.bind(this), Math.floor(Math.random()*100));
 
 		
 

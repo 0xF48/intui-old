@@ -11,12 +11,12 @@ module.exports = React.createClass({
 				alpha: 1,
 				alpha2: 1,
 			}
-			this.refs.overlay.addEventListener('mouseenter',()=>{
+			this.refs.overlay.addEventListener('mouseenter',function(){
 				this.hover(true)
-			})
-			this.refs.overlay.addEventListener('mouseleave',()=>{
+			}.bind(this))
+			this.refs.overlay.addEventListener('mouseleave',function(){
 				this.hover(false)
-			})
+			}.bind(this))
 			
 			
 			

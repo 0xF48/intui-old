@@ -879,9 +879,9 @@ var Grid = React.createClass({
 
 		//check if need to update after mounting.
 		if(!this.props.fixed){
-			setTimeout(()=>{
+			setTimeout(function(){
 				if(this.checkGridUpdate() && this.props.onUpdate && !this.props.max_reached) this.props.onUpdate();	
-			},0);
+			}.bind(this));
 		}
 		if(!this.props.fixed && (this.checkGridUpdate() == 0 ) ){
 			this.forceUpdate()

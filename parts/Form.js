@@ -80,20 +80,20 @@ var InputFieldClass = {
 		clearTimeout(this.timeout)
 
 		if(enter == true){
-			this.timeout = setTimeout(()=>{
+			this.timeout = setTimeout(function(){
 				this.refs.input.focus()
 				this.refs.wrapper.refs.outer.scrollTop = 0;
 				this.refs.wrapper.refs.inner.scrollTop = 0;
-			}, 300);
+			}.bind(this), 300);
 			if(this.props.onEnter) this.props.onEnter()			
 		}else{
 		
 			
 
-			this.timeout2 = setTimeout(()=>{
+			this.timeout2 = setTimeout(function(){
 					this.refs.input.blur()
 				
-			},300)
+			}.bind(this),300)
 			
 			// console.log("BLUR OUT",this.refs.input.value)
 			
