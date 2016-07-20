@@ -92,7 +92,7 @@ var InputFieldClass = {
 
 			this.timeout2 = setTimeout(()=>{
 					this.refs.input.blur()
-				this.refs.input.value = null;
+				
 			},300)
 			
 			// console.log("BLUR OUT",this.refs.input.value)
@@ -170,7 +170,7 @@ var InputFieldClass = {
 		var second = this.props.inverse ? a : b
 
 		return (
-			<S c = {this.props.className  || this.props.c} height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'wrapper' index_pos ={this.state.edit_mode ? 1 - (this.props.inverse ? 1 : 0) : 0 + (this.props.inverse ? 1 : 0)} slide vertical onHover={this.toggleEdit} >
+			<S c = {this.props.className  || this.props.c} height = {this.props.height} width = {this.props.width} beta = {this.props.beta} ref = 'wrapper' index_pos ={this.props.index_pos ? this.props.index_pos : (this.state.edit_mode ? 1 - (this.props.inverse ? 1 : 0) : 0 + (this.props.inverse ? 1 : 0))} slide vertical onHover={this.toggleEdit} >
 				{first}
 				{second}
 			</S>

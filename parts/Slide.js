@@ -53,6 +53,7 @@ module.exports = React.createClass({
 		this.scroll_pos = 0;
 		this.prev_pos = -1; //im not sure what this does anymore
 		this.scroll_events = [];
+		this.hovering = false;
 		
 		this.rect = {
 			width:0,
@@ -522,7 +523,7 @@ module.exports = React.createClass({
 		window.removeEventListener('resize',this.resize)
 	},
 
-	hovering: false,
+	
 	componentDidMount: function(){
 
 		this.getRekt();

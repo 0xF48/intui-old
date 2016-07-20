@@ -96,14 +96,11 @@ var Modal = React.createClass({
 	},
 
 	render: function(){
+	
 		return (
-			<div onClick = {this.onHide} ref = 'overlay' className = {'_intui_modal_container '+ (!this.state.show_modal ? '_intui_modal_container-hidden':'')}>
-				<div className = {'_intui_modal_overlay '+(this.props.overlayClassName||'') }  >
-				</div>
-				<div className = '_intui_modal_wrapper'>
-					<div onClick = {this.preventHide} ref = 'modal' className = { (this.props.className||'') + ' _intui_modal '+(this.state.hide_modal ? ' _intui_modal-hidden2' : (!this.state.show_modal ? ' _intui_modal-hidden':''))} >
-						{this.props.children}
-					</div>
+			<div ref = 'overlay' onClick = {this.onHide} className = {'_intui_overlay '+ (!this.state.show_modal ? '_intui_overlay-hidden ':'') + this.props.overlayClassName}  >
+				<div onClick = {this.preventHide} ref = 'modal' className = { (this.props.className||'') + ' _intui_modal '+(this.state.hide_modal ? ' _intui_modal-hidden2' : (!this.state.show_modal ? ' _intui_modal-hidden':''))} >
+					{this.props.children}
 				</div>
 			</div>
 		)

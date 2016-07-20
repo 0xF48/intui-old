@@ -25,9 +25,9 @@ module.exports = React.createClass({
 	
 			this.ctx.translate(this.refs.angle.width/2+0.5, this.refs.angle.height/2+0.5);
 			if(this.props.dir == 'right'){
-				this.ctx.rotate(Math.PI/2);
-			}else if(this.props.dir == 'left'){
 				this.ctx.rotate(-Math.PI/2);
+			}else if(this.props.dir == 'left'){
+				this.ctx.rotate(Math.PI/2);
 			}else if(this.props.dir == 'top'){
 				this.ctx.rotate(-Math.PI);
 			}else if(this.props.dir == 'bottom'){

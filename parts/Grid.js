@@ -148,7 +148,7 @@ var Grid = React.createClass({
 		if(this.props.fixed){
 			return null
 		}else{
-			return this.refs.inner.clientWidth/this.props.w;
+			return this.refs.outer.clientWidth/this.props.w;
 		}
 	},
 
@@ -799,11 +799,14 @@ var Grid = React.createClass({
 
 		// this.current_max = current_max;
 
+
 		this.min_scroll_pos = min_c ? min_c.props.r*d-50 : this.min_scroll_pos;
 		this.max_scroll_pos = max_c ? ( max_c.props.r*d + d*max_c.props.h ) - this.refs.outer.clientHeight : this.max_scroll_pos;
 
 		this.total_max_pos = t_max_c ? ( t_max_c.props.r*d + d*t_max_c.props.h ) - this.refs.outer.clientHeight : this.total_max_pos;
 		if(this.total_max_pos < 0) this.total_max_pos = 0
+		if(this.max_scroll_pos < 0) this.max_scroll_pos = 0
+
 		return grid;
 	},
 
@@ -822,18 +825,16 @@ var Grid = React.createClass({
 
 
 	onMouseWheel: function(e){
-		if(this.scroll_pos <= this.min_scroll_pos && e.deltaY < 0){
+		e = e || window.event;
+		if(this.scroll_pos <= this.min_scroll_pos && (e.deltaY || e.detail) < 0){
+			this.refs.outer.scrollTo(0, this.min_scroll_pos);
 			if(this.scrolling == true){
-
-				TweenLite.set(this.refs.outer,{
-					scrollTop: this.min_scroll_pos
-				})
-				
-
+				this.refs.outer.scrollTop = this.min_scroll_pos
+				this.refs.outer.scrollTo(0, this.min_scroll_pos);
 				e.preventDefault();
 				e.stopPropagation();
+				e.returnValue = false;  
 			}					
-			
 			return false;
 		}
 	},
@@ -871,6 +872,7 @@ var Grid = React.createClass({
 			the scroll position variable is used in other methods and should be up to date.
 		*/
 		if(this.props.native_scroll == true && !this.props.fixed){
+			this.refs.outer.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
 			this.refs.outer.addEventListener('mousewheel',this.onMouseWheel)
 			this.refs.outer.addEventListener('scroll',this.onScroll)
 		}
@@ -889,6 +891,7 @@ var Grid = React.createClass({
 
 
 	componentWillUnmount: function(){
+
 		this.refs.outer.removeEventListener('mousewheel',this.onMouseWheel)
 		this.refs.outer.removeEventListener('scroll',this.onScroll)
 		clearInterval(this.check_end_interval);
@@ -952,6 +955,7 @@ var Grid = React.createClass({
 
 	/* render */
 	render: function(){
+		// console.log(this.props.max_reached && this.max_scroll_pos <= this.total_max_pos,this.props.max_reached,this.max_scroll_pos,this.total_max_pos)
 		// console.log('render grid count:',this.display_grid.length);
 		// console.log(this.props.fixed)
 		var inner_style,inner,outer_style,top_loader;
@@ -982,7 +986,7 @@ var Grid = React.createClass({
 			var inner = (
 				<div style = {inner_style}  ref = 'inner' className = {'_intui_grid_inner'}>
 					{this.display_grid}
-					<div className = {'load-circle ' + (this.props.max_reached && (this.max_scroll_pos <= this.total_max_pos) ? 'load-circle-stop' : '')} style={load_circle_style} />
+					<div className = {'_intui_loader ' + ((this.props.max_reached && this.max_scroll_pos >= this.total_max_pos) ? '_intui_loader_stop' : '') } style={load_circle_style} />
 				</div>				
 			)
 		}

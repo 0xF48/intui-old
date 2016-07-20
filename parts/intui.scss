@@ -1,15 +1,9 @@
-
-
-
-._intui_modal_container{
-	  transition: opacity 0.3s ease;	
-	opacity: 1;
+@mixin center {
+	align-items : center;
+	display   : flex;
+	align-content : center;
+	justify-content: center;  
 }
-
-._intui_modal_container-hidden{
-	opacity: 0;
-}
-
 
 ._intui_modal_section{
 	padding-top: 4px;
@@ -55,18 +49,10 @@
   
 }
 
-._intui_modal_overlay{
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.75);
-    position: absolute;
-    height: 100vh;
-    width: 100vw;
-	left: 0;
-    top: 0; 
-}
 
 
 ._intui_modal{
+	// z-index: 91;
 	pointer-events: all;
 	position: relative;
     transform: perspective(500px) rotateX(0deg);
@@ -129,16 +115,21 @@
 }
 
 ._intui_overlay{
-	z-index: 10;
-	transition: opacity 0.5s ease;
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 101%;
-	background: rgba(0,0,0,0.8);
+	z-index: 90;
+	transition: opacity 0.3s ease;
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.8);
+    position: absolute;
+    height: 100%;
+    width: 100%;
+	left: 0px;
+    top: 0px;
+    @include center;
 }
-
+._intui_overlay-hidden{
+	pointer-events: none;
+	opacity: 0;
+}
 
 ._intui_angle{
 	position: absolute;
@@ -165,12 +156,7 @@
 
 
 /* slide start */
-@mixin center {
-	align-items : center;
-	display   : flex;
-	align-content : center;
-	justify-content: center;  
-}
+
 
 ._intui_slide_fixed{
 	flex-shrink:0;
@@ -307,28 +293,35 @@ border-bottom: #000 1px solid;
 }
 
 
+
+
 ._intui_loader {
-	pointer-events: none;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	-ms-flex-pack: center;
-	justify-content: center;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	-ms-flex-align: center;
 	align-items: center;
-	background: #000;
+	justify-content: center;
+	margin: auto;
+	width: 12px;
+	height: 12px;
+	background-color: #FFFFFF;
+	animation: rotate 1s infinite ease-in-out;
+	transition: opacity 1s ease;	
+}
+._intui_loader_stop{
+	// border-radius: 0%;
+	animation-iteration-count: 1;
+	opacity: 0.2;
+}
+
+@keyframes rotate {
+  0% {
+    transform: perspective(20px) rotateX(0deg) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(20px) rotateX(-180deg) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(20px) rotateX(-180deg) rotateY(-180deg);
+  }
 }
 
 ._intui_right {
@@ -363,68 +356,6 @@ border-bottom: #000 1px solid;
 	flex-direction: column-reverse;
 }
 
-._intui_loader_wrap {
-	position: relative;
-	height: 100%;
-	width: 100%;
-	-webkit-filter: unquote('blur(15px) contrast(70)');
-	background: #000;
-
-}
-
-._intui_loader_c {
-	top: 50%;
-	left: 50%;
-	position: absolute;
-}
-
-._intui_loader {
-	position: absolute;
-	height: 100%;
-	width: 100%;
-	background: #000;
-	overflow: hidden;
-}
-
-._intui_loader_nub {
-	-webkit-transform: scale(0);
-	-ms-transform: scale(0);
-	transform: scale(0);
-	margin: 0 auto;
-	-webkit-backface-visibility: hidden;
-	width: 70px;
-	height: 70px;
-	margin-left: -35px;
-	margin-top: -35px;
-	border-radius: 100%;
-	background: #fff;
-}
-
-._intui_loader_tick {
-	margin-left: -17.5px;
-	margin-top: -17.5px;
-	width: 35px;
-	height: 35px;
-	border-radius: 100%;
-	background: #00f;
-	-webkit-filter: saturate(0);
-	-webkit-transform: rotate(90deg);
-	-ms-transform: rotate(90deg);
-	transform: rotate(90deg);
-}
-
-._intui_loader_tick2 {
-	margin-left: -17.5px;
-	margin-top: -17.5px;
-	width: 35px;
-	height: 35px;
-	border-radius: 100%;
-	background: #00f;
-	-webkit-filter: saturate(0);
-	-webkit-transform: rotate(90deg);
-	-ms-transform: rotate(90deg);
-	transform: rotate(90deg);
-}
 
 
 
@@ -445,5 +376,3 @@ border-bottom: #000 1px solid;
 	width:100%;
 	height:100%;
 }
-
-
