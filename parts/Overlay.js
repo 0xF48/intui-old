@@ -47,9 +47,9 @@ module.exports = React.createClass({
 			ease: Power4.easeOut,
 			alpha: enter ? 0.8 : 1,
 			alpha2: enter ? 0.8 : 1,
-			onUpdate: ()=>{
+			onUpdate: function(){
 				this.renderAngle(this.stage.alpha,this.stage.alpha2)
-			}
+			}.bind(this)
 		})
 		// TweenLite.to(this.stage,enter ? 1 : 0.65,{
 		// 	ease: Power4.easeOut,
