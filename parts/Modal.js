@@ -46,7 +46,7 @@ var Modal = React.createClass({
 			hide_modal: true
 		})
 
-		this.hide_timer = setTimeout(function()=>{
+		this.hide_timer = setTimeout(function(){
 			this.setState({
 				hide_modal: false,
 			})
@@ -62,7 +62,7 @@ var Modal = React.createClass({
 		clearTimeout(this.hide_timer)
 		this.refs.overlay.style.opacity = 0
 		this.refs.overlay.style.display = 'flex'
-		this.hide_timer = setTimeout(function()=>{
+		this.hide_timer = setTimeout(function(){
 			this.setState({
 				hide_modal: false,
 				show_modal: true
