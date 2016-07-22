@@ -827,10 +827,10 @@ var Grid = React.createClass({
 	onMouseWheel: function(e){
 		e = e || window.event;
 		if(this.scroll_pos <= this.min_scroll_pos && (e.deltaY || e.detail) < 0){
-			this.refs.outer.scrollTo(0, this.min_scroll_pos);
+			
 			if(this.scrolling == true){
 				this.refs.outer.scrollTop = this.min_scroll_pos
-				this.refs.outer.scrollTo(0, this.min_scroll_pos);
+				if(this.refs.outer.scrollTo) this.refs.outer.scrollTo(0, this.min_scroll_pos);
 				e.preventDefault();
 				e.stopPropagation();
 				e.returnValue = false;  
