@@ -279,7 +279,8 @@ var Grid = React.createClass({
 
 	/* set the lowest and greatest indecies of the children */
 	setMarkers: function(){
-		var g = l = null
+		var g = null;
+		var l = null;
 		for(var r = 0;r<this.index_array.length;r++){
 			for(var c = 0;c<this.index_array[r].length;c++){
 				l = l == null ? this.index_array[r][c] : ( this.index_array[r][c] < l ? this.index_array[r][c] : l )

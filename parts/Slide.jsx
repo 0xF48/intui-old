@@ -295,8 +295,12 @@ module.exports = React.createClass({
 		var self_h = this.rect.height;
 		var self_x = -this.stage.x;
 		var self_y = -this.stage.y;
-		var c_l = c_t = c_w = c_h = 0;
-		var l = t = 0;
+		var c_l = 0;
+		var c_t = 0;
+		var c_w = 0;
+		var c_h = 0;
+		var l = 0;
+		var t = 0;
 		
 		for(var i = 0,j=0;i<this.props.children.length;i++){
 			var c = this.props.children[j]
