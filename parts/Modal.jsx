@@ -53,7 +53,7 @@ var Modal = React.createClass({
 			if(this.refs.overlay == null) return
 			this.refs.overlay.style.opacity = 0
 			this.refs.overlay.style.display = 'none'
-		}, 500);
+		}.bind(this), 500);
 	},
 
 	//set overlay opacity and display to 0 then estimate the time it would take to paint and change the opacity to 1
@@ -69,7 +69,7 @@ var Modal = React.createClass({
 			})
 			if(this.refs.overlay == null) return
 			this.refs.overlay.style.opacity = 1
-		},60);
+		}.bind(this),60);
 	},
 
 	preventHide: function(e){
