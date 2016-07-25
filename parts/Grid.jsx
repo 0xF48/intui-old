@@ -884,9 +884,8 @@ var Grid = React.createClass({
 				if(this.checkGridUpdate() && this.props.onUpdate && !this.props.max_reached) this.props.onUpdate();	
 			}.bind(this));
 		}
-		if(!this.props.fixed && (this.checkGridUpdate() == 0 ) ){
-			this.forceUpdate()
-		}
+		
+		this.forceUpdate()
 		
 	},
 
