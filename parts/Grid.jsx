@@ -43,6 +43,11 @@ var Grid = React.createClass({
 
 	getDefaultProps: function(){
 		var defaults = {
+
+			show_beta: 1,
+			render_beta: 2,
+			animate: true,
+
 			hard_sync: false, // hard sync checks props children against buffered children on every update (not recommended with large amounts of children elements)
 			update_offset_beta: 1,
 			max_reached: false,
@@ -63,6 +68,7 @@ var Grid = React.createClass({
 	},
 
 	childContextTypes:{
+		animate: React.PropTypes.bool,
 		fixed: React.PropTypes.bool,
 		diam: React.PropTypes.number,
 		vertical: React.PropTypes.bool,
@@ -77,6 +83,7 @@ var Grid = React.createClass({
 	getChildContext: function(){
 		// console.log(this.refs);
 		return {
+			animate: this.props.animate,
 			fixed: this.props.fixed,
 			vertical: this.props.vertical,
 			scroll: this.stage,
@@ -294,6 +301,8 @@ var Grid = React.createClass({
 	/* add to grid */
 	addToGrid: function(child,r,c,index){
 		var n_child = React.cloneElement(child,{
+			show_beta: this.props.show_beta,
+			render_beta: this.props.render_beta,
 			ease_dur: 0.3 + Math.abs(0.2*Math.sin(index/5)),
 			w:child.props.w,
 			h:child.props.h,
@@ -885,7 +894,7 @@ var Grid = React.createClass({
 			}.bind(this));
 		}
 		
-		this.forceUpdate()
+		this.forceUpdate();
 		
 	},
 
