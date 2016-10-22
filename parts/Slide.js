@@ -1,23 +1,23 @@
 
-// var DimController = require('./DimController')();
-
-
-// window._intui_render_calls = 0
-
-
 function clamp(n,min,max){
 	if (n <= min) return min
 	if(n >= max) return max
 	return n
 }
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+
+var SlideMixin = require('./SlideMixin.js')
+
 
 var Slide = React.createClass({
-	displayName: 'exports',
+	displayName: 'Slide',
+	mixins: [SlideMixin],
 
 
 	/* default props */
-	getDefaultProps: function getDefaultProps() {
+	getDefaultProps: function() {
 
 		return {
 			pause_scroll: false,
@@ -39,7 +39,7 @@ var Slide = React.createClass({
 	},
 
 	/* default state and instance variables */
-	getInitialState: function getInitialState() {
+	getInitialState: function() {
 		this.stage = {
 			x: 0,
 			y: 0,
@@ -82,7 +82,7 @@ var Slide = React.createClass({
 		vertical: React.PropTypes.bool
 	},
 
-	getChildContext: function getChildContext() {
+	getChildContext: function() {
 		return {
 			_intui_slide: true,
 			height: this.refs.outer ? this.refs.outer.clientHeight : null,
@@ -93,7 +93,7 @@ var Slide = React.createClass({
 	},
 
 	//return the width/height of the slide in percentages based on parent context total beta.
-	getBeta: function getBeta() {
+	getBeta: function() {
 		var beta = null;
 		if (this.props.root || this.context.total_beta == null) beta = this.props.beta;else beta = 100 / this.context.total_beta * this.props.beta;
 
@@ -103,7 +103,7 @@ var Slide = React.createClass({
 	},
 
 	//get the calculated outer height and width of the slide.
-	getOuterHW: function getOuterHW() {
+	getOuterHW: function() {
 
 		var ph = this.props.vertical && this.props.auto ? 'auto' : typeof this.props.height == 'number' ? this.props.height + 'px' : this.props.height;
 		var pw = !this.props.vertical && this.props.auto ? 'auto' : typeof this.props.width == 'number' ? this.props.width + 'px' : this.props.width;
@@ -142,6 +142,8 @@ var Slide = React.createClass({
 			ph = ph || '100%';
 		}
 
+		
+
 		return {
 			height: ph,
 			width: pw
@@ -149,7 +151,7 @@ var Slide = React.createClass({
 	},
 
 	//get the calculated inner height and width of the slide.
-	getInnerHW: function getInnerHW() {
+	getInnerHW: function() {
 
 		var dims = {
 			width: this.props.vertical ? '100%' : 'auto',
@@ -160,7 +162,7 @@ var Slide = React.createClass({
 	},
 
 	//get innder dimentions in pixels
-	getInnerDim: function getInnerDim() {
+	getInnerDim: function() {
 		if (!this.props.children) return 0;
 		this.node_count = 0;
 		var d = 0;
@@ -180,7 +182,7 @@ var Slide = React.createClass({
 	},
 
 	//check to see if child is a valid intui slide.
-	isValidChild: function isValidChild(child) {
+	isValidChild: function(child) {
 		if (child == null) return false;
 		if (child.type == null) return false;
 		if (child.type.contextTypes == null) return false;
@@ -190,7 +192,7 @@ var Slide = React.createClass({
 	},
 
 	//scroll to a position, the default transition time is 0.07 but may need to be adjusted based on performance.
-	scrollTo: function scrollTo(pos, dur) {
+	scrollTo: function(pos, dur) {
 		if (this.scroll_ppos == pos) return null;
 		this.scroll_ppos = pos;
 		if (this.props.vertical) {
@@ -202,7 +204,7 @@ var Slide = React.createClass({
 		}
 	},
 
-	scroll_delta: function scroll_delta(delta) {
+	scroll_delta: function(delta) {
 		if (this.props.pause_scroll == true) {
 			// this.scrollTo(this.scroll_pos,true)
 			return null;
@@ -236,7 +238,7 @@ var Slide = React.createClass({
 	// },
 
 	/* if parent element width/height ratio changes, we re-render */
-	getHWRatio: function getHWRatio() {
+	getHWRatio: function() {
 		if (this.rect.width != 0 && this.rect.height != 0) {
 			return this.rect.width / this.rect.height;
 		} else {
@@ -245,7 +247,7 @@ var Slide = React.createClass({
 	},
 
 	/* if i was a bird i would just fly all the time */
-	getHWInnerRatio: function getHWInnerRatio() {
+	getHWInnerRatio: function() {
 		if (this.refs.inner.clientWidth != 0 && this.refs.inner.clientHeight != 0) {
 			return this.refs.inner.clientWidth / this.refs.inner.clientHeight;
 		} else {
@@ -253,7 +255,7 @@ var Slide = React.createClass({
 		}
 	},
 
-	toXY: function toXY(x, y) {
+	toXY: function(x, y) {
 		// console.log(x,y)
 
 		if (this.props.vertical) y += this.props.index_offset;else x += this.props.index_offset;
@@ -269,7 +271,7 @@ var Slide = React.createClass({
 		}.bind(this), this.props.ease_dur * 1000);
 	},
 
-	setXY: function setXY(x, y) {
+	setXY: function(x, y) {
 		if (this.props.vertical) y += this.props.index_offset;else x += this.props.index_offset;
 
 		// console.log('set XY',x,y,this.props.id)
@@ -277,7 +279,7 @@ var Slide = React.createClass({
 		clearTimeout(this.set_timer);
 		this.showNonVisible(x, y);
 		this.hideNonVisible(x, y);
-
+		
 		this.refs.inner.style.transition = '';
 		this.refs.inner.style.transform = 'matrix(1, 0, 0, 1, -' + x + ', -' + y + ')';
 		this.stage.y = -y;
@@ -297,15 +299,21 @@ var Slide = React.createClass({
 
 	//get x and y coordinates of child index.
 
-	getIndexXY: function getIndexXY(index) {
-		if (this.props.slide == false) return { x: 0, y: 0 };
+	getIndexXY: function(index) {
+		if (!this.props.slide) return { x: 0, y: 0 };
+		var o_w = this.refs.outer.clientWidth
+		var o_h = this.refs.outer.clientHeight
 
+		var i_w = this.refs.outer.scrollWidth
+		var i_h = this.refs.outer.scrollHeight
+		// console.log(this.refs.outer.scrollWidth)
 		var x,
 		    y = 0;
-		var max_y = Math.abs(this.refs.inner.clientHeight - this.refs.outer.clientHeight);
-		var max_x = Math.abs(this.refs.inner.clientWidth - this.refs.outer.clientWidth);
 		var self_x = -this.stage.x;
 		var self_y = -this.stage.y;
+		var max_y = Math.abs(self_y + i_h - o_h);
+		var max_x = Math.abs(self_x + i_w - o_w);
+
 		var cc = null;
 
 		for (var i = 0, j = 0; i < this.props.children.length; i++) {
@@ -316,8 +324,9 @@ var Slide = React.createClass({
 		}
 
 		if (!this.props.vertical) {
-			if (cc.offsetLeft > self_x + this.refs.outer.clientWidth / 2) {
-				x = cc.offsetLeft + (this.refs.outer.clientWidth - cc.clientWidth);
+			if (cc.offsetLeft > self_x + o_w / 2) {
+				// console.log ('right align',self_x)
+				x = cc.offsetLeft - (o_w - cc.clientWidth);
 			} else {
 				x = cc.offsetLeft;
 			}
@@ -325,8 +334,8 @@ var Slide = React.createClass({
 			y = 0;
 		} else {
 
-			if (cc.offsetTop > self_y + this.refs.outer.clientHeight / 2) {
-				y = cc.offsetTop + (this.refs.outer.clientHeight - cc.clientHeight);
+			if (cc.offsetTop > self_y + o_h / 2) {
+				y = cc.offsetTop - (o_h - cc.clientHeight);
 			} else {
 				y = cc.offsetTop;
 			}
@@ -334,45 +343,45 @@ var Slide = React.createClass({
 			x = 0;
 		}
 
-		// y += 10;
 
-		// console.log(y,max_y)
-
-		// console.log(x,y)
-
-		return {
+		i_pos = {
 			x: this.props.vertical ? 0 : x > max_x ? max_x : x,
 			y: this.props.vertical ? y > max_y ? max_y : y : 0
 		};
+
+		// console.log(i_pos,max_x,this.props.slide)
+
+
+		return i_pos
 	},
 
-	on: function on(event, listener) {
+	on: function(event, listener) {
 		if (event == 'scroll') {
 			this.scroll_events.push(listener);
 		}
 	},
 
-	width: function width() {
+	width: function() {
 		if (!this.refs.outer) return -1;else return this.refs.outer.clientWidth;
 	},
 
-	height: function height() {
+	height: function() {
 		if (!this.refs.outer) return -1;else return this.refs.outer.clientHeight;
 	},
 
-	getRekt: function getRekt() {
+	getRekt: function() {
 		this.rect = {
 			width: this.props.width || this.refs.outer.clientWidth,
 			height: this.props.height || this.refs.outer.clientHeight
 		};
 	},
 
-	betaToDim: function betaToDim(beta) {
+	betaToDim: function(beta) {
 		if (!this.refs.outer) return 0;
 		return (this.context.vertical ? this.refs.outer.parentElement.parentElement.clientHeight : this.refs.outer.parentElement.parentElement.clientWidth) / 100 * beta;
 	},
 
-	getDimChange: function getDimChange(props) {
+	getDimChange: function(props) {
 		if (props.height == this.props.height && props.width == this.props.width && props.beta == this.props.beta) return null;
 
 		var diff_dim = null;
@@ -407,7 +416,7 @@ var Slide = React.createClass({
 		};
 	},
 
-	updateState: function updateState(props, state, set) {
+	updateState: function(props, state, set) {
 
 		state = state || this.state;
 		props = props || this.props;
@@ -451,13 +460,13 @@ var Slide = React.createClass({
 				offset_x: 0,
 				dim: ratio
 			};
-			if (set) this.setState(state);else Object.assign(this.state, state);
+			if (set) this.setState(state);else _extends(this.state, state);
 		}
 
 		return true;
 	},
 
-	toggleChildOpacity: function toggleChildOpacity(cc, toggle) {
+	toggleChildOpacity: function(cc, toggle) {
 		var cc_trans = cc.style.transition;
 		cc.style.transition = 'none';
 		cc.style.visibility = toggle ? 'initial' : 'hidden';
@@ -465,7 +474,7 @@ var Slide = React.createClass({
 	},
 
 	// check to see if element has intui class
-	isValidElement: function isValidElement(cc) {
+	isValidElement: function(cc) {
 		if (!cc) return false;
 		if (cc.getAttribute('class').match(/_intui_slide_outer|_intui_slide_static/) != null) {
 			return true;
@@ -474,7 +483,7 @@ var Slide = React.createClass({
 		}
 	},
 
-	hideNonVisible: function hideNonVisible(x, y) {
+	hideNonVisible: function(x, y) {
 
 		if (!this.props.slide) return false;
 		// console.log('hide')
@@ -499,7 +508,7 @@ var Slide = React.createClass({
 		}
 	},
 
-	showNonVisible: function showNonVisible(x, y) {
+	showNonVisible: function(x, y) {
 
 		if (!this.props.slide) return;
 		// console.log('show',this.props.children.length)
@@ -522,20 +531,21 @@ var Slide = React.createClass({
 		}
 	},
 
-	toIndex: function toIndex() {
+	toIndex: function() {
 		if (this.props.index_offset == null && this.props.index_pos == null) return;
 		var pos = this.getIndexXY(this.props.index_pos);
+
 		this.toXY(pos.x, pos.y);
 	},
 
-	setIndex: function setIndex() {
+	setIndex: function() {
 		if (this.props.index_offset == null && this.props.index_pos == null) return;
+		// console.log('set index')
 		var pos = this.getIndexXY(this.props.index_pos);
-
 		this.setXY(pos.x, pos.y);
 	},
 
-	componentDidUpdate: function componentDidUpdate(props, state) {
+	componentDidUpdate: function(props, state) {
 
 		if (this.refs.inner) {
 			if (this.props.scroll) {
@@ -549,7 +559,7 @@ var Slide = React.createClass({
 			// if(this.props.c && this.props.c.match(/test/)){
 			// 	// console.log(this.refs.inner.clientHeight)
 			// }
-			var pos = this.getIndexXY(this.props.index_pos);
+			
 			if (props.index_pos != this.props.index_pos || props.index_offset != this.props.index_offset) {
 
 				setTimeout(this.toIndex, 0);
@@ -559,11 +569,11 @@ var Slide = React.createClass({
 
 				this.i_h = this.refs.inner.clientHeight;
 				this.i_w = this.refs.inner.clientWidth;
-
+				// var pos = this.getIndexXY(this.props.index_pos);
 				if (props.index_pos != this.props.index_pos) {
-					this.toXY(pos.x, pos.y);
+					this.toIndex()
 				} else {
-					this.setXY(pos.x, pos.y);
+					this.setIndex()
 				}
 
 				this.prev_pos = false;
@@ -579,21 +589,21 @@ var Slide = React.createClass({
 		this.forceUpdate();
 	},
 
-	// componentWillUnmount: function(){
-	// 	// window.removeEventListener('resize',this.resize)
-	// },
 
 
-	componentDidMount: function componentDidMount() {
+	// on mount
+	componentDidMount: function(){
 
 		this.getRekt();
 		this.updateState(null, null, true);
 
-		if (this.props.index_pos != null) {
+		//REMOVE
+		if (this.props.index_pos != null && this.props.slide) {
 			setTimeout(this.setIndex, 0);
 		}
 	},
 
+	// will unmount
 	componentWillMount: function componentWillMount() {
 		this.pass_props = {};
 		this.events.forEach(function (e) {
@@ -602,9 +612,11 @@ var Slide = React.createClass({
 			}
 		}.bind(this));
 	},
+
+	// events (cant)
 	events: ['onClick', 'onMouseEnter', 'onMouseLeave'],
 
-	render: function render() {
+	render: function(){
 		// if(this.props.c && this.props.c.match(/test/)) window.tslide = this
 
 		// window._intui_render_calls = window._intui_render_calls || 0
@@ -613,7 +625,7 @@ var Slide = React.createClass({
 		var outer_hw_style, inner_hw_style, innerClass, inner, outerClass, staticClass;
 
 		if (dynamic) {
-			outer_hw_style = Object.assign(this.getOuterHW(), this.props.style);
+			outer_hw_style = _extends(this.getOuterHW(), this.props.style);
 			inner_hw_style = this.getInnerHW();
 			innerClass = ' _intui_slide_inner ' + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.c || this.props.innerClassName || this.props.className || '') + (this.props.center ? ' _intui_slide_center' : '');
 			inner = React.createElement(
@@ -623,7 +635,7 @@ var Slide = React.createClass({
 			);
 			outerClass = ' _intui_slide_outer ' + (this.props.oc || this.props.outerClassName || '') + (this.props.height != null || this.props.width != null ? ' _intui_slide_fixed' : '');
 		} else {
-			outer_hw_style = Object.assign(this.getOuterHW(), this.props.style);
+			outer_hw_style = _extends(this.getOuterHW(), this.props.style);
 
 			inner = this.props.children;
 			staticClass = ' _intui_slide_static' + (this.props.center ? ' _intui_slide_center' : '') + (this.props.vertical ? ' _intui_slide_vertical ' : ' ') + (this.props.height != null || this.props.width != null ? ' _intui_slide_fixed ' : ' ') + (this.props.c || this.props.innerClassName || '');

@@ -1,4 +1,3 @@
-
 @mixin center {
 	align-items : center;
 	display   : flex;
@@ -163,7 +162,13 @@
 }
 
 ._intui_slide_inner{
-	display: flex
+	display: flex;
+	._intui_slide_outer{
+		flex-shrink: 0;
+	}
+	._intui_slide_static{
+		flex-shrink: 0;
+	}
 }
 
 ._intui_slide_horizontal{
