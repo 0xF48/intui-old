@@ -23,14 +23,16 @@ var Slide = React.createClass({
 			pause_scroll: false,
 			ease: 'cubic-bezier(.29,.3,.08,1)',
 			index_offset: null,
+			flip: true,
 			_intui_slide: true, //intui slide identifier.
 			ease_dur: 0.4, //slide ease_dur
-			index_pos: null, //current nested slide index.
+			index_pos: 0, //current nested slide index.
 			offset: 0, //slide offset in pixels
 			beta: 100, //beta relative to parent
 			c: null, //inner and static classname shortcut
 			oc: null, //outer classname shortcut
 			slide: false,
+			size: null,
 			height: null, //height override
 			width: null, //width override
 			center: false,
@@ -104,9 +106,13 @@ var Slide = React.createClass({
 
 	//get the calculated outer height and width of the slide.
 	getOuterHW: function() {
+		var w =  (!this.props.vertical && this.props.size) || this.props.width
+		var h =  (this.props.vertical && this.props.size) || this.props.height
 
-		var ph = this.props.vertical && this.props.auto ? 'auto' : typeof this.props.height == 'number' ? this.props.height + 'px' : this.props.height;
-		var pw = !this.props.vertical && this.props.auto ? 'auto' : typeof this.props.width == 'number' ? this.props.width + 'px' : this.props.width;
+		
+
+		var ph = this.props.vertical && this.props.auto ? 'auto' : typeof h == 'number' ? (h) + 'px' : (h);
+		var pw = !this.props.vertical && this.props.auto ? 'auto' : typeof w == 'number' ? (w) + 'px' : (w);
 
 		var p_w, p_h;
 
@@ -116,11 +122,11 @@ var Slide = React.createClass({
 
 				p_w = this.refs.outer.parentElement.clientWidth;
 				p_h = this.refs.outer.parentElement.clientHeight;
-				// console.log(p_w, p_h)
+				
 			} else if (p_a && p_a.match(/_intui_slide_inner/)) {
 				p_w = this.refs.outer.parentElement.parentElement.clientWidth;
 				p_h = this.refs.outer.parentElement.parentElement.clientHeight;
-				// console.log(p_w, p_h)
+				
 			} else {
 				return {
 					height: ph || '100%',
@@ -170,7 +176,7 @@ var Slide = React.createClass({
 			var child = this.props.children[i];
 			if (!this.isValidChild(child)) continue;
 			this.node_count++;
-			// console.log(this.rect.height)
+			//// console.log(this.rect.height)
 			if (this.props.vertical) {
 				d += child.props.height != null ? child.props.height : this.rect.height / 100 * child.props.beta;
 			} else {
@@ -256,7 +262,7 @@ var Slide = React.createClass({
 	},
 
 	toXY: function(x, y) {
-		// console.log(x,y)
+		//// console.log(x,y)
 
 		if (this.props.vertical) y += this.props.index_offset;else x += this.props.index_offset;
 
@@ -274,7 +280,7 @@ var Slide = React.createClass({
 	setXY: function(x, y) {
 		if (this.props.vertical) y += this.props.index_offset;else x += this.props.index_offset;
 
-		// console.log('set XY',x,y,this.props.id)
+		//// console.log('set XY',x,y,this.props.id)
 		clearTimeout(this.slide_timer);
 		clearTimeout(this.set_timer);
 		this.showNonVisible(x, y);
@@ -294,7 +300,7 @@ var Slide = React.createClass({
 					this.refs.inner.style.transition = 'transform ' + this.props.ease_dur + 's ' + this.props.ease;
 				}
 			}
-		}.bind(this), this.props.ease_dur * 1000);
+		}.bind(this),0);
 	},
 
 	//get x and y coordinates of child index.
@@ -306,7 +312,7 @@ var Slide = React.createClass({
 
 		var i_w = this.refs.outer.scrollWidth
 		var i_h = this.refs.outer.scrollHeight
-		// console.log(this.refs.outer.scrollWidth)
+		//// console.log(this.refs.outer.scrollWidth)
 		var x,
 		    y = 0;
 		var self_x = -this.stage.x;
@@ -325,7 +331,7 @@ var Slide = React.createClass({
 
 		if (!this.props.vertical) {
 			if (cc.offsetLeft > self_x + o_w / 2) {
-				// console.log ('right align',self_x)
+				//// console.log ('right align',self_x)
 				x = cc.offsetLeft - (o_w - cc.clientWidth);
 			} else {
 				x = cc.offsetLeft;
@@ -349,7 +355,7 @@ var Slide = React.createClass({
 			y: this.props.vertical ? y > max_y ? max_y : y : 0
 		};
 
-		// console.log(i_pos,max_x,this.props.slide)
+		//// console.log(i_pos,max_x,this.props.slide)
 
 
 		return i_pos
@@ -468,9 +474,42 @@ var Slide = React.createClass({
 
 	toggleChildOpacity: function(cc, toggle) {
 		var cc_trans = cc.style.transition;
-		cc.style.transition = 'none';
+		var dur = this.props.ease_dur;
+		var ease = this.props.ease;
+		var old = cc.style.visibility
 		cc.style.visibility = toggle ? 'initial' : 'hidden';
-		cc.style.transition = cc_trans;
+
+		var old_class = cc.className
+
+		if(old != cc.style.visibility && this.props.flip){
+			clearTimeout(cc._intui_timer)
+			if(toggle){
+				cc.className += ' _intui_slide_in_pre'
+			}else{
+				cc.className += ' _intui_slide_out_pre'
+			}
+
+			if(cc.offsetLeft > -this.stage.x){
+				cc.className += ' _intui_slide_right'
+			}else{
+				cc.className += ' _intui_slide_left'
+			}
+
+			cc._intui_timer = setTimeout(function(){
+
+				
+				if(toggle){
+					cc.className += ' _intui_slide_in'
+				}else{
+					cc.className += ' _intui_slide_out'
+				}
+
+			},0)
+			cc._intui_timer = setTimeout(function(){
+				cc.className = old_class
+			},dur*1000)
+		
+		}	
 	},
 
 	// check to see if element has intui class
@@ -485,8 +524,9 @@ var Slide = React.createClass({
 
 	hideNonVisible: function(x, y) {
 
+
 		if (!this.props.slide) return false;
-		// console.log('hide')
+		//// console.log('hide')
 		for (var i = 0; i < this.props.children.length; i++) {
 			var c = this.props.children[i];
 			var cc = this.refs.inner.children[i];
@@ -494,15 +534,18 @@ var Slide = React.createClass({
 			if (!this.isValidElement(cc)) continue;
 
 			if (this.props.vertical) {
-				// console.log('hide',y,cc.offsetTop+cc.clientHeight)
+				//// console.log('hide',y,cc.offsetTop+cc.clientHeight)
+
+
+
 				if (cc.offsetTop + cc.clientHeight <= y || cc.offsetTop >= y + this.refs.outer.clientHeight) {
 					this.toggleChildOpacity(cc, 0);
-					// console.log('TOGGLE -',cc.offsetTop,cc.clientHeight)
+					//// console.log('TOGGLE -',cc.offsetTop,cc.clientHeight)
 				}
 			} else {
 				if (cc.offsetLeft + cc.clientWidth <= x || cc.offsetLeft >= x + this.refs.outer.clientWidth) {
 					this.toggleChildOpacity(cc, 0);
-					// console.log('TOGGLE -')
+					//// console.log('TOGGLE -')
 				}
 			}
 		}
@@ -511,7 +554,7 @@ var Slide = React.createClass({
 	showNonVisible: function(x, y) {
 
 		if (!this.props.slide) return;
-		// console.log('show',this.props.children.length)
+		//// console.log('show',this.props.children.length)
 		for (var i = 0; i < this.props.children.length; i++) {
 			var c = this.props.children[i];
 			if (!this.isValidChild(c)) continue;
@@ -519,14 +562,17 @@ var Slide = React.createClass({
 			var cc = this.refs.inner.children[i];
 			if (this.props.vertical) {
 
-				if (cc.offsetTop > y && cc.offsetTop < y + this.refs.outer.clientHeight || cc.offsetTop + cc.clientHeight < y + this.refs.outer.clientHeight && cc.offsetTop + cc.clientHeight > y) {
+
+				if(cc.offsetTop >= y && cc.offsetTop < y + this.refs.outer.clientHeight){
 					this.toggleChildOpacity(cc, 1);
 				}
+				
 			} else {
-				if (cc.offsetLeft + cc.clientWidth > x && cc.offsetLeft < x + this.refs.outer.clientWidth) {
+
+				if(cc.offsetLeft >= x && cc.offsetLeft < x + this.refs.outer.clientWidth){
 					this.toggleChildOpacity(cc, 1);
-					// console.log('TOGGLE +')
 				}
+
 			}
 		}
 	},
@@ -540,7 +586,7 @@ var Slide = React.createClass({
 
 	setIndex: function() {
 		if (this.props.index_offset == null && this.props.index_pos == null) return;
-		// console.log('set index')
+		//// console.log('set index')
 		var pos = this.getIndexXY(this.props.index_pos);
 		this.setXY(pos.x, pos.y);
 	},
@@ -557,7 +603,7 @@ var Slide = React.createClass({
 
 		if ((this.props.index_pos != null || this.props.index_offset != null) && this.props.slide) {
 			// if(this.props.c && this.props.c.match(/test/)){
-			// 	// console.log(this.refs.inner.clientHeight)
+	//			console.log(this.refs.inner.clientHeight)
 			// }
 			
 			if (props.index_pos != this.props.index_pos || props.index_offset != this.props.index_offset) {
@@ -622,7 +668,10 @@ var Slide = React.createClass({
 		// window._intui_render_calls = window._intui_render_calls || 0
 		// window._intui_render_calls ++ 
 		var dynamic = this.props.slide;
-		var outer_hw_style, inner_hw_style, innerClass, inner, outerClass, staticClass;
+		var outer_hw_style, inner_hw_style, innerClass, inner, outerClass, staticClass,inner_2;
+		// inner_2 = React.createElement(
+		
+		// )
 
 		if (dynamic) {
 			outer_hw_style = _extends(this.getOuterHW(), this.props.style);
