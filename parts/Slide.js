@@ -21,7 +21,7 @@ var Slide = React.createClass({
 
 		return {
 			pause_scroll: false,
-			ease: 'cubic-bezier(.29,.3,.08,1)',
+			ease: 'cubic-bezier(0.25, 0.34, 0, 1)',
 			index_offset: null,
 			flip: true,
 			_intui_slide: true, //intui slide identifier.
@@ -72,9 +72,11 @@ var Slide = React.createClass({
 	contextTypes: {
 		_intui_slide: React.PropTypes.bool, //this is a uique prop to identify a react component as an intui slide.
 		total_beta: React.PropTypes.number, //total beta is the total beta of all children for this slide passed in the declarative props
-		width: React.PropTypes.number,
+		width: React.PropTypes.number, 
 		height: React.PropTypes.number,
-		vertical: React.PropTypes.bool },
+		vertical: React.PropTypes.bool 
+	},
+
 
 	childContextTypes: {
 		_intui_slide: React.PropTypes.bool,
@@ -84,12 +86,12 @@ var Slide = React.createClass({
 		vertical: React.PropTypes.bool
 	},
 
+	// react method
 	getChildContext: function() {
 		return {
 			_intui_slide: true,
 			height: this.refs.outer ? this.refs.outer.clientHeight : null,
 			width: this.refs.outer ? this.refs.outer.clientWidth : null,
-			// total_beta: this.getTotalBeta(),
 			vertical: this.props.vertical
 		};
 	},
@@ -106,13 +108,12 @@ var Slide = React.createClass({
 
 	//get the calculated outer height and width of the slide.
 	getOuterHW: function() {
-		var w =  (!this.props.vertical && this.props.size) || this.props.width
-		var h =  (this.props.vertical && this.props.size) || this.props.height
 
-		
+		var w =  (!this.context.vertical && this.props.size) || this.props.width
+		var h =  (this.context.vertical && this.props.size) || this.props.height
 
-		var ph = this.props.vertical && this.props.auto ? 'auto' : typeof h == 'number' ? (h) + 'px' : (h);
-		var pw = !this.props.vertical && this.props.auto ? 'auto' : typeof w == 'number' ? (w) + 'px' : (w);
+		var ph = this.context.vertical && this.props.auto ? 'auto' : typeof h == 'number' ? (h) + 'px' : (h);
+		var pw = !this.context.vertical && this.props.auto ? 'auto' : typeof w == 'number' ? (w) + 'px' : (w);
 
 		var p_w, p_h;
 
@@ -148,8 +149,6 @@ var Slide = React.createClass({
 			ph = ph || '100%';
 		}
 
-		
-
 		return {
 			height: ph,
 			width: pw
@@ -167,25 +166,25 @@ var Slide = React.createClass({
 		return dims;
 	},
 
-	//get innder dimentions in pixels
-	getInnerDim: function() {
-		if (!this.props.children) return 0;
-		this.node_count = 0;
-		var d = 0;
-		for (var i = 0; i < this.props.children.length; i++) {
-			var child = this.props.children[i];
-			if (!this.isValidChild(child)) continue;
-			this.node_count++;
-			//// console.log(this.rect.height)
-			if (this.props.vertical) {
-				d += child.props.height != null ? child.props.height : this.rect.height / 100 * child.props.beta;
-			} else {
-				d += child.props.width != null ? child.props.width : this.rect.width / 100 * child.props.beta;
-			}
-			if (child.props.offset) d += child.props.offset;
-		}
-		return d;
-	},
+	// //get innder dimentions in pixels
+	// getInnerDim: function() {
+	// 	if (!this.props.children) return 0;
+	// 	this.node_count = 0;
+	// 	var d = 0;
+	// 	for (var i = 0; i < this.props.children.length; i++) {
+	// 		var child = this.props.children[i];
+	// 		if (!this.isValidChild(child)) continue;
+	// 		this.node_count++;
+	// 		//// console.log(this.rect.height)
+	// 		if (this.props.vertical) {
+	// 			d += child.props.height != null ? child.props.height : this.rect.height / 100 * child.props.beta;
+	// 		} else {
+	// 			d += child.props.width != null ? child.props.width : this.rect.width / 100 * child.props.beta;
+	// 		}
+	// 		if (child.props.offset) d += child.props.offset;
+	// 	}
+	// 	return d;
+	// },
 
 	//check to see if child is a valid intui slide.
 	isValidChild: function(child) {
@@ -235,15 +234,7 @@ var Slide = React.createClass({
 			else return 0; //this.scroll_cb(0,delta);
 	},
 
-	// getTotalBeta: function() {
-	// 	if(!this.props.children) return 100		
-	// 	var b = this.getInnerDim()/(this.props.vertical ? this.rect.height : this.rect.width)*100
-	// 	if( b < 100 ) b = 100;
-	// 	if( b == Infinity) b = 100;
-	// 	return b
-	// },
-
-	/* if parent element width/height ratio changes, we re-render */
+	
 	getHWRatio: function() {
 		if (this.rect.width != 0 && this.rect.height != 0) {
 			return this.rect.width / this.rect.height;
@@ -252,24 +243,22 @@ var Slide = React.createClass({
 		}
 	},
 
-	/* if i was a bird i would just fly all the time */
-	getHWInnerRatio: function() {
-		if (this.refs.inner.clientWidth != 0 && this.refs.inner.clientHeight != 0) {
-			return this.refs.inner.clientWidth / this.refs.inner.clientHeight;
-		} else {
-			return 0;
-		}
-	},
+	// getHWInnerRatio: function() {
+	// 	if (this.refs.inner.clientWidth != 0 && this.refs.inner.clientHeight != 0) {
+	// 		return this.refs.inner.clientWidth / this.refs.inner.clientHeight;
+	// 	} else {
+	// 		return 0;
+	// 	}
+	// },
 
 	toXY: function(x, y) {
-		//// console.log(x,y)
-
 		if (this.props.vertical) y += this.props.index_offset;else x += this.props.index_offset;
 
 		this.refs.inner.style.transform = 'matrix(1, 0, 0, 1, ' + String(-x) + ', ' + String(-y) + ')';
+		this.showNonVisible(x, y);
 		this.stage.y = -y;
 		this.stage.x = -x;
-		this.showNonVisible(x, y);
+		
 		clearTimeout(this.slide_timer);
 		this.slide_timer = setTimeout(function () {
 			this.hideNonVisible(-this.stage.x, -this.stage.y);
@@ -310,24 +299,29 @@ var Slide = React.createClass({
 		var o_w = this.refs.outer.clientWidth
 		var o_h = this.refs.outer.clientHeight
 
-		var i_w = this.refs.outer.scrollWidth
-		var i_h = this.refs.outer.scrollHeight
+		var i_w = 0
+		var i_h = 0
 		//// console.log(this.refs.outer.scrollWidth)
 		var x,
 		    y = 0;
 		var self_x = -this.stage.x;
 		var self_y = -this.stage.y;
-		var max_y = Math.abs(self_y + i_h - o_h);
-		var max_x = Math.abs(self_x + i_w - o_w);
-
+		
+		console.log(i_w)
 		var cc = null;
 
 		for (var i = 0, j = 0; i < this.props.children.length; i++) {
+
 			if (!this.isValidElement(this.refs.inner.children[i])) continue;
 			cc = this.refs.inner.children[i];
+			i_w += cc.clientWidth
+			i_h += cc.clientWidth
 			if (j == index) break;
 			j++;
 		}
+
+		var max_y = Math.abs(self_y + i_h - o_h);
+		var max_x = Math.abs(self_x + i_w - o_w);
 
 		if (!this.props.vertical) {
 			if (cc.offsetLeft > self_x + o_w / 2) {
@@ -443,21 +437,7 @@ var Slide = React.createClass({
 		var ratio = this.getHWRatio();
 
 		var d_needs_update = state.dim != ratio || props.width != this.props.width || props.height != this.props.height || props.beta != this.props.beta;
-		// var i_needs_update = DimController.needs_update(d_needs_update,this.rect);
 
-
-		// if( ( props.index_offset != null || props.index_pos != null ) && props.slide){
-		// 	if(this.props.index_pos != props.index_pos || props.index_offset != this.props.index_offset){
-
-		// 		this.prev_pos = false;
-		// 	}else if(this.props.index_pos == props.index_pos && d_needs_update){
-
-		// 		this.prev_pos = true;
-		// 	}else if(this.props.index_pos == props.index_pos && i_needs_update && !d_needs_update){
-
-		// 		setTimeout(this.toIndex,0)
-		// 	}
-		// }
 
 
 		if (d_needs_update) {
@@ -481,21 +461,25 @@ var Slide = React.createClass({
 
 		var old_class = cc.className
 
-		if(old != cc.style.visibility && this.props.flip){
-			clearTimeout(cc._intui_timer)
+
+		this.refs.inner.style.perspective =  Math.round( ( !this.props.vertical ? this.refs.inner.clientHeight : this.refs.inner.clientWidth) / 1.5) + 'px'
+
+
+		if( toggle && old != cc.style.visibility && this.props.flip && cc._intui_timer == null && cc._intui_timer2 == null){
+			
 			if(toggle){
 				cc.className += ' _intui_slide_in_pre'
 			}else{
 				cc.className += ' _intui_slide_out_pre'
 			}
-
-			if(cc.offsetLeft > -this.stage.x){
+			// console.log('STAGE X',-this.stage.x)
+			if( (!this.props.vertical && cc.offsetLeft >= -this.stage.x) || (this.props.vertical && cc.offsetTop > -this.stage.y) ){
 				cc.className += ' _intui_slide_right'
 			}else{
 				cc.className += ' _intui_slide_left'
 			}
 
-			cc._intui_timer = setTimeout(function(){
+			cc._intui_timer2 = setTimeout(function(){
 
 				
 				if(toggle){
@@ -504,12 +488,15 @@ var Slide = React.createClass({
 					cc.className += ' _intui_slide_out'
 				}
 
-			},0)
+			},10)
+			cc._intui_old_class = old_class
 			cc._intui_timer = setTimeout(function(){
-				cc.className = old_class
-			},dur*1000)
-		
-		}	
+				cc.className = cc._intui_old_class
+				cc._intui_old_class = null
+				cc._intui_timer = null
+				cc._intui_timer2 = null
+			},dur*1000+100)
+		}
 	},
 
 	// check to see if element has intui class
@@ -647,6 +634,7 @@ var Slide = React.createClass({
 		if (this.props.index_pos != null && this.props.slide) {
 			setTimeout(this.setIndex, 0);
 		}
+
 	},
 
 	// will unmount
